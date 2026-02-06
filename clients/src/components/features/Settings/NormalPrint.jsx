@@ -33,9 +33,45 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
     signatureUrl: ""
   });
 
+  
+
   // Initialize form data from props
   useEffect(() => {
+     console.log("Template received in NormalPrint:", template);
+    console.log("Template fieldVisibility:", template?.fieldVisibility);
     if (template) {
+      const newFormData = {
+        // Company data
+        companyLogo: companyData?.companyLogo || "",
+        companyAddress: companyData?.companyaddress || "",
+        companyEmail: companyData?.companyemail || "",
+        companyPhone: companyData?.companyphone || "",
+        companyGSTIN: companyData?.gstin || "",
+        
+        // Field visibility - IMPORTANT: Check each field individually
+        showHSN: template.fieldVisibility?.showHSN !== false,
+        showRate: template.fieldVisibility?.showRate !== false,
+        showTax: template.fieldVisibility?.showTax !== false,
+        showTotalsInWords: template.fieldVisibility?.showTotalsInWords !== false,
+        showBankDetails: template.fieldVisibility?.showBankDetails !== false,
+        showTermsConditions: template.fieldVisibility?.showTermsConditions !== false,
+        
+        // Template selection
+        selectedTemplate: template.selectedTemplate || "template1",
+        signatureUrl: template.signatureUrl || ""
+      };
+      
+      console.log("Setting formData to:", newFormData);
+      setFormData(newFormData);
+      setActiveTemplate(template.selectedTemplate || "template1");
+      
+      // Set signature preview if exists
+      if (template.signatureUrl) {
+        setSignaturePreview(template.signatureUrl);
+      }
+    } else if (companyData) {
+      // Initialize from company data if no template
+      console.log("No template found, using default settings");
       setFormData(prev => ({
         ...prev,
         companyLogo: companyData?.companyLogo || "",
@@ -185,37 +221,39 @@ const removeSignature = () => {
 };
 
 
-  const handleSaveSettings = async () => {
-    try {
-      // Prepare data for saving
-      const saveData = {
-        templateType: 'normal',
-        selectedTemplate: formData.selectedTemplate,
-        fieldVisibility: {
-          showHSN: formData.showHSN,
-          showRate: formData.showRate,
-          showTax: formData.showTax,
-          showTotalsInWords: formData.showTotalsInWords,
-          showBankDetails: formData.showBankDetails,
-          showTermsConditions: formData.showTermsConditions
-        },
-        signatureUrl: formData.signatureUrl,
-        // Company data to save back to company settings if needed
-        companyData: {
-          companyLogo: companyData?.companyLogo || "",
-          companyaddress: formData.companyAddress,
-          companyemail: formData.companyEmail,
-          companyphone: formData.companyPhone,
-          gstin: formData.companyGSTIN
-        }
-      };
+const handleSaveSettings = async () => {
+  try {
+    console.log("Saving with formData:", formData);
+    
+    // Prepare data for saving - IMPORTANT: Use the exact field names from your schema
+    const saveData = {
+      templateType: 'normal',
+      selectedTemplate: formData.selectedTemplate,
+      fieldVisibility: {
+        showHSN: Boolean(formData.showHSN),
+        showRate: Boolean(formData.showRate),
+        showTax: Boolean(formData.showTax),
+        showTotalsInWords: Boolean(formData.showTotalsInWords),
+        showBankDetails: Boolean(formData.showBankDetails),
+        showTermsConditions: Boolean(formData.showTermsConditions),
+        // Include all required fields from schema
+        showDate: true, // Add default value for required field
+        showTime: true, // Add default value for required field
+      },
+      signatureUrl: formData.signatureUrl,
+      templateName: `Normal Template - ${formData.selectedTemplate}`,
+      // Don't send companyData here - that should be handled separately
+    };
 
-      // Call the parent save function
-      await onSave(saveData);
-    } catch (error) {
-      console.error('Error saving settings:', error);
-    }
-  };
+    console.log("Sending saveData:", saveData);
+
+    // Call the parent save function
+    await onSave(saveData);
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    toast.error(`Failed to save settings: ${error.message}`);
+  }
+};
 
   return (
     <div

@@ -96,16 +96,7 @@ const Brand = () => {
       setIsAdding(true);
       // const token = localStorage.getItem("token"); // ✅ get token from storage
 
-      const res = await api.post(
-        "/api/brands/addBrands",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            // Authorization: `Bearer ${token}`, // ✅ include token in headers
-          },
-        }
-      );
+      const res = await api.post("/api/brands/addBrands", formData);
 
       // console.log("Brand Added:", res.data);
 
@@ -493,7 +484,8 @@ const Brand = () => {
                   Add Brand
                 </span>
               </NavLink> */}
-          {hasPermission("Brand", "write") && (<a
+          {/* {hasPermission("Brand", "write") && ( */}
+            <a
             title="Add Brand Button"
             className="button-hover"
             data-bs-toggle="modal"
@@ -511,7 +503,8 @@ const Brand = () => {
               alignItems: "center",
               gap: 8,
             }}
-          > <MdAddShoppingCart className="fs-5" /> Add Brand</a>)}
+          > <MdAddShoppingCart className="fs-5" /> Add Brand</a>
+          {/* )} */}
         </div>
       </div>
 

@@ -9,11 +9,14 @@ const System_Setting = () => {
 
   const [settings, setSettings] = useState({
     brand: false,
+    description: false,
     category: false,
     subcategory: false,
     itembarcode: false,
     hsn: false,
     lotno: false,
+    supplier: false,
+    status: false,
     serialno: false,
     variants: { size: false, color: false },
     units: false,
@@ -45,11 +48,14 @@ const System_Setting = () => {
         const data = response.data.data;
         setSettings({
           brand: data.brand || false,
+          description: data.description || false,
           category: data.category || false,
           subcategory: data.subcategory || false,
           itembarcode: data.itembarcode || false,
           hsn: data.hsn || false,
           lotno: data.lotno || false,
+          supplier: data.supplier || false,
+          status: data.status || false,
           serialno: data.serialno || false,
           variants: {
             size: data.variants?.size || false,
@@ -110,7 +116,7 @@ const System_Setting = () => {
       {/* Page Title */}
       <div
         style={{
-          fontSize: 18,
+          fontSize: 24,
           fontWeight: "600",
           color: "#0E101A",
           marginBottom: 32,
@@ -120,6 +126,17 @@ const System_Setting = () => {
       </div>
 
       <div style={{ overflow: "auto", height: "calc(100vh - 330px)", width: '100%' }}>
+
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            color: "#0E101A",
+            marginBottom: 20,
+          }}
+        >
+          General Settings
+        </div>
 
         {/* brand */}
         <div
@@ -146,6 +163,40 @@ const System_Setting = () => {
             type="checkbox"
             checked={settings.brand}
             onChange={() => handleCheckboxChange('brand')}
+            style={{
+              width: 20,
+              height: 20,
+              accentColor: "#1F7FFF",
+              cursor: "pointer",
+            }}
+          />
+        </div>
+
+        {/* description */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            // justifyContent: "space-around",
+            marginBottom: 24,
+            // maxWidth: 610,
+            width: '100%'
+          }}
+        >
+          <label
+            style={{
+              fontSize: 14,
+              color: "#3D3D3D",
+              fontWeight: "400",
+              width: '50%',
+            }}
+          >
+            Description :
+          </label>
+          <input
+            type="checkbox"
+            checked={settings.description}
+            onChange={() => handleCheckboxChange('description')}
             style={{
               width: 20,
               height: 20,
@@ -291,6 +342,18 @@ const System_Setting = () => {
           />
         </div>
 
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            color: "#0E101A",
+            marginTop: 40,
+            marginBottom: 20,
+          }}
+        >
+          Lot Setting
+        </div>
+
         {/* Lot No*/}
         <div
           style={{
@@ -325,7 +388,7 @@ const System_Setting = () => {
           />
         </div>
 
-        {/* serial no */}
+        {/* supplier */}
         <div
           style={{
             display: "flex",
@@ -344,12 +407,46 @@ const System_Setting = () => {
               width: '50%',
             }}
           >
-            Serial No :
+            Supplier :
           </label>
           <input
             type="checkbox"
-            checked={settings.serialno}
-            onChange={() => handleCheckboxChange('serialno')}
+            checked={settings.supplier}
+            onChange={() => handleCheckboxChange('supplier')}
+            style={{
+              width: 20,
+              height: 20,
+              accentColor: "#1F7FFF",
+              cursor: "pointer",
+            }}
+          />
+        </div>
+
+        {/* Unit */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            // justifyContent: "space-around",
+            marginBottom: 24,
+            // maxWidth: 610,
+            width: '100%'
+          }}
+        >
+          <label
+            style={{
+              fontSize: 14,
+              color: "#3D3D3D",
+              fontWeight: "400",
+              width: '50%',
+            }}
+          >
+            Unit :
+          </label>
+          <input
+            type="checkbox"
+            checked={settings.units}
+            onChange={() => handleCheckboxChange('units')}
             style={{
               width: 20,
               height: 20,
@@ -483,40 +580,6 @@ const System_Setting = () => {
 
         </div>
 
-        {/* Unit */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            // justifyContent: "space-around",
-            marginBottom: 24,
-            // maxWidth: 610,
-            width: '100%'
-          }}
-        >
-          <label
-            style={{
-              fontSize: 14,
-              color: "#3D3D3D",
-              fontWeight: "400",
-              width: '50%',
-            }}
-          >
-            Unit :
-          </label>
-          <input
-            type="checkbox"
-            checked={settings.units}
-            onChange={() => handleCheckboxChange('units')}
-            style={{
-              width: 20,
-              height: 20,
-              accentColor: "#1F7FFF",
-              cursor: "pointer",
-            }}
-          />
-        </div>
-
         {/* expiry */}
         <div
           style={{
@@ -542,6 +605,86 @@ const System_Setting = () => {
             type="checkbox"
             checked={settings.expiry}
             onChange={() => handleCheckboxChange('expiry')}
+            style={{
+              width: 20,
+              height: 20,
+              accentColor: "#1F7FFF",
+              cursor: "pointer",
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            color: "#0E101A",
+            marginTop: 40,
+            marginBottom: 20,
+          }}
+        >
+          Serial No. Setting
+        </div>
+
+        {/* serial no */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            // justifyContent: "space-around",
+            marginBottom: 24,
+            // maxWidth: 610,
+            width: '100%'
+          }}
+        >
+          <label
+            style={{
+              fontSize: 14,
+              color: "#3D3D3D",
+              fontWeight: "400",
+              width: '50%',
+            }}
+          >
+            Serial No :
+          </label>
+          <input
+            type="checkbox"
+            checked={settings.serialno}
+            onChange={() => handleCheckboxChange('serialno')}
+            style={{
+              width: 20,
+              height: 20,
+              accentColor: "#1F7FFF",
+              cursor: "pointer",
+            }}
+          />
+        </div>
+
+        {/* status */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            // justifyContent: "space-around",
+            marginBottom: 24,
+            // maxWidth: 610,
+            width: '100%'
+          }}
+        >
+          <label
+            style={{
+              fontSize: 14,
+              color: "#3D3D3D",
+              fontWeight: "400",
+              width: '50%',
+            }}
+          >
+            Status :
+          </label>
+          <input
+            type="checkbox"
+            checked={settings.status}
+            onChange={() => handleCheckboxChange('status')}
             style={{
               width: 20,
               height: 20,

@@ -62,11 +62,14 @@ const ProductForm = () => {
 
   const [settings, setSettings] = useState({
     brand: false,
+    description: false,
     category: false,
     subcategory: false,
     itembarcode: false,
     hsn: false,
     lotno: false,
+    supplier: false,
+    status: false,
     serialno: false,
     variants: { size: false, color: false },
     units: false,
@@ -85,11 +88,14 @@ const ProductForm = () => {
         const data = response.data.data;
         setSettings({
           brand: data.brand || false,
+          description: data.description || false,
           category: data.category || false,
           subcategory: data.subcategory || false,
           itembarcode: data.itembarcode || false,
           hsn: data.hsn || false,
           lotno: data.lotno || false,
+          supplier: data.supplier || false,
+          status: data.status || false,
           serialno: data.serialno || false,
           variants: {
             size: data.variants?.size || false,
@@ -1241,12 +1247,12 @@ const ProductForm = () => {
               overflowX: 'auto',
               overflowY: "auto",
               // maxHeight: "calc(100vh - 160px)",
-              height:'100vh',
+              height: '100vh',
               position: 'relative'
             }}
             >
               {/* General Details */}
-              <div style={{ width: "1832px", }}>
+              <div style={{ width: "1832px", borderBottom: "1px var(--Stroke, #EAEAEA) solid", paddingBottom: '20px' }}>
                 <div
                   style={{
                     color: "black",
@@ -1425,6 +1431,79 @@ const ProductForm = () => {
                         ))}
                       </select>
 
+                    </div>
+                  </div>}
+
+                  {/* description */}
+                  {settings.description && <div
+                    style={{
+                      width: "400px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: "4px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "var(--Black-Grey, #727681)",
+                          fontSize: "12px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          lineHeight: "14.40px",
+                        }}
+                      >
+                        Description
+                      </span>
+                      <span
+                        style={{
+                          color: "var(--Danger, #D00003)",
+                          fontSize: "12px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          lineHeight: "14.40px",
+                        }}
+                      >
+                        *
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "40px",
+                        padding: "0 12px",
+                        background: "white",
+                        borderRadius: "8px",
+                        border: highlightedFields.includes("productName") ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "8px",
+                        display: "flex",
+                      }}
+                    >
+                      <input
+                        type="text"
+                        name="description"
+                        placeholder="Enter Description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        style={{
+                          width: "100%",
+                          border: "none",
+                          background: "transparent",
+                          color: "var(--Black-Black, #0E101A)",
+                          fontSize: "14px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          outline: "none",
+                        }}
+                      />
                     </div>
                   </div>}
 
@@ -2121,178 +2200,6 @@ const ProductForm = () => {
               </div>
 
               {/* Lot No. Section */}
-              {settings.lotno && <div style={{ width: "1660px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "7px",
-                    marginBottom: "8px",
-                  }}
-                >
-                  <label
-                    onClick={() => setIsOn(!isOn)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      fontSize: "16px",
-                      // fontFamily: "Inter",
-                      fontWeight: "500",
-                      cursor: "pointer",
-                      userSelect: "none",
-                    }}
-                  >
-                    {/* Toggle Switch */}
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "22px",
-                        borderRadius: "50px",
-                        backgroundColor: isOn ? "#1F7FFF" : "#ccc",
-                        position: "relative",
-                        transition: "background-color 0.3s ease",
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "2px",
-                          left: isOn ? "20px" : "2px",
-                          width: "18px",
-                          height: "18px",
-                          borderRadius: "50%",
-                          background: "white",
-                          transition: "left 0.3s ease",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-                        }}
-                      ></div>
-                    </div>
-
-                    {/* Label Text */}
-                    <span style={{ color: "#212436" }}>Lot No</span>
-                  </label>
-                </div>
-
-                {isOn && (
-                  <>
-                    <div
-                      style={{
-                        width: "100%",
-                        padding: "10px 30px",
-                        background: "white",
-                        borderRadius: "8px",
-                        justifyContent: "center",
-                        alignItems: "flex-start",
-                        display: "flex",
-                        overflowX: "auto",
-                        backgroundColor: "#E5F0FF",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: `repeat(${lotColumns.length}, minmax(100px, 1fr))`,
-                          gap: "0 8px",
-                          alignItems: "center",
-                          width: "100%",
-                        }}
-                      >
-                        {lotColumns.map((col, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              height: "auto",
-                              padding: "8px 0px",
-                              justifyContent: "center",
-                              alignItems: "center",
-                              gap: "0px",
-                              display: "flex",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                                alignItems: "center",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  padding: "4px",
-                                }}
-                              >
-                                {col.label}
-                              </span>
-                              <div
-                                style={{
-                                  borderTopLeftRadius:
-                                    index < lotColumns.length - 7 ? "8px" : "none",
-                                  borderBottomLeftRadius:
-                                    index < lotColumns.length - 7 ? "8px" : "none",
-                                  borderTopRightRadius:
-                                    index < lotColumns.length - 1 ? "" : "8px",
-                                  borderBottomRightRadius:
-                                    index < lotColumns.length - 1 ? "" : "8px",
-                                  backgroundColor: "white",
-                                  width: "200px",
-                                  padding: "8px 16px",
-                                  borderRight: index < lotColumns.length - 1 ? "1px solid #EAEAEA" : "none",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    padding: "0 12px",
-                                    borderRadius: "8px",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    display: "flex",
-                                    border: "1px solid gray",
-                                  }}
-                                >
-                                  <input
-                                    type="text"
-                                    name={lotFieldKeys[index]}
-                                    value={lotDetails[lotFieldKeys[index]] || ""}
-                                    onChange={(e) =>
-                                      setLotDetails((prev) => ({
-                                        ...prev,
-                                        [lotFieldKeys[index]]: e.target.value,
-                                      }))
-                                    }
-                                    style={{
-                                      color: "var(--Black, #212436)",
-                                      fontSize: "18px",
-                                      outline: "none",
-                                      fontFamily: "Inter",
-                                      fontWeight: "500",
-                                      textAlign: "center",
-                                      border: "none",
-                                      background: "transparent",
-                                      width: "100%",
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        width: "1832px",
-                        height: "1px",
-                        background: "var(--Stroke, #EAEAEA)",
-                        marginTop: "15px",
-                      }}
-                    />
-                  </>
-                )}
-              </div>}
-
-              {/* Pricing & Variants */}
               <div style={{}} className="delete-hover">
                 <div
                   style={{
@@ -2303,7 +2210,7 @@ const ProductForm = () => {
                     lineHeight: "19.20px",
                   }}
                 >
-                  Pricing & Variants
+                  Add Lot / Batch
                 </div>
 
                 {/* variant section */}
@@ -2315,7 +2222,7 @@ const ProductForm = () => {
                       gap: "16px",
                       // marginTop:'16px',
                       width: '1830px',
-                      overflowX: 'scroll',
+                      overflowX: 'auto',
                       padding: '16px 8px',
                     }}
                   // className="row"
@@ -2350,8 +2257,8 @@ const ProductForm = () => {
                       </div>
                     </div>
 
-                    {/* serial no */}
-                    {settings.serialno && <div
+                    {/* lot no */}
+                    {settings.lotno && <div
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -2376,7 +2283,7 @@ const ProductForm = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          Serial No.
+                          lot No.
                         </span>
                         <span
                           style={{
@@ -2412,7 +2319,7 @@ const ProductForm = () => {
                         >
                           <input
                             type="text"
-                            placeholder="SE12345"
+                            placeholder="Enter Lot No."
                             name="serialNumber"
                             value={variant.serialNumber || ""}
                             onChange={(e) => handleVariantChange(index, "serialNumber", e.target.value)}
@@ -2428,6 +2335,173 @@ const ProductForm = () => {
                             }}
                           />
                         </div>
+                      </div>
+                    </div>}
+
+                    {/* supplier */}
+                    {settings.supplier && <div
+                      style={{
+                        width: "195px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          Assign Supplier
+                        </span>
+                        <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: highlightedFields.includes("brand") ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <select
+                          value={selectedBrands?.value || ""}
+                          onChange={(e) => {
+                            const selected =
+                              brandOptions.find(
+                                (opt) => opt.value === e.target.value
+                              ) || null;
+
+                            handleBrandChange(selected);
+                          }}
+                          disabled={loading}
+                          style={{
+                            width: "100%",
+                            border: "none",
+                            background: "transparent",
+                            color: "var(--Black-Black, #0E101A)",
+                            fontSize: "14px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">
+                            {loading ? "Loading Brands..." : "Select Brand"}
+                          </option>
+
+                          {brandOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label.length > 40 ? opt.label.slice(0, 40) + "..." : opt.label}
+                            </option>
+                          ))}
+                        </select>
+
+                      </div>
+                    </div>}
+
+                    {/* unit */}
+                    {settings.units && <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "195px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          Unit
+                        </span>
+                        <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: highlightedFields.includes(`variant_${index}_unit`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <select
+                          name="unit"
+                          value={variant.unit || ""}
+                          onChange={(e) => handleVariantChange(index, "unit", e.target.value)}
+                          style={{
+                            width: "100%",
+                            border: "none",
+                            background: "transparent",
+                            color: "var(--Black-Black, #0E101A)",
+                            fontSize: "14px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">Select Unit</option>
+                          <option value="Piece">Piece</option>
+                          <option value="Kg">Kg</option>
+                          <option value="Liter">Liter</option>
+                          <option value="Metre">Metre</option>
+                        </select>
                       </div>
                     </div>}
 
@@ -2457,7 +2531,7 @@ const ProductForm = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          Purchasing Price
+                          Purchasing Price / Unit
                         </span>
                         <span
                           style={{
@@ -2510,191 +2584,6 @@ const ProductForm = () => {
                           />
                         </div>
                       </div>
-                    </div>
-
-                    {/* MRP */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          MRP
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_mrp`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            placeholder="0.00"
-                            name="mrp"
-                            value={variant.mrp || ""}
-                            onChange={(e) => handleVariantChange(index, "mrp", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              outline: "none",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Selling Price */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Selling Price
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_sellingPrice`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            placeholder="0.00"
-                            name="sellingPrice"
-                            value={variant.sellingPrice || ""}
-                            onChange={(e) => handleVariantChange(index, "sellingPrice", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              outline: "none",
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <span
-                        style={{
-                          color: "var(--Black-Black, #0E101A)",
-                          fontSize: "11px",
-                          fontFamily: "Inter",
-                          fontWeight: "400",
-                          lineHeight: "14.40px",
-                        }}
-                      >
-                        Profit -{" "}
-                        <span
-                          style={{
-                            color: "var(--Black-Black, green)",
-                            fontSize: "11px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          ₹ {(variant.sellingPrice - variant.purchasePrice).toFixed(2)} (
-                          {(((variant.sellingPrice - variant.purchasePrice) / variant.purchasePrice) * 100).toFixed(2)}%)
-                        </span>
-                      </span>
                     </div>
 
                     {/* TAX */}
@@ -2791,6 +2680,190 @@ const ProductForm = () => {
                           }}
                         >
                           ₹{(variant.sellingPrice * variant.tax / 100).toFixed(2)}/-
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Opening Quantity */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "195px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          Quantity in Lot
+                        </span>
+                        <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: highlightedFields.includes(`variant_${index}_openingQuantity`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <input
+                            type="number"
+                            placeholder="00"
+                            name="openingQuantity"
+                            value={variant.openingQuantity || ""}
+                            onChange={(e) => handleVariantChange(index, "openingQuantity", e.target.value)}
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Selling Price */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "195px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          Selling Price / Unit
+                        </span>
+                        <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: highlightedFields.includes(`variant_${index}_sellingPrice`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <input
+                            type="number"
+                            placeholder="0.00"
+                            name="sellingPrice"
+                            value={variant.sellingPrice || ""}
+                            onChange={(e) => handleVariantChange(index, "sellingPrice", e.target.value)}
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              outline: "none",
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          color: "var(--Black-Black, #0E101A)",
+                          fontSize: "11px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          lineHeight: "14.40px",
+                        }}
+                      >
+                        Profit -{" "}
+                        <span
+                          style={{
+                            color: "var(--Black-Black, green)",
+                            fontSize: "11px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          ₹ {(variant.sellingPrice - variant.purchasePrice).toFixed(2)} (
+                          {(((variant.sellingPrice - variant.purchasePrice) / variant.purchasePrice) * 100).toFixed(2)}%)
                         </span>
                       </span>
                     </div>
@@ -3030,368 +3103,16 @@ const ProductForm = () => {
                       </div>
                     </div>}
 
-                    {/* unit */}
-                    {settings.units && <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Unit
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_unit`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <select
-                          name="unit"
-                          value={variant.unit || ""}
-                          onChange={(e) => handleVariantChange(index, "unit", e.target.value)}
-                          style={{
-                            width: "100%",
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--Black-Black, #0E101A)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            outline: "none",
-                          }}
-                        >
-                          <option value="">Select Unit</option>
-                          <option value="Piece">Piece</option>
-                          <option value="Kg">Kg</option>
-                          <option value="Liter">Liter</option>
-                          <option value="Metre">Metre</option>
-                        </select>
-                      </div>
-                    </div>}
-
-                    {/* Opening Quantity */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Opening Quantity
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_openingQuantity`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            placeholder="00"
-                            name="openingQuantity"
-                            value={variant.openingQuantity || ""}
-                            onChange={(e) => handleVariantChange(index, "openingQuantity", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Min. Stock to Maintain */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Min. Stock to Maintain
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_minStockToMaintain`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            placeholder="00"
-                            name="minStockToMaintain"
-                            value={variant.minStockToMaintain || ""}
-                            onChange={(e) => handleVariantChange(index, "minStockToMaintain", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Discount Section */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-2"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Discount Price
-                        </span>
-                        {/* <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span> */}
-                      </div>
-                      <div style={{ display: "flex", gap: "8px" }} className="">
-                        <div
-                          style={{
-                            height: "40px",
-                            paddingLeft: "8px",
-                            background: "var(--White, white)",
-                            borderRadius: "8px",
-                            border: highlightedFields.includes(`variant_${index}_discountAmount`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--Stroke, #EAEAEA) solid",
-                            justifyContent: "space-between",
-                            display: "flex",
-                            position: "relative",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            placeholder="00"
-                            name="discountAmount"
-                            value={variant.discountAmount || ""}
-                            onChange={(e) => handleVariantChange(index, "discountAmount", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              overflow: "hidden",
-                              outline: "none",
-                            }}
-                          />
-                          <div
-                            style={{
-                              paddingRight: "4px",
-                              background: "var(--Spinning-Frame, #E9F0F4)",
-                              borderTopRightRadius: "8px",
-                              borderBottomRightRadius: "8px",
-                              border: "1px var(--Stroke, #C2C9D1) solid",
-                              justifyContent: "center",
-                              alignItems: "center",
-                              display: "flex",
-                              padding: "6px",
-                            }}
-                          >
-                            <span
-                              style={{
-                                color: "var(--Black-Secondary, #6C748C)",
-                                fontSize: "14px",
-                                fontFamily: "Poppins",
-                                fontWeight: "400",
-                              }}
-                            >
-                              <select
-                                name="discountType"
-                                value={variant.discountType || ""}
-                                onChange={(e) => handleVariantChange(index, "discountType", e.target.value)}
-                                style={{
-                                  color: "var(--Black-Secondary, #6C748C)",
-                                  fontSize: "14px",
-                                  fontFamily: "Poppins",
-                                  fontWeight: "400",
-                                  border: "none",
-                                  background: "transparent",
-                                }}
-                              >
-                                <option value="">₹/%</option>
-                                <option value="Fixed">₹</option>
-                                <option value="Percentage">%</option>
-                              </select>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                   </div>
                 ))}
 
-                {/* add variant button */}
+                {/* add lot variant button */}
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: "7px",
-                    marginTop: "16px",
+                    marginTop: "8px",
                   }}
                 >
                   <div
@@ -3427,18 +3148,338 @@ const ProductForm = () => {
                       lineHeight: "19.20px",
                     }}
                   >
-                    Add New Variant
+                    Add More Lot
                   </span>
                 </div>
               </div>
 
-              <div
-                style={{
-                  width: "1832px",
-                  height: "1px",
-                  background: "var(--Stroke, #EAEAEA)",
-                }}
-              />
+              {/* add serial no */}
+              <div style={{ borderTop: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', padding: '16px 8px', width: '99%' }} className="delete-hover">
+
+                <div
+                  style={{
+                    color: "black",
+                    fontSize: "16px",
+                    fontFamily: "Inter",
+                    fontWeight: "500",
+                    lineHeight: "19.20px",
+                  }}
+                >
+                  Add Serial No.
+                </div>
+
+                <div style={{
+                  display: "flex",
+                  gap: "16px",
+                  // marginTop:'16px',
+                  // overflowX: 'auto',
+                  padding: '16px 8px',
+                  justifyContent: 'flex-start',
+                }}>
+
+                  <div
+                    style={{
+                      marginTop: '30px',
+                    }}>
+
+                    {/* icon */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "25px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        className=""
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: '8px',
+                          height: "100%",
+                        }}
+                      >
+                        <BsThreeDotsVertical className="fs-5" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* select lot + serial no. + status */}
+                  <div
+                    style={{
+                      display: "flex",
+                      // marginTop:'16px',
+                      overflowX: 'auto',
+                      flexDirection: 'column',
+                    }}
+                  // className="row"
+                  >
+
+                    {/* select lot */}
+                    <div style={{
+                      display: "flex",
+                      gap: "16px",
+                      // marginTop:'16px',
+                      overflowX: 'auto',
+                    }}>
+                      <div
+                        style={{
+                          width: "195px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                        }}
+                        className="col-1"
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--Black-Grey, #727681)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            Select lot
+                          </span>
+                          <span
+                            style={{
+                              color: "var(--Danger, #D00003)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            *
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "40px",
+                            padding: "0 12px",
+                            background: "white",
+                            borderRadius: "8px",
+                            border: "1px var(--White-Stroke, #EAEAEA) solid",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "8px",
+                            display: "flex",
+                          }}
+                        >
+                          <select
+                            value={selectedBrands?.value || ""}
+                            onChange={(e) => {
+                              const selected =
+                                brandOptions.find(
+                                  (opt) => opt.value === e.target.value
+                                ) || null;
+
+                              handleBrandChange(selected);
+                            }}
+                            disabled={loading}
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              outline: "none",
+                            }}
+                          >
+                            <option value="">
+                              {loading ? "Loading Brands..." : "Select Supplier"}
+                            </option>
+
+                            {brandOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label.length > 40 ? opt.label.slice(0, 40) + "..." : opt.label}
+                              </option>
+                            ))}
+                          </select>
+
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* serial no + status */}
+                    <div style={{
+                      display: "flex",
+                      gap: "16px",
+                      // marginTop:'16px',
+                      overflowX: 'auto',
+                      padding: '16px 0px 0px 0px',
+                    }}>
+                      {/* serial no */}
+                      {settings.serialno && <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                          width: "195px",
+                        }}
+                        className="col-1"
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--Black-Grey, #727681)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            Serial No.
+                          </span>
+                          <span
+                            style={{
+                              color: "var(--Danger, #D00003)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            *
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            height: "40px",
+                            padding: "0 12px",
+                            background: "white",
+                            borderRadius: "8px",
+                            border: "1px var(--White-Stroke, #EAEAEA) solid",
+                            justifyContent: "flex-start",
+                            alignItems: "center",
+                            gap: "8px",
+                            display: "flex",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <input
+                              type="text"
+                              placeholder="Enter Serial No."
+                              name="purchasePrice"
+                              style={{
+                                width: "100%",
+                                border: "none",
+                                background: "transparent",
+                                color: "var(--Black-Black, #0E101A)",
+                                fontSize: "14px",
+                                fontFamily: "Inter",
+                                fontWeight: "400",
+                                outline: "none",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>}
+
+                      {/* status */}
+                      {settings.status && <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                          width: "195px",
+                        }}
+                        className="col-1"
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--Black-Grey, #727681)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            Status
+                          </span>
+                          <span
+                            style={{
+                              color: "var(--Danger, #D00003)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            *
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            height: "40px",
+                            padding: "0 12px",
+                            background: "white",
+                            borderRadius: "8px",
+                            border: "1px var(--White-Stroke, #EAEAEA) solid",
+                            justifyContent: "flex-start",
+                            alignItems: "center",
+                            gap: "8px",
+                            display: "flex",
+                          }}
+                        >
+                          <select
+                            name="unit"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              outline: "none",
+                            }}
+                          >
+                            <option value="">Select Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                          </select>
+                        </div>
+                      </div>}
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
 
               {/* Import Images */}
               <div
@@ -3530,7 +3571,7 @@ const ProductForm = () => {
                           lineHeight: "16.80px",
                         }}
                       >
-                        {`Variant ${index + 1}`}
+                        {`${index + 1} Lot`}
                       </span>
 
                       <div

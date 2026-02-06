@@ -6,6 +6,10 @@ const systemSettingsSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        description: {
+            type: Boolean,
+            default: false,
+        },
         category: {
             type: Boolean,
             default: false,
@@ -26,7 +30,15 @@ const systemSettingsSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        supplier: {
+            type: Boolean,
+            default: false,
+        },
         serialno: {
+            type: Boolean,
+            default: false,
+        },
+        status: {
             type: Boolean,
             default: false,
         },

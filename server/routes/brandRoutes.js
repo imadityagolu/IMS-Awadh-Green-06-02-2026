@@ -11,7 +11,7 @@ const { authMiddleware } = require("../middleware/auth.js")
 router.post(
   "/addBrands",
   verifyToken,
-  checkPermission("Brand", "write"),
+  // checkPermission("Brand", "write"),
   upload.array("image", 5),
   brandController.addBrand
 );
@@ -29,7 +29,7 @@ router.put(
 router.get(
   "/getBrands",
    verifyToken,
-  checkPermission("Brand", "read"),
+  // checkPermission("Brand", "read"),
   brandController.getBrands
 );
 

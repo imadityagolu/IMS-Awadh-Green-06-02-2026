@@ -3775,7 +3775,7 @@ function CustomerCreateInvoice() {
                         marginBottom: "24px",
                       }}
                     >
-                      Payment Details
+                      Payment Detail
                     </div>
 
                     {/* Additional Discount */}

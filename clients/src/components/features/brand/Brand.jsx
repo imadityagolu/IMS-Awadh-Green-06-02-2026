@@ -1,0 +1,1095 @@
+import React, { useEffect, useState } from "react";
+import { CiCirclePlus } from "react-icons/ci";
+import { FaFileExcel, FaFilePdf } from "react-icons/fa";
+import { TbEdit, TbTrash } from "react-icons/tb";
+import "../../../styles/category/category.css";
+import axios from "axios";
+import BASE_URL from "../../../pages/config/config";
+import DeleteAlert from "../../../utils/sweetAlert/DeleteAlert";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import { hasPermission } from "../../../utils/permission/hasPermission";
+import { sanitizeInput } from "../../../utils/sanitize";
+import { GrFormPrevious } from "react-icons/gr";
+import { MdNavigateNext } from "react-icons/md";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
+import * as XLSX from "xlsx";
+import { useTranslation } from 'react-i18next';
+import api from "../../../pages/config/axiosInstance"
+import { useAuth } from "../../auth/AuthContext";
+import { MdOutlineViewSidebar, MdAddShoppingCart } from "react-icons/md";
+
+const Brand = () => {
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const [brandName, setBrandName] = useState("");
+  const [status, setStatus] = useState(true); // true = Active
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [editBrandId, setEditBrandId] = useState(null);
+  const [editBrandName, setEditBrandName] = useState("");
+  const [editStatus, setEditStatus] = useState(true);
+  const [editImagePreview, setEditImagePreview] = useState("");
+  const [brands, setBrands] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const brandNameRegex = /^[A-Za-z0-9\s]{2,50}$/;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortOrder, setSortOrder] = useState("Latest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    fetchBrands();
+  }, []);
+
+  useEffect(() => {
+    // console.log("Create Permission:", hasPermission("brand", "create"));
+    // console.log("Read Permission:", hasPermission("brand", "read"));
+    // console.log("Update Permission:", hasPermission("brand", "update"));
+    // console.log("Delete Permission:", hasPermission("brand", "delete"));
+  }, []);
+
+  const fetchBrands = async () => {
+    try {
+      // const token = localStorage.getItem("token"); // Make sure the token is stored here after login
+
+      const res = await api.get("/api/brands/getBrands", {
+      });
+
+      setBrands(res.data.brands);
+      // console.log("Brnad :", res.data.brands);
+    } catch (error) {
+      // console.error("Fetch Brands Error:",error.res?.data || error.message);
+    }
+  };
+
+  const handleAddBrand = async (e) => {
+    e.preventDefault();
+    let newErrors = {};
+    // validation
+    if (!brandNameRegex.test(brandName)) {
+      newErrors.brandName =
+        "Brand name must be 2–50 characters (letters, numbers, spaces only).";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("brandName", sanitizeInput(brandName));
+    formData.append("status", status ? "Active" : "Inactive");
+
+    selectedImages.forEach((file) => {
+      if (file instanceof File) {
+        formData.append("image", file);
+      }
+    });
+
+    try {
+      setIsAdding(true);
+      // const token = localStorage.getItem("token"); // ✅ get token from storage
+
+      const res = await api.post(
+        "/api/brands/addBrands",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            // Authorization: `Bearer ${token}`, // ✅ include token in headers
+          },
+        }
+      );
+
+      // console.log("Brand Added:", res.data);
+
+      // Reset form
+      setBrandName("");
+      setStatus(true);
+      setSelectedImages([]);
+
+      // fetchBrands to refresh list
+      fetchBrands();
+      window.$(`#add-brand`).modal("hide");
+      cleanUpModal();
+
+      toast.success("Brand added successfully!");
+    } catch (error) {
+      // console.error("Add Brand Error:", error.res?.data || error.message);
+
+      toast.error(
+        error.res?.data?.message ||
+        "Failed to add brand. Please try again."
+      );
+    }
+    finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleEditBrand = async (e) => {
+    e.preventDefault();
+    // Prevent multiple simultaneous operations
+    if (isUpdating) return;
+    setIsUpdating(true);
+    let newErrors = {};
+    if (!brandNameRegex.test(editBrandName)) {
+      newErrors.editBrandName =
+        "Brand name must be 2–50 characters (letters, numbers, spaces only).";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsUpdating(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("brandName", sanitizeInput(editBrandName));
+    formData.append("status", editStatus ? "Active" : "Inactive");
+
+    selectedImages.forEach((file) => {
+      formData.append("image", file); // "image" must match multer field name
+    });
+
+    try {
+      // const token = localStorage.getItem("token");
+
+      await api.put(
+        `/api/brands/editBrands/${editBrandId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            // Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      fetchBrands();
+      window.$(`#edit-brand`).modal("hide");
+      cleanUpModal();
+      toast.success("Brand updated successfully!");
+    } catch (error) {
+      const errMsg = error.res?.data?.message || "Failed to update brand"
+      toast.error(errMsg);
+      setIsUpdating(false);
+    }
+    finally {
+      setIsUpdating(false); // ✅ always reset
+    }
+  };
+
+  const handleOpenEditModal = (brand) => {
+    // console.log("Editing brand:", brand); // ✅ Debug log
+    setEditBrandId(brand._id);
+    setEditBrandName(brand.brandName);
+    setEditStatus(brand.status === "Active");
+    setEditImagePreview(brand.image?.[0]?.url); // Show current image
+    setSelectedImages([]); // Reset selected files
+  };
+
+  const handleDeleteBrand = async (brandId, brandName) => {
+    const confirmed = await DeleteAlert({});
+    if (!confirmed) return;
+
+    try {
+      // const token = localStorage.getItem("token");
+
+      await api.delete(`/api/brands/deleteBrand/${brandId}`, {
+      });
+
+      fetchBrands();
+      Swal.fire(
+        "Deleted!",
+        `Brand "${brandName}" has been deleted.`,
+        "success"
+      );
+    } catch (error) {
+      // console.error("Delete brand failed:",error.res?.data || error.message);
+      toast.error("Failed to delete brand");
+    }
+  };
+
+  const filteredBrands = brands
+    .filter((brand) => {
+      if (statusFilter === "All") return true;
+      return brand.status === statusFilter;
+    })
+    .filter((brand) =>
+      brand.brandName.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      if (sortOrder === "Latest") return dateB - dateA;
+      if (sortOrder === "Ascending")
+        return a.brandName.localeCompare(b.brandName);
+      if (sortOrder === "Descending")
+        return b.brandName.localeCompare(a.brandName);
+      return 0;
+    });
+
+  const paginatedBrands = filteredBrands.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredBrands.length / itemsPerPage);
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    const validFiles = files.filter(
+      (file) =>
+        ["image/jpeg", "image/png"].includes(file.type) &&
+        file.size <= 2 * 1024 * 1024
+    );
+    if (validFiles.length !== files.length) {
+      toast.error("Only JPG/PNG up to 2MB allowed");
+    }
+    setSelectedImages(validFiles);
+  };
+
+  const handleCheckboxChange = (id) => {
+    setSelectedBrands((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = (pageIds, allSelectedOnPage) => {
+    if (allSelectedOnPage) {
+      setSelectedBrands((prev) => prev.filter((id) => !pageIds.includes(id)));
+    } else {
+      setSelectedBrands((prev) => [...new Set([...prev, ...pageIds])]);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedBrands.length === 0) return;
+
+    const confirmed = await DeleteAlert({});
+    if (!confirmed) return;
+
+    try {
+      // const token = localStorage.getItem("token");
+
+      await Promise.all(
+        selectedBrands.map((id) =>
+          api.delete(`/api/brands/deleteBrand/${id}`, {
+            // headers: { Authorization: `Bearer ${token}` },
+          })
+        )
+      );
+
+      toast.success("Selected brands deleted");
+      setSelectedBrands([]);
+      fetchBrands();
+    } catch (err) {
+      // console.error("Bulk delete failed:", err.res?.data || err.message);
+      toast.error("Failed to delete selected brands");
+    }
+  };
+
+  const exportToPDF = async () => {
+    try {
+      const doc = new jsPDF();
+
+      // Add title
+      doc.text("Brand Report", 14, 15);
+
+      // Define table columns
+      const tableColumns = ["Brand Name", "Created Date", "Status", "Description"];
+
+      // Prepare table rows
+      const tableRows = filteredBrands.map((brand) => [
+        brand.brandName || "N/A",
+        new Date(brand.createdAt).toLocaleDateString(),
+        brand.status || "N/A",
+        brand.description || "N/A"
+      ]);
+
+      // Create table using autoTable
+      autoTable(doc, {
+        head: [tableColumns],
+        body: tableRows,
+        startY: 20,
+        styles: {
+          fontSize: 8,
+        },
+        headStyles: {
+          fillColor: [155, 155, 155],
+          textColor: "white",
+        },
+        theme: "striped",
+      });
+
+      // Save the PDF
+      doc.save(`brands_report_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success("PDF exported successfully!");
+    } catch (error) {
+      // console.error("PDF export failed:", error);
+      toast.error("Failed to export PDF");
+    }
+  };
+
+  const exportToExcel = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = filteredBrands.map((brand, index) => ({
+        "S.No": index + 1,
+        "Brand Name": brand.brandName || "N/A",
+        "Created Date": new Date(brand.createdAt).toLocaleDateString(),
+        "Status": brand.status || "N/A",
+        "Description": brand.description || "N/A"
+      }));
+
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // Set column widths
+      const colWidths = [
+        { wch: 8 },  // S.No
+        { wch: 20 }, // Brand Name
+        { wch: 15 }, // Created Date
+        { wch: 12 }, // Status
+        { wch: 30 }  // Description
+      ];
+      ws['!cols'] = colWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Brands");
+
+      // Save the file
+      XLSX.writeFile(wb, `brands_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+      toast.success("Excel file exported successfully!");
+    } catch (error) {
+      // console.error("Excel export failed:", error);
+      toast.error("Failed to export Excel file");
+    }
+  };
+
+  const pageIds = paginatedBrands.map((b) => b._id);
+  const allSelectedOnPage =
+    pageIds.length > 0 && pageIds.every((id) => selectedBrands.includes(id));
+
+  const handleClose = () => {
+    setBrandName("");
+    setStatus(true);
+    setSelectedImages([]);
+    setErrors({});
+  }
+
+  const cleanUpModal = () => {
+    document.body.classList.remove("modal-open");
+    document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+    setTimeout(() => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }, 50);
+  };
+
+  useEffect(() => {
+    // console.log("Write:", hasPermission("Brand", "write"));
+    // console.log("Delete:", hasPermission("Brand", "delete"));
+  }, []);
+
+  return (
+    <div className="p-4">
+
+      {/* header */}
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0px 0px 16px 0px", // Optional: padding for container
+          flexWrap: "wrap"
+        }}
+      >
+        {/* Left: Title + Icon */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 11,
+            height: "33px",
+
+          }}
+        >
+          {/* <div style={{
+                width: 32,
+                height: "33px",
+                background: 'white',
+                borderRadius: 53,
+                border: '1.07px solid #EAEAEA',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                <FaArrowLeft style={{ color: '#A2A8B8' }} />
+              </div> */}
+
+          <h2
+            style={{
+              margin: 0,
+              color: "black",
+              fontSize: 22,
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 500,
+              lineHeight: "26.4px",
+            }}
+          >
+            Brand
+          </h2>
+        </div>
+
+        {/* Right: Action Buttons */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            height: "33px",
+          }}
+        >
+
+          {/* <NavLink
+                to="/add-product"
+                style={{
+                  padding: "8px 16px",
+                  background: "white",
+                  border: "2px solid #1F7FFF",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                  fontSize: "14px",
+                  display: "flex",
+                  gap: "6px",
+                  alignItems: "center",
+                  height: "33px",
+                }}
+              >
+                <MdAddShoppingCart
+                  style={{
+                    color: "#1F7FFF",
+                    fontSize: "16px",
+                  }}
+                />
+                <span
+                  className=""
+                  style={{
+                    color: "#1F7FFF",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Add Brand
+                </span>
+              </NavLink> */}
+          {hasPermission("Brand", "write") && (<a
+            title="Add Brand Button"
+            className="button-hover"
+            data-bs-toggle="modal"
+            data-bs-target="#add-brand"
+            style={{
+              borderRadius: "8px",
+              padding: "5px 16px",
+              border: "1px solid #1F7FFF",
+              color: "rgb(31, 127, 255)",
+              fontFamily: "Inter",
+              backgroundColor: "white",
+              fontSize: "14px",
+              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          > <MdAddShoppingCart className="fs-5" /> Add Brand</a>)}
+        </div>
+      </div>
+
+      {/* old header */}
+      {/* <div className="page-header">
+          <div className="add-item d-flex">
+            <div className="page-title">
+              <h4 className="fw-bold">{t("Brand")}</h4>
+              <h6>{t("Manage your brands")}</h6>
+            </div>
+          </div>
+          <div className="table-top-head me-2">
+            <li>
+              {selectedBrands.length > 0 && (
+                <button
+                  className="btn btn-danger ms-2"
+                  onClick={handleBulkDelete}
+                >
+                  {t("Delete")} ({selectedBrands.length}) {t("Selected")}
+                </button>
+              )}
+            </li>
+            {hasPermission("Brand", "export") && (
+              <li style={{ display: "flex", alignItems: "center", gap: '5px' }} className="icon-btn">
+                <label className="" title="">{t("Export :")} </label>
+                <button onClick={exportToPDF} title={t("Download PDF")} style={{
+                  backgroundColor: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  border: "none",
+                }}><FaFilePdf className="fs-20" style={{ color: "red" }} /></button>
+                <button onClick={exportToExcel} title={t("Download Excel")} style={{
+                  backgroundColor: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  border: "none",
+                }}><FaFileExcel className="fs-20" style={{ color: "orange" }} /></button>
+              </li>
+            )}
+
+            {hasPermission("Brand", "import") && (
+              <li style={{ display: "flex", alignItems: "center", gap: '5px' }} className="icon-btn">
+                <label className="" title="">{t("Import :")} </label>
+                <label className="" title={t("Import Excel")}>
+                  <input type="file" accept=".xlsx, .xls" hidden />
+                  <FaFileExcel style={{ color: "green" }} />
+                </label>
+              </li>
+            )}
+
+            <li>
+              <button 
+                type="button" 
+                className="icon-btn" 
+                title="Export Excel"
+                onClick={exportToExcel}
+              >
+                <FaFileExcel />
+              </button>
+            </li>
+          </div>
+          <div className="page-btn">
+            {hasPermission("Brand", "write") && (
+              <a
+                href="#"
+                className="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#add-brand"
+              >
+                <CiCirclePlus className=" me-1" />
+                {t("Add Brand")}
+              </a>
+            )}
+          </div>
+        </div> */}
+
+      {/* /product list */}
+      <div className="card">
+        <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+          <div className="search-set">
+            <div className="search-input">
+              <input
+                type="text"
+                placeholder={t("Search brands...")}
+                className="form-control"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
+            <div className="dropdown me-2">
+              <a
+                className="btn btn-white btn-md d-inline-flex align-items-center"
+                data-bs-toggle="dropdown"
+              >
+                {t("Status")} : {t(statusFilter) || "All"}
+              </a>
+              <ul className="dropdown-menu  dropdown-menu-end p-3">
+                <li>
+                  <a
+                    onClick={() => setStatusFilter("All")}
+                    className="dropdown-item rounded-1"
+                  >
+                    {t("All")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    onClick={() => setStatusFilter("Active")}
+                    className="dropdown-item rounded-1"
+                  >
+                    {t("Active")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    onClick={() => setStatusFilter("Inactive")}
+                    className="dropdown-item rounded-1"
+                  >
+                    {t("Inactive")}
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className="dropdown">
+              <a
+                href="javascript:void(0);"
+                className="btn btn-white btn-md d-inline-flex align-items-center"
+                data-bs-toggle="dropdown"
+              >
+                {t("Sort By")} : {t(sortOrder) || "Latest"}
+              </a>
+              <ul className="dropdown-menu  dropdown-menu-end p-3">
+                <li>
+                  <a
+                    onClick={() => setSortOrder("Latest")}
+                    className="dropdown-item rounded-1"
+                  >
+                    {t("Latest")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    onClick={() => setSortOrder("Ascending")}
+                    className="dropdown-item rounded-1"
+                  >
+                    {t("Ascending")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    onClick={() => setSortOrder("Descending")}
+                    className="dropdown-item rounded-1"
+                  >
+                    {t("Descending")}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table datatable">
+              <thead className="thead-light">
+                <tr style={{ textAlign: 'start' }}>
+                  <th className="no-sort">
+                    <label className="checkboxs">
+                      <input
+                        type="checkbox"
+                        id="select-all"
+                        checked={allSelectedOnPage}
+                        onChange={() =>
+                          handleSelectAll(pageIds, allSelectedOnPage)
+                        }
+                      />
+                      <span className="checkmarks" />
+                    </label>
+                  </th>
+                  <th>{t("Brand")}</th>
+                  <th>{t("Created Date")}</th>
+                  <th>{t("Status")}</th>
+                  <th style={{ textAlign: 'center', width: '120px' }}>{t("Action")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedBrands.map((brand) => (
+                  <tr key={brand._id}>
+                    <td>
+                      <label className="checkboxs">
+                        <input
+                          type="checkbox"
+                          checked={selectedBrands.includes(brand._id)}
+                          onChange={() => handleCheckboxChange(brand._id)}
+                        />
+                        <span className="checkmarks" />
+                      </label>
+                    </td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        {brand.image?.[0]?.url ? (
+                          <>
+                            <img
+                              src={brand.image?.[0]?.url}
+                              alt={brand.brandName}
+                              className="me-1"
+                              style={{ objectFit: 'contain', width: '30px', height: '30px', }}
+                            />
+                          </>
+                        ) : (
+                          <>
+                          </>
+                        )}
+                        <a href="#">{brand.brandName}</a>
+                      </div>
+
+                    </td>
+                    <td>{new Date(brand.createdAt).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric"
+                    })}</td>
+                    <td>
+                      <span
+                        className={`badge table-badge fw-medium fs-10 ${brand.status === "Active"
+                          ? "bg-success"
+                          : "bg-danger"
+                          }`}
+                      >
+                        {t(brand.status)}
+                      </span>
+                    </td>
+                    <td className="action-table-data">
+                      <div className="edit-delete-action">
+                        {hasPermission("Brand", "update") && (
+                          <a
+                            className="me-2 p-2"
+                            data-bs-toggle="modal"
+                            data-bs-target="#edit-brand"
+                            onClick={() => handleOpenEditModal(brand)}
+                          >
+                            <TbEdit />
+                          </a>
+                        )}
+                        {hasPermission("Brand", "delete") && (
+                          <a
+                            className="p-2"
+                            onClick={() =>
+                              handleDeleteBrand(brand._id, brand.brandName)
+                            }
+                          >
+                            <TbTrash />
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* pagination */}
+          <div
+            className="d-flex justify-content-end gap-3"
+            style={{ padding: "10px 20px" }}
+          >
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="form-select w-auto"
+            >
+              <option value={10}>10 {t("Per Page")}</option>
+              <option value={25}>25 {t("Per Page")}</option>
+              <option value={50}>50 {t("Per Page")}</option>
+              <option value={100}>100 {t("Per Page")}</option>
+            </select>
+            <span
+              style={{
+                backgroundColor: "white",
+                boxShadow: "rgb(0 0 0 / 4%) 0px 3px 8px",
+                padding: "7px",
+                borderRadius: "5px",
+                border: "1px solid #e4e0e0ff",
+                color: "gray",
+              }}
+            >
+              {filteredBrands.length === 0
+                ? "0 of 0"
+                : `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(
+                  currentPage * itemsPerPage,
+                  filteredBrands.length
+                )} of ${filteredBrands.length}`}
+              <button
+                style={{
+                  border: "none",
+                  color: "grey",
+                  backgroundColor: "white",
+                }}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.max(prev - 1, 1))
+                }
+                disabled={currentPage === 1}
+              >
+                <GrFormPrevious />
+              </button>{" "}
+              <button
+                style={{ border: "none", backgroundColor: "white" }}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                <MdNavigateNext />
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* /product list */}
+      <div>
+        {/* Add Brand */}
+        <div className="modal" id="add-brand">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div
+                className="modal-header"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div className="page-title">
+                  <h4>{t("Add Brand")}</h4>
+                </div>
+                {/* <button
+                    type="button"
+                    className="close bg-danger text-white fs-16"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  >
+                    <span aria-hidden="true">×</span>
+                  </button> */}
+              </div>
+              <form onSubmit={handleAddBrand}>
+                <div className="modal-body new-employee-field">
+                  <div className="profile-pic-upload mb-3">
+                    <div className="profile-pic brand-pic">
+                      <span>
+                        {selectedImages.length > 0 ? (
+                          <img
+                            src={URL.createObjectURL(selectedImages[0])}
+                            alt="Preview"
+                            height="40"
+                            style={{
+                              height: "102px",
+                              width: "106px",
+                              borderRadius: "4px",
+                            }}
+                          />
+                        ) : (
+                          <>
+                            <CiCirclePlus className="plus-down-add" /> {t("Add Image")}
+                          </>
+                        )}{" "}
+                      </span>
+                    </div>
+                    <div className=" mb-0">
+                      <input
+                        type="file"
+                        id="brandImageInput"
+                        accept="image/png, image/jpeg"
+                        onChange={handleFileChange}
+                        style={{ display: "none" }}
+                      />
+                      <button
+                        style={{}}
+                        type="button"
+                        onClick={() =>
+                          document.getElementById("brandImageInput").click()
+                        }
+                        className="btn btn-outline-primary"
+                      >
+                        {t("Upload Image")}
+                      </button>
+                      <p className="mt-2">JPEG, PNG up to 2 MB</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">
+                      {t("Brand")}<span className="text-danger ms-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={brandName}
+                      onChange={(e) => setBrandName(e.target.value)}
+                    />
+                    {errors.brandName && (
+                      <p className="text-danger">{errors.brandName}</p>
+                    )}
+                  </div>
+                  <div className="mb-0">
+                    <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
+                      <span className="status-label">{t("Status")}</span>
+                      <input
+                        type="checkbox"
+                        id="user2"
+                        className="check"
+                        checked={status}
+                        onChange={(e) => setStatus(e.target.checked)}
+                      />
+                      {errors.editBrandName && (
+                        <p className="text-danger">{errors.editBrandName}</p>
+                      )}
+                      <label htmlFor="user2" className="checktoggle"
+                        title={status ? "Active" : "Inactive"}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn me-2 btn-secondary"
+                    data-bs-dismiss="modal"
+                    onClick={() => {
+                      handleClose();
+                      cleanUpModal();
+                    }}
+                  >
+                    {t("Cancel")}
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={isAdding}>
+                    {isAdding ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        {t("Adding Brand...")}
+                      </>
+                    ) : [t("Add Brand")]}
+
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {/* /Add Brand */}
+      </div>
+
+      <div className="modal" id="edit-brand">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <div className="page-title">
+                <h4>{t("Edit Brand")}</h4>
+              </div>
+              {/* <button
+                  type="button"
+                  className="close bg-danger text-white fs-16"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">×</span>
+                </button> */}
+            </div>
+            <form onSubmit={handleEditBrand}>
+              <div className="modal-body new-employee-field">
+                <div className="profile-pic-upload mb-3">
+                  <div className="profile-pic brand-pic">
+                    <span>
+                      {editImagePreview && (
+                        <img
+                          src={editImagePreview}
+                          alt="Current"
+                          height="40"
+                          style={{
+                            height: "102px",
+                            width: "106px",
+                            borderRadius: "4px",
+                          }}
+                        />
+                      )}
+                    </span>
+                    {/* <a href="javascript:void(0);" className="remove-photo">x
+                        <i data-feather="x" className="x-square-add" />
+                      </a> */}
+                  </div>
+                  <div>
+                    <div className="mb-0">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files);
+                          setSelectedImages(files);
+                          if (files[0]) {
+                            setEditImagePreview(
+                              URL.createObjectURL(files[0])
+                            );
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          document.getElementById("brandImageInput").click()
+                        }
+                        className="btn btn-outline-primary"
+                      >
+                        {t("Change Image")}
+                      </button>
+                      <p className="mt-2">JPEG, PNG up to 2 MB</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">
+                    {t("Brand")}<span className="text-danger ms-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={editBrandName}
+                    onChange={(e) => setEditBrandName(e.target.value)}
+                  />
+                  {errors.editBrandName && (
+                    <p className="text-danger">{errors.editBrandName}</p>
+                  )}
+                </div>
+                <div className="mb-0">
+                  <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
+                    <span className="status-label">{t("Status")}</span>
+                    <input
+                      type="checkbox"
+                      id="user4"
+                      className="check"
+                      checked={editStatus}
+                      onChange={(e) => setEditStatus(e.target.checked)}
+                    />
+                    <label htmlFor="user4" className="checktoggle"
+                      title={editStatus ? "Active" : "Inactive"}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn me-2 btn-secondary"
+                  data-bs-dismiss="modal"
+                  onClcik={() => {
+                    handleClose();
+                    cleanUpModal();
+                  }}
+                >
+                  {t("Cancel")}
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {t("Save Changes")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Brand;

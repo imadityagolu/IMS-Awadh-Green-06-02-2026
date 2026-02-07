@@ -130,6 +130,9 @@ const ProductForm = () => {
 
   const [suppliers, setSuppliers] = useState([]);
 
+  const [supplierDropdownOpen, setSupplierDropdownOpen] = useState(null);
+  const [supplierSearch, setSupplierSearch] = useState("");
+
   const fetchSuppliers = async () => {
     try {
       const res = await api.get("/api/suppliers");
@@ -1165,6 +1168,117 @@ const ProductForm = () => {
   const handleHSNChange = (selectedOption) => {
     setSelectedHSN(selectedOption);
   };
+
+
+
+  // serialno
+  const [serialInput, setSerialInput] = useState("");
+const [serialList, setSerialList] = useState([]);
+const [currentVariantIndex, setCurrentVariantIndex] = useState(null);
+const fileRef = useRef();
+
+
+/* ---------------- Validation ---------------- */
+const validateSerial = (value) => {
+if (!value.trim()) return "Empty serial";
+if (value.length < 3) return "Too short";
+if (!/^[a-zA-Z0-9-_]+$/.test(value)) return "Invalid characters";
+return null;
+};
+
+
+/* ---------------- Add Serial ---------------- */
+const addSerial = (value) => {
+const serial = value.trim();
+const error = validateSerial(serial);
+if (error) return toast.error(error);
+
+const currentVariant = currentVariantIndex !== null ? variants[currentVariantIndex] : null;
+const quantityLimit = currentVariant?.openingQuantity ? Number(currentVariant.openingQuantity) : null;
+
+if (quantityLimit && serialList.length >= quantityLimit) {
+return toast.error(`Cannot add more than ${quantityLimit} serials (quantity limit)`);
+}
+
+if (serialList.find((s) => s.serial === serial)) {
+return toast.error("Duplicate serial");
+}
+
+setSerialList((prev) => [...prev, { serial, status: "Active" }]);
+};
+
+/* ---------------- Bulk Paste ---------------- */
+const handleBulkPaste = (e) => {
+const data = e.clipboardData.getData("text");
+const values = data.split(/\r?\n|,|;/);
+
+const currentVariant = currentVariantIndex !== null ? variants[currentVariantIndex] : null;
+const quantityLimit = currentVariant?.openingQuantity ? Number(currentVariant.openingQuantity) : null;
+
+let added = 0;
+values.forEach((v) => {
+const val = v.trim();
+if (!val) return;
+
+if (quantityLimit && serialList.length + added >= quantityLimit) {
+return;
+}
+
+if (!serialList.find((s) => s.serial === val)) {
+const err = validateSerial(val);
+if (!err) {
+added++;
+setSerialList((prev) => [...prev, { serial: val, status: "Active" }]);
+}
+}
+});
+
+if (added) toast.success(`${added} serials added`);
+if (quantityLimit && serialList.length + added >= quantityLimit) {
+toast.warning(`Maximum ${quantityLimit} serials allowed for this quantity`);
+}
+};
+
+
+/* ---------------- CSV Upload ---------------- */
+const handleCSVUpload = (e) => {
+const file = e.target.files[0];
+if (!file) return;
+
+
+const reader = new FileReader();
+reader.onload = (ev) => {
+const text = ev.target.result;
+const rows = text.split(/\r?\n|,/);
+
+
+rows.forEach((r) => {
+const v = r.trim();
+if (!v) return;
+if (!serialList.find((s) => s.serial === v)) {
+const err = validateSerial(v);
+if (!err) {
+setSerialList((prev) => [...prev, { serial: v, status: "Active" }]);
+}
+}
+});
+};
+
+
+reader.readAsText(file);
+};
+
+/* ---------------- API Sync ---------------- */
+const syncSerials = async () => {
+if (!onSync) return toast.error("Sync handler not provided");
+try {
+await onSync(serialList);
+toast.success("Serials synced successfully");
+} catch (e) {
+toast.error("Sync failed");
+}
+};
+
 
   return (
     <div className="p-4" style={{ height: "100vh" }}>
@@ -2375,7 +2489,7 @@ const ProductForm = () => {
                     </div>}
 
                     {/* supplier */}
-                    {settings.supplier && <div
+                    {/* {settings.supplier && <div
                       style={{
                         width: "195px",
                         display: "flex",
@@ -2431,11 +2545,7 @@ const ProductForm = () => {
                         <select
                           value={variant.supplier || ""}
                           onChange={(e) => {
-                            const selected =
-                              suppliers.find(
-                                (opt) => opt._id === e.target.value
-                              ) || null;
-                            handleVariantChange(index, "supplier", selected);
+                            handleVariantChange(index, "supplier", e.target.value);
                           }}
                           disabled={loading}
                           style={{
@@ -2461,7 +2571,98 @@ const ProductForm = () => {
                         </select>
 
                       </div>
-                    </div>}
+                    </div>} */}
+                    {/* supplier */}
+                    {settings.supplier && (
+                      <div
+                        style={{
+                          width: "195px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                        }}
+                        className="col-1"
+                      >
+                        {/* Label */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--Black-Grey, #727681)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            Assign Supplier
+                          </span>
+                          <span
+                            style={{
+                              color: "var(--Danger, #D00003)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            *
+                          </span>
+                        </div>
+
+                        {/* Select Box */}
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "40px",
+                            padding: "0 12px",
+                            background: "white",
+                            borderRadius: "8px",
+                            border: highlightedFields.includes(`variant_${index}_supplier`)
+                              ? "1px var(--White-Stroke, #fa3333ff) solid"
+                              : "1px var(--White-Stroke, #EAEAEA) solid",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <select
+                            value={variant.supplier || ""}
+                            onChange={(e) =>
+                              handleVariantChange(index, "supplier", e.target.value)
+                            }
+                            disabled={loading}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              outline: "none",
+                              cursor: loading ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            <option value="" disabled>
+                              {loading ? "Loading Suppliers..." : "Select Supplier"}
+                            </option>
+
+                            {suppliers.map((supplier) => (
+                              <option key={supplier._id} value={supplier._id}>
+                                {supplier.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
 
                     {/* unit */}
                     {settings.units && <div
@@ -3201,258 +3402,307 @@ const ProductForm = () => {
                         alignItems: 'center',
                       }}
                     >
-                      <u style={{ color: '#1F7FFF', cursor: 'pointer', fontSize: '14px', fontWeight: '600', }} onClick={() => setAddSerialPopup(true)}>
+                      <u style={{ color: '#1F7FFF', cursor: 'pointer', fontSize: '14px', fontWeight: '600', }} onClick={() => {
+                        setCurrentVariantIndex(index);
+                        setSerialList([]);
+                        setAddSerialPopup(true);
+                      }}>
                         Enter Serial No.
                       </u>
                     </div>
 
+{addserialpopup && (
+  <div
+    onClick={() => {
+      if (currentVariantIndex !== null && serialList.length > 0) {
+        handleVariantChange(currentVariantIndex, "openingQuantity", serialList.length);
+      }
+      setAddSerialPopup(false);
+      setCurrentVariantIndex(null);
+      setSerialList([]);
+    }}
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.35)",
+      backdropFilter: "blur(2px)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 99999999,
+    }}
+  >
+    {/* Modal Box */}
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        width: "100%",
+        maxWidth: "780px",
+        background: "#F7F9FC",
+        borderRadius: "12px",
+        border: "1px solid #E5E7EB",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+        padding: "20px",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          fontSize: "18px",
+          fontWeight: 600,
+          marginBottom: "14px",
+          color: "#111827",
+        }}
+      >
+        Add Serial No. For Lot No.
+      </div>
 
-                    {/* add serial no */}
-                    {addserialpopup && <div style={{
-                      position: "fixed",
-                      top: 0,
-                      left: 0,
-                      width: "100vw",
-                      height: "100vh",
-                      backgroundColor: "rgba(0,0,0,0.27)",
-                      backdropFilter: "blur(1px)",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      zIndex: 99999999,
-                    }}
-                      onClick={(e) => setAddSerialPopup(false)}
+      {/* Content Card */}
+      <div
+        style={{
+          background: "#ffffff",
+          borderRadius: "10px",
+          padding: "16px",
+          border: "1px solid #E5E7EB",
+        }}
+      >
+        {settings.serialno && (
+          <div style={{ width: "100%" }}>
+            {/* Serial Manager */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+              }}
+            >
+              {/* Title */}
+              <div
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#1F2937",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span>Serial Manager</span>
+                {currentVariantIndex !== null && variants[currentVariantIndex]?.openingQuantity && (
+                  <span style={{ fontSize: "13px", color: "#6B7280", fontWeight: 400 }}>
+                    Max: {variants[currentVariantIndex].openingQuantity} serials
+                  </span>
+                )}
+              </div>
+
+              {/* Input Row */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  alignItems: "center",
+                }}
+              >
+                <input
+                  type="text"
+                  value={serialInput}
+                  onChange={(e) => setSerialInput(e.target.value)}
+                  onPaste={handleBulkPaste}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addSerial(serialInput);
+                      setSerialInput("");
+                    }
+                  }}
+                  placeholder="Scan / Enter / Paste Serial"
+                  style={{
+                    flex: 1,
+                    height: "40px",
+                    border: "1px solid #D1D5DB",
+                    borderRadius: "8px",
+                    padding: "0 12px",
+                    fontSize: "14px",
+                    outline: "none",
+                  }}
+                />
+
+                <button
+                   onClick={(e) => {
+    e.preventDefault();   // stop form submit
+    addSerial(serialInput);
+    setSerialInput("");
+  }}
+                  style={{
+                    height: "40px",
+                    padding: "0 18px",
+                    background: "#111827",
+                    color: "#fff",
+                    borderRadius: "8px",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Controls */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  fontSize: "13px",
+                  color: "#374151",
+                }}
+              >
+                <button
+                  onClick={() => fileRef.current.click()}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#2563EB",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                    padding: 0,
+                  }}
+                >
+                  Upload CSV
+                </button>
+
+                <button
+                  onClick={syncSerials}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#059669",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                    padding: 0,
+                  }}
+                >
+                  Sync API
+                </button>
+
+                <div style={{ marginLeft: "auto", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span>Total: {serialList.length}</span>
+                  {currentVariantIndex !== null && variants[currentVariantIndex]?.openingQuantity && (
+                    <span style={{ fontSize: "12px", color: "#6B7280", fontWeight: 400 }}>
+                      / {variants[currentVariantIndex].openingQuantity}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <input
+                type="file"
+                ref={fileRef}
+                accept=".csv"
+                hidden
+                onChange={handleCSVUpload}
+              />
+
+              {/* List */}
+              <div
+                style={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "8px",
+                  maxHeight: "280px",
+                  overflowY: "auto",
+                }}
+              >
+                {serialList.length > 0 ? (
+                  serialList.map((item, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "10px 12px",
+                        borderBottom: "1px solid #E5E7EB",
+                        fontSize: "13px",
+                      }}
                     >
-                      <div style={{ width: 'auto', height: 'auto', padding: '10px 16px', backgroundColor: '#F2F6F9', border: '1px solid #E1E1E1', borderRadius: '8px' }} onClick={(e) => e.stopPropagation()}>
-
-                        <div style={{ padding: '16px 8px', }} className="delete-hover">
-
-                          <div
-                            style={{
-                              color: "black",
-                              fontSize: "16px",
-                              fontFamily: "Inter",
-                              fontWeight: "500",
-                              lineHeight: "19.20px",
-                            }}
-                          >
-                            Add Serial No. For Lot No. -
-                          </div>
-
-                          <div style={{
-                            display: "flex",
-                            gap: "16px",
-                            // marginTop:'16px',
-                            // overflowX: 'auto',
-                            padding: '16px 8px',
-                            justifyContent: 'flex-start',
-                          }}>
-                            {/* select lot + serial no. + status */}
-                            <div
-                              style={{
-                                display: "flex",
-                                // marginTop:'16px',
-                                overflowX: 'auto',
-                                flexDirection: 'column',
-                              }}
-                            // className="row"
-                            >
-                              {/* serial no + status */}
-                              <div style={{
-                                display: "flex",
-                                gap: "16px",
-                                // marginTop:'16px',
-                                overflowX: 'auto',
-                                // padding: '16px 0px 0px 0px',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}>
-
-                                {/* quantity no */}
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "4px",
-                                    width: "30px",
-                                  }}
-                                  className="col-1"
-                                >
-                                  <div
-                                    className=""
-                                    style={{
-                                      display: "flex",
-                                      justifyContent: "center",
-                                      alignItems: "center",
-                                      gap: '8px',
-                                      height: "100%",
-                                    }}
-                                  >
-                                    1<BsThreeDotsVertical className="fs-4" />
-                                  </div>
-                                </div>
-
-                                {/* serial no */}
-                                {settings.serialno && <div
-                                  style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "4px",
-                                    width: "195px",
-                                  }}
-                                  className="col-1"
-                                >
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "baseline",
-                                      gap: "4px",
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        color: "var(--Black-Grey, #727681)",
-                                        fontSize: "12px",
-                                        fontFamily: "Inter",
-                                        fontWeight: "400",
-                                        lineHeight: "14.40px",
-                                      }}
-                                    >
-                                      Serial No.
-                                    </span>
-                                    <span
-                                      style={{
-                                        color: "var(--Danger, #D00003)",
-                                        fontSize: "12px",
-                                        fontFamily: "Inter",
-                                        fontWeight: "400",
-                                        lineHeight: "14.40px",
-                                      }}
-                                    >
-                                      *
-                                    </span>
-                                  </div>
-                                  <div
-                                    style={{
-                                      height: "40px",
-                                      padding: "0 12px",
-                                      background: "white",
-                                      borderRadius: "8px",
-                                      border: "1px var(--White-Stroke, #EAEAEA) solid",
-                                      justifyContent: "flex-start",
-                                      alignItems: "center",
-                                      gap: "8px",
-                                      display: "flex",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
-                                      }}
-                                    >
-                                      <input
-                                        type="text"
-                                        placeholder="Enter Serial No."
-                                        name="purchasePrice"
-                                        style={{
-                                          width: "100%",
-                                          border: "none",
-                                          background: "transparent",
-                                          color: "var(--Black-Black, #0E101A)",
-                                          fontSize: "14px",
-                                          fontFamily: "Inter",
-                                          fontWeight: "400",
-                                          outline: "none",
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>}
-
-                                {/* status */}
-                                {settings.status && <div
-                                  style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "4px",
-                                    width: "195px",
-                                  }}
-                                  className="col-1"
-                                >
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "baseline",
-                                      gap: "4px",
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        color: "var(--Black-Grey, #727681)",
-                                        fontSize: "12px",
-                                        fontFamily: "Inter",
-                                        fontWeight: "400",
-                                        lineHeight: "14.40px",
-                                      }}
-                                    >
-                                      Status
-                                    </span>
-                                    <span
-                                      style={{
-                                        color: "var(--Danger, #D00003)",
-                                        fontSize: "12px",
-                                        fontFamily: "Inter",
-                                        fontWeight: "400",
-                                        lineHeight: "14.40px",
-                                      }}
-                                    >
-                                      *
-                                    </span>
-                                  </div>
-                                  <div
-                                    style={{
-                                      height: "40px",
-                                      padding: "0 12px",
-                                      background: "white",
-                                      borderRadius: "8px",
-                                      border: "1px var(--White-Stroke, #EAEAEA) solid",
-                                      justifyContent: "flex-start",
-                                      alignItems: "center",
-                                      gap: "8px",
-                                      display: "flex",
-                                    }}
-                                  >
-                                    <select
-                                      name="unit"
-                                      style={{
-                                        width: "100%",
-                                        border: "none",
-                                        background: "transparent",
-                                        color: "var(--Black-Black, #0E101A)",
-                                        fontSize: "14px",
-                                        fontFamily: "Inter",
-                                        fontWeight: "400",
-                                        outline: "none",
-                                      }}
-                                    >
-                                      <option value="">Select Status</option>
-                                      <option value="Active">Active</option>
-                                      <option value="Inactive">Inactive</option>
-                                    </select>
-                                  </div>
-                                </div>}
-                              </div>
-
-                            </div>
-                          </div>
-
-
-                        </div>
+                      <div style={{ fontWeight: 500 }}>
+                        {i + 1}. {item.serial}
                       </div>
-                    </div>}
 
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                        }}
+                      >
+                        <select
+                          value={item.status}
+                          onChange={(e) => {
+                            const status = e.target.value;
+                            setSerialList((prev) =>
+                              prev.map((s, idx) =>
+                                idx === i ? { ...s, status } : s
+                              )
+                            );
+                          }}
+                          style={{
+                            height: "30px",
+                            borderRadius: "6px",
+                            border: "1px solid #D1D5DB",
+                            padding: "0 8px",
+                            fontSize: "12px",
+                          }}
+                        >
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                          <option value="Damaged">Damaged</option>
+                        </select>
+
+                        <button
+                        type="button"
+                          onClick={() =>
+                            setSerialList((prev) =>
+                              prev.filter((_, idx) => idx !== i)
+                            )
+                          }
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#DC2626",
+                            fontSize: "16px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "20px",
+                      color: "#9CA3AF",
+                      fontSize: "13px",
+                    }}
+                  >
+                    No serials added
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
+                  
                   </div>
                 ))}
 

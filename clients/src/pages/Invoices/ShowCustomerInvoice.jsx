@@ -346,9 +346,9 @@ function ShowCustomerInvoice() {
                           INVOICE Date -{" "}
                           {invoiceData.invoiceDate
                             ? format(
-                                new Date(invoiceData.invoiceDate),
-                                "dd MMM yyyy",
-                              )
+                              new Date(invoiceData.invoiceDate),
+                              "dd MMM yyyy",
+                            )
                             : "N/A"}
                         </span>
                         <span style={{ marginRight: "12px" }}>
@@ -510,6 +510,16 @@ function ShowCustomerInvoice() {
                               >
                                 QTY
                               </th>
+                              <th
+                                style={{
+                                  borderRight: "1px solid #EAEAEA",
+                                  borderBottom: "1px solid #EAEAEA",
+                                  fontWeight: "400",
+                                }}
+                                rowSpan="2"
+                              >
+                                Serial No.
+                              </th>
                               {printSettings.showRate && (
                                 <th
                                   style={{
@@ -608,6 +618,14 @@ function ShowCustomerInvoice() {
                                     }}
                                   >
                                     {item.qty}
+                                  </td>
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {item.serialno || "-"}
                                   </td>
                                   {printSettings.showRate && (
                                     <td
@@ -843,34 +861,6 @@ function ShowCustomerInvoice() {
                                         : "N/A"}
                                     </span>
                                   </div>
-                                </div>
-
-                                {/* ADD THIS QR CODE SECTION */}
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      width: "90px",
-                                      objectFit: "contain",
-                                    }}
-                                  >
-                                    <img
-                                      src={
-                                        banks.length > 0
-                                          ? banks[0]?.qrCode
-                                          : "https://via.placeholder.com/100"
-                                      }
-                                      alt="QR Code"
-                                      style={{ width: "100%" }}
-                                    />
-                                  </div>
-                                  <div>Pay Using Upi</div>
                                 </div>
                               </div>
                             </>

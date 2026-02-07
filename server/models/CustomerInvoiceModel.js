@@ -9,6 +9,7 @@ const itemSchema = new mongoose.Schema(
     },
     itemName: { type: String, required: true },
     hsnCode: { type: String },
+    serialno: { type: String },
     qty: { type: Number, required: true, min: 1 }, // CHANGED min: 0 to min: 1
     unit: { type: String, required: true },
     unitPrice: { type: Number, required: true, min: 0 },

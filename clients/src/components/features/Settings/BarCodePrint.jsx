@@ -9,7 +9,7 @@ const BarCodePrint = () => {
   const [activeTabs, setActiveTabs] = useState("barcode");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-   const [notesTermsSettings, setNotesTermsSettings] = useState({});
+  const [notesTermsSettings, setNotesTermsSettings] = useState({});
 
   // Barcode Settings State
   const [barcodeSettings, setBarcodeSettings] = useState({
@@ -55,30 +55,30 @@ const BarCodePrint = () => {
   };
 
   // Fetch print template settings
- // Fetch print template settings
-const fetchTemplateSettings = async (type) => {
-  try {
-    const response = await api.get(`/api/print-templates?type=${type}&includeData=true`);
-    
-    if (response.data.success) {
-      const { template, company, sampleProducts, sampleCustomer } = response.data.data;
-      
-      if (type === 'normal') {
-        setNormalTemplate(template);
-      } else {
-        setThermalTemplate(template);
+  // Fetch print template settings
+  const fetchTemplateSettings = async (type) => {
+    try {
+      const response = await api.get(`/api/print-templates?type=${type}&includeData=true`);
+
+      if (response.data.success) {
+        const { template, company, sampleProducts, sampleCustomer } = response.data.data;
+
+        if (type === 'normal') {
+          setNormalTemplate(template);
+        } else {
+          setThermalTemplate(template);
+        }
+
+        // Set related data
+        if (company) setCompanyData(company);
+        if (sampleProducts) setSampleProducts(sampleProducts);
+        if (sampleCustomer) setSampleCustomer(sampleCustomer);
       }
-      
-      // Set related data
-      if (company) setCompanyData(company);
-      if (sampleProducts) setSampleProducts(sampleProducts);
-      if (sampleCustomer) setSampleCustomer(sampleCustomer);
+    } catch (error) {
+      console.error(`Error fetching ${type} template:`, error);
+      toast.error(`Failed to load ${type} print template`);
     }
-  } catch (error) {
-    console.error(`Error fetching ${type} template:`, error);
-    toast.error(`Failed to load ${type} print template`);
-  }
-};
+  };
 
   // Fetch all settings on component mount
   useEffect(() => {
@@ -91,7 +91,7 @@ const fetchTemplateSettings = async (type) => {
         // Fetch print templates
         await fetchTemplateSettings('normal');
         await fetchTemplateSettings('thermal');
-         await fetchNotesTermsSettings();
+        await fetchNotesTermsSettings();
       } catch (error) {
         console.error('Error fetching settings:', error);
         toast.error('Failed to load print settings');
@@ -104,18 +104,18 @@ const fetchTemplateSettings = async (type) => {
   }, []);
 
   // Add this function after your other fetch functions:
-const fetchNotesTermsSettings = async () => {
+  const fetchNotesTermsSettings = async () => {
     try {
-        const response = await api.get('/api/notes-terms-settings');
-        if (response.data.success) {
-            setNotesTermsSettings(response.data.data || {});
-        }
+      const response = await api.get('/api/notes-terms-settings');
+      if (response.data.success) {
+        setNotesTermsSettings(response.data.data || {});
+      }
     } catch (error) {
-        console.error('Error fetching notes & terms settings:', error);
-        // Leave as empty object - defaults will be used
-        setNotesTermsSettings({});
+      console.error('Error fetching notes & terms settings:', error);
+      // Leave as empty object - defaults will be used
+      setNotesTermsSettings({});
     }
-};
+  };
   // Handle barcode settings changes
   const handleBarcodeSettingChange = (field, value) => {
     setBarcodeSettings(prev => ({
@@ -177,53 +177,53 @@ const fetchNotesTermsSettings = async () => {
 
   // Save print template settings
 
-const handleSavePrintTemplate = async (type, templateData) => {
-  try {
-    setIsSaving(true);
+  const handleSavePrintTemplate = async (type, templateData, templateId) => {
+    try {
+      setIsSaving(true);
 
-    // Prepare the data in the format your backend expects
-    const saveData = {
-      templateType: type,
-      selectedTemplate: templateData.selectedTemplate || 'template1',
-      fieldVisibility: templateData.fieldVisibility || {},
-      layoutConfig: templateData.layoutConfig || {},
-      templateName: templateData.templateName || `${type === 'normal' ? 'Normal' : 'Thermal'} Template`,
-      isDefault: templateData.isDefault || false,
-      signatureUrl: templateData.signatureUrl || '', // ADD THIS LINE
-      companyId: companyData?._id
-    };
+      // Prepare the data in the format your backend expects
+      const saveData = {
+        templateType: type,
+        selectedTemplate: templateData.selectedTemplate || 'template1',
+        fieldVisibility: templateData.fieldVisibility || {},
+        layoutConfig: templateData.layoutConfig || {},
+        templateName: templateData.templateName || `${type === 'normal' ? 'Normal' : 'Thermal'} Template`,
+        isDefault: templateData.isDefault || false,
+        signatureUrl: templateData.signatureUrl || '', // ADD THIS LINE
+        companyId: companyData?._id
+      };
 
-    // If there's company data in templateData, update it
-    if (templateData.companyData) {
-      // You might want to update company settings separately
-      // or include it in the template save
-      console.log('Company data to update:', templateData.companyData);
-    }
-
-    // Use template._id if it exists (for update), otherwise create new
-    const url = templateData._id
-      ? `/api/print-templates/${templateData._id}`
-      : '/api/print-templates';
-
-    const response = await api.put(url, saveData);
-
-    if (response.data.success) {
-      toast.success(`${type === 'normal' ? 'Normal' : 'Thermal'} print template saved`);
-
-      // Update the template in state
-      if (type === 'normal') {
-        setNormalTemplate(response.data.data);
-      } else {
-        setThermalTemplate(response.data.data);
+      // If there's company data in templateData, update it
+      if (templateData.companyData) {
+        // You might want to update company settings separately
+        // or include it in the template save
+        console.log('Company data to update:', templateData.companyData);
       }
+
+      // Use template._id if it exists (for update), otherwise create new
+      const url = templateData._id
+        ? `/api/print-templates/${templateData._id}`
+        : '/api/print-templates';
+
+      const response = await api.put(url, saveData);
+
+      if (response.data.success) {
+        toast.success(`${type === 'normal' ? 'Normal' : 'Thermal'} print template saved`);
+
+        // Update the template in state
+        if (type === 'normal') {
+          setNormalTemplate(response.data.data);
+        } else {
+          setThermalTemplate(response.data.data);
+        }
+      }
+    } catch (error) {
+      console.error(`Error saving ${type} template:`, error);
+      toast.error(`Failed to save ${type} template`);
+    } finally {
+      setIsSaving(false);
     }
-  } catch (error) {
-    console.error(`Error saving ${type} template:`, error);
-    toast.error(`Failed to save ${type} template`);
-  } finally {
-    setIsSaving(false);
-  }
-};
+  };
   // Reset barcode settings to defaults
   const handleResetToDefaults = async () => {
     if (window.confirm('Are you sure you want to reset all barcode settings to defaults?')) {
@@ -274,7 +274,7 @@ const handleSavePrintTemplate = async (type, templateData) => {
             display: "flex",
             gap: "32px",
             marginBottom: "32px",
-            overflowX:"auto"
+            overflowX: "auto"
           }}
         >
           <div
@@ -707,7 +707,7 @@ const handleSavePrintTemplate = async (type, templateData) => {
             customer={sampleCustomer}
             onSave={(updatedTemplate) => handleSavePrintTemplate('normal', updatedTemplate)}
             isSaving={isSaving}
-             notesTermsSettings={notesTermsSettings}
+            notesTermsSettings={notesTermsSettings}
           />
         )}
 

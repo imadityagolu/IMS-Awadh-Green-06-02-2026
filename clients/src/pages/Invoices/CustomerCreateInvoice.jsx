@@ -20,6 +20,112 @@ import "react-datepicker/dist/react-datepicker.css";
 import AddCustomers from "../Modal/customerModals/AddCustomerModal";
 import { FiSearch } from "react-icons/fi";
 
+// for serial no
+const SerialNumberDropdown = ({
+  product,
+  onSelect,
+  disabled = false
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleSerialNo = (serialNo) => {
+    const currentSelected = product.selectedSerialNos || [];
+    let newSelected;
+
+    if (currentSelected.includes(serialNo)) {
+      // Remove from selected
+      newSelected = currentSelected.filter(sn => sn !== serialNo);
+    } else {
+      // Add to selected if not exceeding available
+      newSelected = [...currentSelected, serialNo];
+    }
+
+    onSelect(newSelected);
+  };
+
+  const availableSerialNos = product.availableSerialNos || [];
+  const selectedSerialNos = product.selectedSerialNos || [];
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <div
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        style={{
+          padding: '6px 8px',
+          border: '1px solid #EAEAEA',
+          borderRadius: '4px',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          backgroundColor: disabled ? '#f5f5f5' : 'white',
+          fontSize: '14px',
+          color: disabled ? '#999' : '#333',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <span>
+          {selectedSerialNos.length > 0
+            ? `${selectedSerialNos.length} selected`
+            : 'Select Serial Nos'}
+        </span>
+        <FiChevronDown />
+      </div>
+
+      {isOpen && !disabled && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            backgroundColor: 'white',
+            border: '1px solid #EAEAEA',
+            borderRadius: '4px',
+            maxHeight: '200px',
+            overflowY: 'auto',
+            zIndex: 1000,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            marginTop: '2px'
+          }}
+          onMouseLeave={() => setIsOpen(false)}
+        >
+          {availableSerialNos.length === 0 ? (
+            <div style={{ padding: '12px', textAlign: 'center', color: '#666' }}>
+              No serial numbers available
+            </div>
+          ) : (
+            availableSerialNos.map((serialNo) => (
+              <div
+                key={serialNo}
+                style={{
+                  padding: '8px 12px',
+                  borderBottom: '1px solid #f0f0f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  backgroundColor: selectedSerialNos.includes(serialNo)
+                    ? '#f0f7ff'
+                    : 'white'
+                }}
+                onClick={() => toggleSerialNo(serialNo)}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedSerialNos.includes(serialNo)}
+                  onChange={() => { }}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span>{serialNo}</span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 function CustomerCreateInvoice() {
   const viewManageRef = useRef(null); //for handle click outside for calendar
   const hasAddedInitialProduct = useRef(false);
@@ -70,6 +176,53 @@ function CustomerCreateInvoice() {
   const viewDueDateRef = useRef(null);
   const [viewDueDateOptions, setViewDueDateOptions] = useState(false);
   const [isDueDatePickerOpen, setIsDueDatePickerOpen] = useState(false);
+
+  // for system setting for serial no
+  const [settings, setSettings] = useState({
+    brand: false,
+    category: false,
+    subcategory: false,
+    itembarcode: false,
+    hsn: false,
+    lotno: false,
+    serialno: false,
+    variants: { size: false, color: false },
+    units: false,
+    expiry: false,
+  });
+
+  useEffect(() => {
+    fetchProductSettings();
+  }, []);
+
+  const fetchProductSettings = async () => {
+    try {
+      const response = await api.get('/api/system-settings');
+      if (response.data.success) {
+        const data = response.data.data;
+        setSettings({
+          brand: data.brand || false,
+          category: data.category || false,
+          subcategory: data.subcategory || false,
+          itembarcode: data.itembarcode || false,
+          hsn: data.hsn || false,
+          lotno: data.lotno || false,
+          serialno: data.serialno || false,
+          variants: {
+            size: data.variants?.size || false,
+            color: data.variants?.color || false
+          },
+          units: data.units || false,
+          expiry: data.expiry || false,
+        });
+      }
+    } catch (error) {
+      // console.error("Error fetching system settings:", error);
+      toast.error("Failed to fetch system settings");
+    }
+  };
+
+
 
   // eway bill and chalan state
   const [eway, setEway] = useState(false);
@@ -588,7 +741,7 @@ function CustomerCreateInvoice() {
     setActiveSearchId(rowId);
   };
 
-  const handleProductSelect = (product, rowId) => {
+  const handleProductSelect = async (product, rowId) => {
     // Check if this product is already in the products array
     const existingProductIndex = products.findIndex(
       (p) => p.productId === product._id && p.id !== rowId,
@@ -635,6 +788,9 @@ function CustomerCreateInvoice() {
     const productTaxRate = parseFloat(product.tax?.match(/\d+/)?.[0]);
     const finalTaxRate = productTaxRate || parseFloat(defaultTaxRate);
 
+    // Fetch serial numbers for this product
+    const serialNumbers = product.serialno ? product.serialno.split(',').map((sn) => sn.trim()).filter((sn) => sn) : [];
+
     // Update product data with productId
     updateProduct(rowId, "productId", product._id);
 
@@ -650,6 +806,8 @@ function CustomerCreateInvoice() {
     updateProduct(rowId, "taxType", product.tax || "GST 0%");
     updateProduct(rowId, "unit", product.unit || "Piece");
     updateProduct(rowId, "hsnCode", product.hsn?.hsnCode || "");
+    updateProduct(rowId, "availableSerialNos", serialNumbers); // Set available serial numbers
+    updateProduct(rowId, "selectedSerialNos", []); // Initialize empty selected serial numbers
 
     // Use product tax rate if exists, otherwise use default
     updateProduct(rowId, "taxRate", finalTaxRate);
@@ -692,6 +850,9 @@ function CustomerCreateInvoice() {
         discountAmt: 0,
         amount: 0,
         hsnCode: "",
+        serialno: "",
+        availableSerialNos: [], // New: store available serial numbers
+        selectedSerialNos: [], // New: store selected serial numbers
       },
     ]);
     // Initialize search data for this new row
@@ -728,7 +889,25 @@ function CustomerCreateInvoice() {
         if (field === "qty") {
           const numValue = parseFloat(value);
           updated.qty = isNaN(numValue) || numValue < 1 ? 1 : numValue;
-        } else {
+          // when quantity changes, adjust selected serial number
+          const qtyDiff = Math.round(updated.qty) - (updated.selectedSerialNos?.length || 0);
+
+          if (qtyDiff > 0 && updated.availableSerialNos?.length > 0) {
+            // need to add more serial numbers
+            const availableToAdd = updated.availableSerialNos.filter((sn) => !updated.selectedSerialNos?.includes(sn)).slice(0, qtyDiff);
+            updated.selectedSerialNos = [
+              ...(updated.selectedSerialNos || []), ...availableToAdd
+            ];
+          } else if (qtyDiff < 0) {
+            // Need to remove some serial numbers
+            updated.selectedSerialNos = (updated.selectedSerialNos || []).slice(0, Math.max(0, updated.selectedSerialNos.length + qtyDiff));
+          }
+        } else if (field === "selectedSerialNos") {
+          updated.selectedSerialNos = value;
+          // updated quantity based on selected serial numbers count
+          updated.qty = value.length || 1;
+        }
+        else {
           updated[field] = value;
         }
 
@@ -759,6 +938,7 @@ function CustomerCreateInvoice() {
               taxType: selected.taxType,
               unit: selected.unit,
               hsnCode: selected.hsnCode,
+              serialno: selected.serialno || "",
               qty: 1,
               discountPct: discountPct, // Apply product discount
               discountAmt: discountAmt, // Apply product discount amount
@@ -836,6 +1016,7 @@ function CustomerCreateInvoice() {
           finalAmount += taxAmount;
         }
         updated.amount = finalAmount;
+        updated.serialno = (updated.selectedSerialNos || []).join(", ");
         return updated;
       }),
     );
@@ -1236,6 +1417,8 @@ function CustomerCreateInvoice() {
         );
         formData.append(`items[${index}][discountAmt]`, p.discountAmt);
         formData.append(`items[${index}][amount]`, p.amount);
+        formData.append(`items[${index}][serialNumbers]`, JSON.stringify(p.selectedSerialNos || []));
+        formData.append(`items[${index}][serialno]`, (p.selectedSerialNos || []).join(", "));
       });
 
       // Add uploaded images
@@ -1729,7 +1912,7 @@ function CustomerCreateInvoice() {
                                     }}
                                   >
                                     {customerSearch.trim() ||
-                                    phoneSearch.trim() ? (
+                                      phoneSearch.trim() ? (
                                       <>
                                         No customers found
                                         {customerSearch.trim() &&
@@ -1810,12 +1993,12 @@ function CustomerCreateInvoice() {
                                           transition: "background-color 0.2s",
                                         }}
                                         onMouseEnter={(e) =>
-                                          (e.currentTarget.style.backgroundColor =
-                                            "#f8f9fa")
+                                        (e.currentTarget.style.backgroundColor =
+                                          "#f8f9fa")
                                         }
                                         onMouseLeave={(e) =>
-                                          (e.currentTarget.style.backgroundColor =
-                                            "white")
+                                        (e.currentTarget.style.backgroundColor =
+                                          "white")
                                         }
                                       >
                                         <div
@@ -2612,6 +2795,44 @@ function CustomerCreateInvoice() {
                           background: "var(--Black-Disable, #A2A8B8)",
                         }}
                       />
+                      {/* serial no start */}
+                      {settings.serialno && (
+                        <div
+                          style={{
+                            width: 200,
+                            height: 30,
+                            paddingLeft: 12,
+                            paddingRight: 12,
+                            paddingTop: 4,
+                            paddingBottom: 4,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            gap: 8,
+                            display: "flex",
+                          }}
+                        >
+                          <div
+                            style={{
+                              color: "#727681",
+                              fontSize: 14,
+                              fontFamily: "Inter",
+                              fontWeight: "500",
+                              lineHeight: "16.80px",
+                              wordWrap: "break-word",
+                            }}
+                          >
+                            Serial No
+                          </div>
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          width: 1,
+                          height: 30,
+                          background: "var(--Black-Disable, #A2A8B8)",
+                        }}
+                      />
+                      {/* serial no end */}
                       <div
                         style={{
                           width: 120,
@@ -3035,12 +3256,12 @@ function CustomerCreateInvoice() {
                                           transition: "background-color 0.2s",
                                         }}
                                         onMouseEnter={(e) =>
-                                          (e.currentTarget.style.backgroundColor =
-                                            "#f8f9fa")
+                                        (e.currentTarget.style.backgroundColor =
+                                          "#f8f9fa")
                                         }
                                         onMouseLeave={(e) =>
-                                          (e.currentTarget.style.backgroundColor =
-                                            "#fff")
+                                        (e.currentTarget.style.backgroundColor =
+                                          "#fff")
                                         }
                                       >
                                         {/* Product Image */}
@@ -3231,7 +3452,82 @@ function CustomerCreateInvoice() {
                                   background: "var(--Black-Disable, #A2A8B8)",
                                 }}
                               />
-
+                              {/* for serial no start */}
+                              {/* In the products table rows section */}
+                              {/* {settings.serialno && (
+                                <>
+                                  <div
+                                    style={{
+                                      width: 120,
+                                      alignSelf: "stretch",
+                                      paddingLeft: 12,
+                                      paddingRight: 12,
+                                      paddingTop: 4,
+                                      paddingBottom: 4,
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      display: "flex",
+                                      outline: "1px var(--Stroke, #EAEAEA) solid",
+                                      borderRadius: 4,
+                                    }}
+                                  >
+                                    <input
+                                      type="text"
+                                      placeholder="Serial No"
+                                      className="table-input"
+                                      style={{
+                                        width: "100%",
+                                        border: "none",
+                                        outline: "none",
+                                      }}
+                                      value={p.serialno || ""}
+                                      onChange={(e) =>
+                                        updateProduct(p.id, "serialno", e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                  <div
+                                    style={{
+                                      width: 1,
+                                      height: 30,
+                                      background: "var(--Black-Disable, #A2A8B8)",
+                                    }}
+                                  />
+                                </>
+                              )} */}
+                              {settings.serialno && (
+                                <>
+                                  <div
+                                    style={{
+                                      width: 200, // Increased width for dropdown
+                                      alignSelf: "stretch",
+                                      paddingLeft: 12,
+                                      paddingRight: 12,
+                                      paddingTop: 4,
+                                      paddingBottom: 4,
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      display: "flex",
+                                      outline: "1px var(--Stroke, #EAEAEA) solid",
+                                      borderRadius: 4,
+                                    }}
+                                  >
+                                    <SerialNumberDropdown
+                                      product={p}
+                                      onSelect={(selectedSerialNos) => updateProduct(p.id, "selectedSerialNos", selectedSerialNos)}
+                                      disabled={!p.productId}
+                                    />
+                                  </div>
+                                  <div
+                                    style={{
+                                      width: 1,
+                                      height: 30,
+                                      background: "var(--Black-Disable, #A2A8B8)",
+                                    }}
+                                  />
+                                </>
+                              )}
+                              {/* for serial no end */}
                               <div
                                 style={{
                                   width: 120,
@@ -4350,24 +4646,24 @@ function CustomerCreateInvoice() {
                         {Object.entries(additionalChargesDetails).some(
                           ([_, value]) => value > 0,
                         ) && (
-                          <span
-                            style={{
-                              color: "#3b82f6",
-                              marginLeft: "4px",
-                              fontSize: "11px",
-                            }}
-                          >
-                            (
-                            {Object.entries(additionalChargesDetails)
-                              .filter(([_, value]) => value > 0)
-                              .map(
-                                ([key, _]) =>
-                                  key.charAt(0).toUpperCase() + key.slice(1),
+                            <span
+                              style={{
+                                color: "#3b82f6",
+                                marginLeft: "4px",
+                                fontSize: "11px",
+                              }}
+                            >
+                              (
+                              {Object.entries(additionalChargesDetails)
+                                .filter(([_, value]) => value > 0)
+                                .map(
+                                  ([key, _]) =>
+                                    key.charAt(0).toUpperCase() + key.slice(1),
+                                )
+                                .join(", ")}
                               )
-                              .join(", ")}
-                            )
-                          </span>
-                        )}
+                            </span>
+                          )}
                         :
                       </span>
                       <span style={{ color: "#9ca3af" }}>
@@ -5216,6 +5512,16 @@ function CustomerCreateInvoice() {
                                   }}
                                   rowSpan="2"
                                 >
+                                  Serial No.
+                                </th>
+                                <th
+                                  style={{
+                                    borderRight: "1px solid #EAEAEA",
+                                    borderBottom: "1px solid #EAEAEA",
+                                    fontWeight: "400",
+                                  }}
+                                  rowSpan="2"
+                                >
                                   Rate
                                 </th>
                                 {taxSettings.enableGSTBilling ? (
@@ -5352,13 +5658,22 @@ function CustomerCreateInvoice() {
                                   <td
                                     style={{
                                       borderRight: "1px solid #EAEAEA",
+                                      height: "40px",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {item.serialno || "-"}
+                                  </td>
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
                                       textAlign: "center",
                                     }}
                                   >
                                     {item.unitPrice
                                       ? `₹${parseNumber(item.unitPrice).toFixed(
-                                          2,
-                                        )}`
+                                        2,
+                                      )}`
                                       : ""}
                                   </td>
                                   <td
@@ -5699,7 +6014,7 @@ function CustomerCreateInvoice() {
                                 {Math.max(
                                   0,
                                   grandTotal -
-                                    (parseFloat(amountReceived) || 0),
+                                  (parseFloat(amountReceived) || 0),
                                 ).toFixed(2)}
                               </span>
                             </div>

@@ -6,7 +6,7 @@ import api from "../../../pages/config/axiosInstance";
 import { toast } from "react-toastify";
 
 
-const NormalPrint = ({ template, companyData, products, customer, onSave, isSaving,  notesTermsSettings }) => {
+const NormalPrint = ({ template, companyData, products, customer, onSave, isSaving, notesTermsSettings }) => {
   const [activeTemplate, setActiveTemplate] = useState("template1");
   const [signatureImage, setSignatureImage] = useState(null);
   const [signaturePreview, setSignaturePreview] = useState("");
@@ -21,24 +21,22 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
     companyGSTIN: "",
 
     // Field visibility
-    showHSN: true,
-    showRate: true,
-    showTax: true,
-    showTotalsInWords: true,
-    showBankDetails: true,
-    showTermsConditions: true,
+    showHSN: false,
+    showRate: false,
+    showTax: false,
+    showTotalsInWords: false,
+    showBankDetails: false,
+    showTermsConditions: false,
 
     // Template selection
     selectedTemplate: "template1",
     signatureUrl: ""
   });
 
-  
+
 
   // Initialize form data from props
   useEffect(() => {
-     console.log("Template received in NormalPrint:", template);
-    console.log("Template fieldVisibility:", template?.fieldVisibility);
     if (template) {
       const newFormData = {
         // Company data
@@ -47,24 +45,23 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
         companyEmail: companyData?.companyemail || "",
         companyPhone: companyData?.companyphone || "",
         companyGSTIN: companyData?.gstin || "",
-        
+
         // Field visibility - IMPORTANT: Check each field individually
-        showHSN: template.fieldVisibility?.showHSN !== false,
-        showRate: template.fieldVisibility?.showRate !== false,
-        showTax: template.fieldVisibility?.showTax !== false,
-        showTotalsInWords: template.fieldVisibility?.showTotalsInWords !== false,
-        showBankDetails: template.fieldVisibility?.showBankDetails !== false,
-        showTermsConditions: template.fieldVisibility?.showTermsConditions !== false,
-        
+       showHSN: template.fieldVisibility?.showHSN ?? false,
+      showRate: template.fieldVisibility?.showRate ?? false,
+      showTax: template.fieldVisibility?.showTax ?? false,
+      showTotalsInWords: template.fieldVisibility?.showTotalsInWords ?? false,
+      showBankDetails: template.fieldVisibility?.showBankDetails ?? false,
+      showTermsConditions: template.fieldVisibility?.showTermsConditions ?? false,
         // Template selection
         selectedTemplate: template.selectedTemplate || "template1",
         signatureUrl: template.signatureUrl || ""
       };
-      
+
       console.log("Setting formData to:", newFormData);
       setFormData(newFormData);
       setActiveTemplate(template.selectedTemplate || "template1");
-      
+
       // Set signature preview if exists
       if (template.signatureUrl) {
         setSignaturePreview(template.signatureUrl);
@@ -157,107 +154,109 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
     await uploadSignatureToServer(file);
   };
 
- // Update the uploadSignatureToServer function in NormalPrint.js
-const uploadSignatureToServer = async (file) => {
-  try {
-    setIsUploading(true);
+  // Update the uploadSignatureToServer function in NormalPrint.js
+  const uploadSignatureToServer = async (file) => {
+    try {
+      setIsUploading(true);
 
-    const formData = new FormData();
-    formData.append('signature', file);
+      const formData = new FormData();
+      formData.append('signature', file);
 
-    // Use the print template endpoint
-    const response = await api.post('/api/print-templates/upload-signature', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+      // Use the print template endpoint
+      const response = await api.post('/api/print-templates/upload-signature', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-    if (response.data.success) {
-      const signatureUrl = response.data.data.url;
-      setFormData(prev => ({
-        ...prev,
-        signatureUrl: signatureUrl
-      }));
-      toast.success('Signature uploaded successfully');
+      if (response.data.success) {
+        const signatureUrl = response.data.data.url;
+        setFormData(prev => ({
+          ...prev,
+          signatureUrl: signatureUrl
+        }));
+        toast.success('Signature uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Error uploading signature:', error);
+      toast.error('Failed to upload signature');
+    } finally {
+      setIsUploading(false);
     }
-  } catch (error) {
-    console.error('Error uploading signature:', error);
-    toast.error('Failed to upload signature');
-  } finally {
-    setIsUploading(false);
-  }
-};
+  };
 
-// Also add a function to delete signature if needed
-const deleteSignatureFromServer = async (publicId) => {
-  try {
-    const response = await api.delete('/api/print-templates/delete-signature', {
-      data: { publicId }
-    });
-    
-    if (response.data.success) {
-      toast.success('Signature deleted successfully');
+  // Also add a function to delete signature if needed
+  const deleteSignatureFromServer = async (publicId) => {
+    try {
+      const response = await api.delete('/api/print-templates/delete-signature', {
+        data: { publicId }
+      });
+
+      if (response.data.success) {
+        toast.success('Signature deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting signature:', error);
+      toast.error('Failed to delete signature');
     }
-  } catch (error) {
-    console.error('Error deleting signature:', error);
-    toast.error('Failed to delete signature');
-  }
-};
+  };
 
-// Update the removeSignature function
-const removeSignature = () => {
-  // If you have public_id, you can delete from Cloudinary
-  // if (formData.signaturePublicId) {
-  //   deleteSignatureFromServer(formData.signaturePublicId);
-  // }
-  
-  setSignatureImage(null);
-  setSignaturePreview("");
-  setFormData(prev => ({
-    ...prev,
-    signatureUrl: "",
-    signaturePublicId: "" // if you're storing public_id
-  }));
-};
+  // Update the removeSignature function
+  const removeSignature = () => {
+    // If you have public_id, you can delete from Cloudinary
+    // if (formData.signaturePublicId) {
+    //   deleteSignatureFromServer(formData.signaturePublicId);
+    // }
+
+    setSignatureImage(null);
+    setSignaturePreview("");
+    setFormData(prev => ({
+      ...prev,
+      signatureUrl: "",
+      signaturePublicId: "" // if you're storing public_id
+    }));
+  };
 
 
-const handleSaveSettings = async () => {
-  try {
-    console.log("Saving with formData:", formData);
-    
-    // Prepare data for saving - IMPORTANT: Use the exact field names from your schema
-    const saveData = {
-      templateType: 'normal',
-      selectedTemplate: formData.selectedTemplate,
-      fieldVisibility: {
-        showHSN: Boolean(formData.showHSN),
-        showRate: Boolean(formData.showRate),
-        showTax: Boolean(formData.showTax),
-        showTotalsInWords: Boolean(formData.showTotalsInWords),
-        showBankDetails: Boolean(formData.showBankDetails),
-        showTermsConditions: Boolean(formData.showTermsConditions),
-        // Include all required fields from schema
-        showDate: true, // Add default value for required field
-        showTime: true, // Add default value for required field
-      },
-      signatureUrl: formData.signatureUrl,
-      templateName: `Normal Template - ${formData.selectedTemplate}`,
-      // Don't send companyData here - that should be handled separately
-    };
+  const handleSaveSettings = async () => {
+    try {
+      console.log("Saving with formData:", formData);
+      // get the current template ID from props
+      const templateId = template?._id;
 
-    console.log("Sending saveData:", saveData);
+      // Prepare data for saving - IMPORTANT: Use the exact field names from your schema
+      const saveData = {
+        templateType: 'normal',
+        selectedTemplate: formData.selectedTemplate,
+        fieldVisibility: {
+          showHSN: Boolean(formData.showHSN),
+          showRate: Boolean(formData.showRate),
+          showTax: Boolean(formData.showTax),
+          showTotalsInWords: Boolean(formData.showTotalsInWords),
+          showBankDetails: Boolean(formData.showBankDetails),
+          showTermsConditions: Boolean(formData.showTermsConditions),
+          // Include all required fields from schema
+          showDate: true, // Add default value for required field
+          showTime: true, // Add default value for required field
+        },
+        signatureUrl: formData.signatureUrl,
+        templateName: `Normal Template - ${formData.selectedTemplate}`,
+        // Don't send companyData here - that should be handled separately
+      };
 
-    // Call the parent save function
-    await onSave(saveData);
-  } catch (error) {
-    console.error('Error saving settings:', error);
-    toast.error(`Failed to save settings: ${error.message}`);
-  }
-};
+      console.log("Sending saveData:", saveData);
+
+      // Call the parent save function
+      await onSave(saveData, templateId);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error(`Failed to save settings: ${error.message}`);
+    }
+  };
 
   return (
     <div
-     className="setting-normalprint-container"
+      className="setting-normalprint-container"
       style={{
         display: "flex",
         alignItems: "stretch",
@@ -1103,7 +1102,7 @@ const handleSaveSettings = async () => {
           }}
           products={products}
           customer={customer}
-           notesTermsSettings={notesTermsSettings}
+          notesTermsSettings={notesTermsSettings}
         />
       </div>
     </div>

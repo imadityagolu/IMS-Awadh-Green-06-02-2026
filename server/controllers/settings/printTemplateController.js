@@ -65,6 +65,7 @@ exports.updatePrintTemplate = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const userCompanyId = req.user.companyId;
 
     let template;
 
@@ -79,7 +80,39 @@ exports.updatePrintTemplate = async (req, res) => {
       }
     } else {
       const { templateType = "normal" } = updateData;
-      template = new PrintTemplate({ templateType });
+      template = await PrintTemplate.findOne({
+        templateType: templateType,
+        companyId: userCompanyId,
+        isDefault: false,
+      });
+      //  if  no existing template found
+      if (!template) {
+        // Try to find default template
+        template = await PrintTemplate.findOne({
+          templateType: templateType,
+          isDefault: true
+        });
+            if (template) {
+          // Create a copy of default template for this company
+          template = new PrintTemplate({
+            ...template.toObject(), // Copy all properties
+            _id: undefined, // Remove the ID to create new
+            isDefault: false,
+            companyId: userCompanyId,
+            templateName: updateData.templateName || `Custom ${templateType} Template`
+          });
+        } else {
+          // Create completely new template
+          template = new PrintTemplate({
+            templateType,
+            companyId: userCompanyId,
+            templateName: updateData.templateName || `Custom ${templateType} Template`,
+            selectedTemplate: updateData.selectedTemplate || "template1",
+            fieldVisibility: updateData.fieldVisibility || {},
+            signatureUrl: updateData.signatureUrl || ""
+          });
+        }
+      }
     }
 
     // Only update template-specific fields
@@ -276,7 +309,7 @@ exports.generatePreview = async (req, res) => {
     if (products && products.length > 0) {
       previewData.invoice.subtotal = products.reduce(
         (sum, product) => sum + (product.sellingPrice || 0),
-        0
+        0,
       );
 
       // Add sample tax (18%)

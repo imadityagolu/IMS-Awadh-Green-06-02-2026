@@ -29,16 +29,21 @@ const generateInvoiceNo = async () => {
 const parseFormDataNested = (body) => {
   const parsed = { ...body };
 
-    // Check if autoRoundOff is an array (this happens from FormData)
+  // Check if autoRoundOff is an array (this happens from FormData)
   if (Array.isArray(body.autoRoundOff)) {
     // Extract the actual value (should be the last element if both checkbox and value are sent)
     if (body.autoRoundOff.length === 2) {
       // If first element is "false" and second is a number, use the number
-      if (body.autoRoundOff[0] === "false" && !isNaN(parseInt(body.autoRoundOff[1]))) {
+      if (
+        body.autoRoundOff[0] === "false" &&
+        !isNaN(parseInt(body.autoRoundOff[1]))
+      ) {
         parsed.autoRoundOff = body.autoRoundOff[1]; // Use the numeric value
       } else {
         // Otherwise try to find a valid value
-        const validValue = body.autoRoundOff.find(val => ["0", "1", "5", "10"].includes(val));
+        const validValue = body.autoRoundOff.find((val) =>
+          ["0", "1", "5", "10"].includes(val),
+        );
         parsed.autoRoundOff = validValue || "0";
       }
     } else if (body.autoRoundOff.length === 1) {
@@ -68,25 +73,27 @@ const parseFormDataNested = (body) => {
     console.log("Found dueDate as array:", dueDateArray);
   }
 
-    // ========== FIX: Parse tax settings properly ==========
+  // ========== FIX: Parse tax settings properly ==========
   // Handle taxSettings if sent as separate fields
-  if (body['taxSettings[autoRoundOff]'] !== undefined) {
+  if (body["taxSettings[autoRoundOff]"] !== undefined) {
     parsed.taxSettings = parsed.taxSettings || {};
-    parsed.taxSettings.autoRoundOff = body['taxSettings[autoRoundOff]'];
+    parsed.taxSettings.autoRoundOff = body["taxSettings[autoRoundOff]"];
   }
-  if (body['taxSettings[enableGSTBilling]'] !== undefined) {
+  if (body["taxSettings[enableGSTBilling]"] !== undefined) {
     parsed.taxSettings = parsed.taxSettings || {};
-    parsed.taxSettings.enableGSTBilling = body['taxSettings[enableGSTBilling]'] !== "false";
+    parsed.taxSettings.enableGSTBilling =
+      body["taxSettings[enableGSTBilling]"] !== "false";
   }
-  if (body['taxSettings[priceIncludeGST]'] !== undefined) {
+  if (body["taxSettings[priceIncludeGST]"] !== undefined) {
     parsed.taxSettings = parsed.taxSettings || {};
-    parsed.taxSettings.priceIncludeGST = body['taxSettings[priceIncludeGST]'] !== "false";
+    parsed.taxSettings.priceIncludeGST =
+      body["taxSettings[priceIncludeGST]"] !== "false";
   }
-  if (body['taxSettings[defaultGSTRate]'] !== undefined) {
+  if (body["taxSettings[defaultGSTRate]"] !== undefined) {
     parsed.taxSettings = parsed.taxSettings || {};
-    parsed.taxSettings.defaultGSTRate = body['taxSettings[defaultGSTRate]'];
+    parsed.taxSettings.defaultGSTRate = body["taxSettings[defaultGSTRate]"];
   }
-  
+
   if (
     body["additionalDiscount[pct]"] !== undefined ||
     body["additionalDiscount[amt]"] !== undefined
@@ -339,6 +346,7 @@ exports.createInvoice = async (req, res) => {
         productId: item.productId,
         itemName: item.itemName || product.productName,
         hsnCode: item.hsnCode || product.hsnCode || "",
+        serialno: item.serialno || product.serialno || "",
         qty: parseFloat(item.qty) || 1,
         unit: item.unit || product.unit || "Piece",
         unitPrice: parseFloat(item.unitPrice) || product.sellingPrice || 0,
@@ -420,6 +428,35 @@ exports.createInvoice = async (req, res) => {
               error: `Insufficient stock for ${product.productName}. Available: ${currentStock}, Requested: ${item.qty}`,
             });
           }
+          // check if serial numbers are provided and validate them
+          if (item.serialNumbers && item.serialNumbers.length > 0) {
+            const availableSerials = product.serialno
+              ? product.serialno.split(",").map((sn) => sn.trim())
+              : [];
+
+            // check if all selected serials are available
+
+            // Check if all selected serials are available
+            const unavailableSerials = item.serialNumbers.filter(
+              (serial) => !availableSerials.includes(serial),
+            );
+
+            if (unavailableSerials.length > 0) {
+              return res.status(400).json({
+                success: false,
+                error: `Serial number(s) not available for ${product.productName}: ${unavailableSerials.join(", ")}`,
+              });
+            }
+            // remove used serial numbers from product's avaialble list
+            const remainingSerials = availableSerials.filter(
+              (serial) => !item.serialNumbers.includes(serial),
+            );
+            // update product with remaining serial numbers
+            product.serialno = remainingSerials.join(", ");
+          }
+          //update stock
+          product.stockQuantity = currentStock - item.qty;
+          await product.save();
         }
       }
     }
@@ -438,6 +475,7 @@ exports.createInvoice = async (req, res) => {
         upiId: defaultBank.upiId,
         qrCode: defaultBank.qrCode,
       },
+
       items: validatedItems,
       billingAddress: billingAddress || customer.address || "",
       shippingAddress:

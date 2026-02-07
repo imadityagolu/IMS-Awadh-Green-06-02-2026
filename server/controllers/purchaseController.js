@@ -226,7 +226,7 @@ exports.createPurchase = async (req, res) => {
           newData: populatedPurchase,
           req,
         });
-         console.log("✅ Audit log created for purchase:", populatedPurchase._id);
+        //  console.log("✅ Audit log created for purchase:", populatedPurchase._id);
 } catch (err) {
   console.error("⚠️ Failed to create audit log for purchase:", err);
 }

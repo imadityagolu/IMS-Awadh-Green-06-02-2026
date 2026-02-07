@@ -46,7 +46,7 @@ const PurchaseViewDetails = () => {
 
             if (response.data.success) {
                 const order = response.data.purchaseOrder || response.data.invoice || response.data;
-                console.log("Purchase order loaded:", order);
+                // console.log("Purchase order loaded:", order);
 
                 // Format items - REMOVE order-level fields from items
                 const formattedItems = order.items?.map((item, index) => ({

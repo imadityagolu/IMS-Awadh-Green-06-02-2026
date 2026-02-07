@@ -37,6 +37,8 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
 
   // Initialize form data from props
   useEffect(() => {
+    //  console.log("Template received in NormalPrint:", template);
+    // console.log("Template fieldVisibility:", template?.fieldVisibility);
     if (template) {
       const newFormData = {
         // Company data
@@ -57,8 +59,8 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
         selectedTemplate: template.selectedTemplate || "template1",
         signatureUrl: template.signatureUrl || ""
       };
-
-      console.log("Setting formData to:", newFormData);
+      
+      // console.log("Setting formData to:", newFormData);
       setFormData(newFormData);
       setActiveTemplate(template.selectedTemplate || "template1");
 
@@ -68,7 +70,7 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
       }
     } else if (companyData) {
       // Initialize from company data if no template
-      console.log("No template found, using default settings");
+      // console.log("No template found, using default settings");
       setFormData(prev => ({
         ...prev,
         companyLogo: companyData?.companyLogo || "",
@@ -218,31 +220,31 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
   };
 
 
-  const handleSaveSettings = async () => {
-    try {
-      console.log("Saving with formData:", formData);
-      // get the current template ID from props
-      const templateId = template?._id;
+const handleSaveSettings = async () => {
+  try {
+    // console.log("Saving with formData:", formData);
+    
+    // Prepare data for saving - IMPORTANT: Use the exact field names from your schema
+    const saveData = {
+      templateType: 'normal',
+      selectedTemplate: formData.selectedTemplate,
+      fieldVisibility: {
+        showHSN: Boolean(formData.showHSN),
+        showRate: Boolean(formData.showRate),
+        showTax: Boolean(formData.showTax),
+        showTotalsInWords: Boolean(formData.showTotalsInWords),
+        showBankDetails: Boolean(formData.showBankDetails),
+        showTermsConditions: Boolean(formData.showTermsConditions),
+        // Include all required fields from schema
+        showDate: true, // Add default value for required field
+        showTime: true, // Add default value for required field
+      },
+      signatureUrl: formData.signatureUrl,
+      templateName: `Normal Template - ${formData.selectedTemplate}`,
+      // Don't send companyData here - that should be handled separately
+    };
 
-      // Prepare data for saving - IMPORTANT: Use the exact field names from your schema
-      const saveData = {
-        templateType: 'normal',
-        selectedTemplate: formData.selectedTemplate,
-        fieldVisibility: {
-          showHSN: Boolean(formData.showHSN),
-          showRate: Boolean(formData.showRate),
-          showTax: Boolean(formData.showTax),
-          showTotalsInWords: Boolean(formData.showTotalsInWords),
-          showBankDetails: Boolean(formData.showBankDetails),
-          showTermsConditions: Boolean(formData.showTermsConditions),
-          // Include all required fields from schema
-          showDate: true, // Add default value for required field
-          showTime: true, // Add default value for required field
-        },
-        signatureUrl: formData.signatureUrl,
-        templateName: `Normal Template - ${formData.selectedTemplate}`,
-        // Don't send companyData here - that should be handled separately
-      };
+    // console.log("Sending saveData:", saveData);
 
       console.log("Sending saveData:", saveData);
 

@@ -453,7 +453,7 @@ const EmailDetail = ({ email, onBack, handleToggleStar, onDelete }) => {
       </div>
       {showDetails && (
         <div className="email-meta" ref={detailsRef}>
-          {console.log("📌 Email detailsws:", email)}
+          {/* {console.log("📌 Email detailsws:", email)} */}
           <p
             style={{
               fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767'
@@ -715,7 +715,7 @@ const EmailDetail = ({ email, onBack, handleToggleStar, onDelete }) => {
         >
           <GrEmoji style={{ color: "#3b3b3bff" }} />
         </span>
-        {console.log("Email body being sent:", email.body)}
+        {/* {console.log("Email body being sent:", email.body)} */}
       </div>
       <EmailModal
         show={modalData.show}

@@ -26,7 +26,25 @@ exports.createProduct = async (req, res) => {
       discountAmount,
       // discountPercent,
       discountType,
+      description,
+      lotNumber,
+      supplier,
     } = req.body;
+
+    let serialNumbers = [];
+    if (req.body.serialNumbers) {
+      try {
+        serialNumbers = typeof req.body.serialNumbers === "string" 
+          ? JSON.parse(req.body.serialNumbers) 
+          : req.body.serialNumbers;
+      } catch (e) {
+        serialNumbers = [];
+      }
+    }
+
+    if (description && description.length > 20) {
+      return res.status(400).json({ message: "Description must be under 20 characters." });
+    }
 
     // ✅ LOT DETAILS
     let lotDetails = {};
@@ -106,7 +124,7 @@ exports.createProduct = async (req, res) => {
           expiryDate: variant.expiryDate,
           unit: variant.unit,
           serialno: variant.serialNumber || req.body.serialNumber || "",
-          openingQuantity: openingQty,
+          quantityInLot: openingQty,
           stockQuantity: openingQty,
           minStockToMaintain: variant.minStockToMaintain,
           discountAmount: variant.discountAmount,
@@ -115,6 +133,11 @@ exports.createProduct = async (req, res) => {
 
           images: variantImages,
           lotDetails, // Shared lot details
+          
+          description: description || "",
+          lotNumber: variant.lotNumber || "",
+          lotSupplier: variant.supplier,
+          serialNumbers: variant.serialNumbers || [],
         });
 
         const saved = await product.save();
@@ -144,10 +167,14 @@ exports.createProduct = async (req, res) => {
         discountAmount: discountAmount || 0,
         discountType: discountType || "Fixed",
         images: allUploadedImages,
-        openingQuantity: openingQty,
+        quantityInLot: openingQty,
         stockQuantity: openingQty,
         minStockToMaintain,
         lotDetails,
+        description: description || "",
+        lotNumber: lotNumber || "",
+        lotSupplier: supplier || undefined,
+        serialNumbers: serialNumbers || [],
       });
 
       const saved = await product.save();

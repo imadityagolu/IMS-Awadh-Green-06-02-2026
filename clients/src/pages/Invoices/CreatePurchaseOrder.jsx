@@ -115,7 +115,7 @@ function CreatePurchaseOrder() {
   const fetchSupplierForSearch = async () => {
     try {
       const response = await api.get("/api/suppliers");
-      console.log("Supplier API response:", response.data.suppliers);
+      // console.log("Supplier API response:", response.data.suppliers);
 
       // The response has {total: X, suppliers: [...]}
       if (response.data && Array.isArray(response.data.suppliers)) {
@@ -181,7 +181,7 @@ function CreatePurchaseOrder() {
         if (supplierId) {
           const supplierRes = await api.get(`/api/suppliers/${supplierId}`);
           const s = supplierRes.data;
-          console.log("Fetched supplier data:", s);
+          // console.log("Fetched supplier data:", s);
           setSupplier({
             name: s.supplierName || "",
             phone: s.phone || "",
@@ -237,7 +237,7 @@ function CreatePurchaseOrder() {
 
   // handle supplier selection from dropdown
   const handleSupplierSelect = (selectedSupplier) => {
-    console.log("Selected supplier:", selectedSupplier);
+    // console.log("Selected supplier:", selectedSupplier);
     setSupplier({
       name: selectedSupplier.name || "",
       phone: selectedSupplier.phone || "",
@@ -832,7 +832,7 @@ function CreatePurchaseOrder() {
       });
 
       // Debug: Log what's being sent
-      console.log("Sending form data for supplier invoice:");
+      // console.log("Sending form data for supplier invoice:");
 
       // Send to supplier invoice backend
       const response = await api.post("/api/purchase-orders", formData, {
@@ -841,7 +841,7 @@ function CreatePurchaseOrder() {
         },
       });
 
-      console.log("Response:", response.data);
+      // console.log("Response:", response.data);
 
       if (response.data.success) {
         toast.success("Purchase Order created successfully!");
@@ -876,7 +876,7 @@ function CreatePurchaseOrder() {
       }
 
       // Log full error for debugging
-      console.log("Full error response:", error.response?.data);
+      // console.log("Full error response:", error.response?.data);
     } finally {
       setIsSubmitting(false);
     }

@@ -177,12 +177,12 @@ exports.verifyotp = async (req, res) => {
     });
 
     // After setting cookies, add:
-console.log("✅ OTP Verification - Cookies set:", {
-  tokenSet: !!token,
-  twoFATokenSet: !!twoFAToken,
-  userIdSet: !!user._id,
-  cookieOptions: cookieOptions
-});
+// console.log("✅ OTP Verification - Cookies set:", {
+//   tokenSet: !!token,
+//   twoFATokenSet: !!twoFAToken,
+//   userIdSet: !!user._id,
+//   cookieOptions: cookieOptions
+// });
 
     res.status(200).json({
       message: "OTP Verified successfully",
@@ -211,7 +211,7 @@ exports.resendOtp = async (req, res) => {
     // If no email in request body, try to get from cookie
     if (!email && req.cookies.otpEmail) {
       email = req.cookies.otpEmail;
-      console.log("Got email from cookie:", email);
+      // console.log("Got email from cookie:", email);
     }
 
     if (!email) {

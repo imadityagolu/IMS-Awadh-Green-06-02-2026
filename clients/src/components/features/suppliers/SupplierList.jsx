@@ -86,7 +86,7 @@ const SupplierList = () => {
     try {
       setLoading(true);
       const res = await api.get("/api/suppliers");
-      console.log('ressssss', res.data)
+      // console.log('ressssss', res.data)
       setSuppliers(res.data.suppliers || []);
     } catch (err) {
       console.error(err);
@@ -158,7 +158,7 @@ const SupplierList = () => {
     currentPage * itemsPerPage
   );
 
-  console.log("paginatedSupplierscc", paginatedSuppliers)
+  // console.log("paginatedSupplierscc", paginatedSuppliers)
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab, search]);
@@ -166,8 +166,8 @@ const SupplierList = () => {
 
 
   const handleMenuAction = async (action, supplier) => {
-    console.log("🔄 Edit clicked, supplier object:", supplier);
-    console.log("📌 Supplier ID:", supplier._id)
+    // console.log("🔄 Edit clicked, supplier object:", supplier);
+    // console.log("📌 Supplier ID:", supplier._id)
     setOpenMenuIndex(null);
     switch (action) {
       case "edit":

@@ -104,7 +104,7 @@ const Inbox = () => {
       // const token = localStorage.getItem("token");
       // const userEmail = JSON.parse(localStorage.getItem("user"))?.email?.toLowerCase();  // Get userEmail locally if needed for logs
       const userEmail = user?.email?.toLowerCase();
-      console.log("🔹 readInboxEmails called for emailId:", emailId, "by user:", userEmail);
+      // console.log("🔹 readInboxEmails called for emailId:", emailId, "by user:", userEmail);
       // console.log("Token present:", !!token);
 
        // 1. Optimistic UI update (local only, for instant feel)
@@ -124,10 +124,10 @@ const Inbox = () => {
         // { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Response from backend:", res.data);
+      // console.log("Response from backend:", res.data);
 
       if (res.data.success) {
-        console.log("Backend confirmed email marked as read");
+        // console.log("Backend confirmed email marked as read");
         // update local state
         // setEmails((prevEmails) => prevEmails.map((email) => email._id === emailId ? {...email, isRead:true, status:{...email.status, dotColor:'transparent'}} : email));
 

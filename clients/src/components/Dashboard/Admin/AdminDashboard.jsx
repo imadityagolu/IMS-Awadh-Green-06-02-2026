@@ -1337,7 +1337,7 @@ const getCustomerChartData = useMemo(() => {
   };
 }, [sales, selectedDateRange]);
 
-console.log('getCustomerChartDataxcxcxcsds', getCustomerChartData)
+// console.log('getCustomerChartDataxcxcxcsds', getCustomerChartData)
 
 
 const customerChartOptions = useMemo(() => {
@@ -2214,15 +2214,15 @@ const datasFour = {
     // console.log("Customer count:", customers.length);
 
     customers.forEach(customer => {
-      console.log(`Customer: ${customer.name}, Created: ${customer.createdAt}`);
+      // console.log(`Customer: ${customer.name}, Created: ${customer.createdAt}`);
     });
 
-    console.log("Sales count:", sales.length);
+    // console.log("Sales count:", sales.length);
     sales.forEach(sale => {
-      console.log(`Sale: ${sale.invoiceNo}, Customer: ${sale.customer}, Date: ${sale.invoiceDate}`);
+      // console.log(`Sale: ${sale.invoiceNo}, Customer: ${sale.customer}, Date: ${sale.invoiceDate}`);
     });
 
-    console.log("=== END DEBUG ===");
+    // console.log("=== END DEBUG ===");
   }, [customers, sales, selectedDateRange]);
 
 

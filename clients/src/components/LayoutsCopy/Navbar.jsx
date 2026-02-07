@@ -276,7 +276,7 @@ const Navbar = () => {
                   : companyImages.companyLogo
               }
               alt="company-logo"
-              style={{ width: "100%", maxHeight: "30px", objectFit: "contain" }}
+              style={{ width: "100%", maxHeight: "60px", objectFit: "contain" }}
             />
           </div>
         )}

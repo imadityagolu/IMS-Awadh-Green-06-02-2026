@@ -686,14 +686,14 @@ const fetchCustomers = async () => {
         totalAmount: Number(roundedAmount || 0)
       };
 
-      console.log('Frontend sending sale data:', saleData);
-      console.log('Data types:', {
-        customerId: typeof saleData.customerId,
-        itemsLength: saleData.items.length,
-        paymentMethod: typeof saleData.paymentMethod,
-        subtotal: typeof saleData.subtotal,
-        totalAmount: typeof saleData.totalAmount
-      });
+      // console.log('Frontend sending sale data:', saleData);
+      // console.log('Data types:', {
+      //   customerId: typeof saleData.customerId,
+      //   itemsLength: saleData.items.length,
+      //   paymentMethod: typeof saleData.paymentMethod,
+      //   subtotal: typeof saleData.subtotal,
+      //   totalAmount: typeof saleData.totalAmount
+      // });
 
       const token = localStorage.getItem("token");
       const response = await axios.post(`${BASE_URL}/api/pos-sales/create`, saleData, {

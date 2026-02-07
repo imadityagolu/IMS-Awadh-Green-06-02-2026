@@ -69,7 +69,7 @@ function Quotation() {
             if (res.data?.success && Array.isArray(res.data.quotations)) {
                 setQuotation(res.data.quotations);
                 setTotal(res.data.total || 0);
-                console.log("Fetched quotations:", res.data.quotations.length);
+                // console.log("Fetched quotations:", res.data.quotations.length);
             } else {
                 setQuotation([]);
                 setTotal(0);

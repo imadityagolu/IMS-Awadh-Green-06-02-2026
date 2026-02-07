@@ -52,7 +52,7 @@ const token = localStorage.getItem("token");
         enableAddCharges: false,
         currency: ""
     });
-console.log("edit",editData)
+// console.log("edit",editData)
     useEffect(() => {
         if (editData) {
             // Initialize all states from editData
@@ -217,10 +217,10 @@ console.log("edit",editData)
         }
     }, [editData, totalProductAmount, cgstValue, sgstValue, labourCost, shippingCost, formState.enableTax, formState.enableAddCharges]);
 
-    console.log("search:", options);
-    console.log("customer:", selectedCustomer);
-    console.log("product:", products);
-    console.log("selectedProducts:", selectedProducts);
+    // console.log("search:", options);
+    // console.log("customer:", selectedCustomer);
+    // console.log("product:", products);
+    // console.log("selectedProducts:", selectedProducts);
 
     // Discount type state: true = percent, false = value
 

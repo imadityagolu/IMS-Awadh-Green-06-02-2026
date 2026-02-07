@@ -19,6 +19,9 @@ const OtpVerification = () => {
   const inputRefs = useRef([]);
   const { setUser } = useAuth();
 
+  // Copyright auto chnage year
+  const currentYear = new Date().getFullYear();
+
   // CRITICAL FIX: Wait for cookies to be available
   useEffect(() => {
     console.log("OTP PAGE MOUNTED - Checking session...");
@@ -259,7 +262,7 @@ const OtpVerification = () => {
               Submit
             </button>
           </form>
-          <p className="twostep-footer">Copyright © 2025 Munches</p>
+          <p className="twostep-footer">Copyright © {currentYear}  Munches</p>
         </div>
       </div>
 

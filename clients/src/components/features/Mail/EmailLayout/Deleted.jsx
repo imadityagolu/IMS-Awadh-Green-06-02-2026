@@ -13,7 +13,7 @@ const Deleted = () => {
         // const token = localStorage.getItem("token");
         const res = await api.get(`/api/email/mail/deleted`);
 
-        console.log("📩 Deleted API raw response:", res.data);
+        // console.log("📩 Deleted API raw response:", res.data);
 
         const formatted = res.data.data.map((email) => {
           const senderName = email.from?.firstName

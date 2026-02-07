@@ -278,8 +278,8 @@ exports.zoneproducts = async (req, res) => {
 
   try {
     // Validate inputs
-    console.log("Request params:", { id, zone, cellIndex });
-    console.log("Request body:", { productId, productName, sku, quantity });
+    // console.log("Request params:", { id, zone, cellIndex });
+    // console.log("Request body:", { productId, productName, sku, quantity });
     
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid warehouse ID" });
@@ -296,17 +296,17 @@ exports.zoneproducts = async (req, res) => {
     if (!warehouse) {
       return res.status(404).json({ message: "Warehouse not found" });
     }
-    console.log("Warehouse found:", warehouse);
+    // console.log("Warehouse found:", warehouse);
 
     // Find the zone
     const zoneObj = warehouse.blocks.find((z) => z.zone === zone);
     if (!zoneObj) {
       return res.status(404).json({ message: "Zone not found" });
     }
-    console.log("Zone found:", zoneObj);
+    // console.log("Zone found:", zoneObj);
 
     // Validate cell index
-    console.log("Cells in zone:", zoneObj.cells);
+    // console.log("Cells in zone:", zoneObj.cells);
     if (cellIndex >= zoneObj.cells.length) {
       return res.status(400).json({ message: "Cell index out of bounds" });
     }
@@ -316,7 +316,7 @@ exports.zoneproducts = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    console.log("Product found:", product);
+    // console.log("Product found:", product);
 
     // Create item object with full product details
     const itemToAdd = {
@@ -329,10 +329,10 @@ exports.zoneproducts = async (req, res) => {
     };
 
     // Update the cell with the complete product information
-    console.log("Cell before update:", zoneObj.cells[cellIndex]);
+    // console.log("Cell before update:", zoneObj.cells[cellIndex]);
     zoneObj.cells[cellIndex].items.push(itemToAdd);
-    console.log("Cell after update:", zoneObj.cells[cellIndex]);
-    console.log("Item added:", itemToAdd);
+    // console.log("Cell after update:", zoneObj.cells[cellIndex]);
+    // console.log("Item added:", itemToAdd);
 
     // Optionally update the product field (if you want to keep it for backward compatibility)
     zoneObj.cells[cellIndex].product = productId;
@@ -340,7 +340,7 @@ exports.zoneproducts = async (req, res) => {
     // Save the updated warehouse
     await warehouse.validate(); // Validate before saving
     await warehouse.save();
-    console.log("Warehouse saved successfully");
+    // console.log("Warehouse saved successfully");
 
     res.status(200).json({ success: true, data: warehouse, addedItem: itemToAdd });
   } catch (error) {
@@ -359,11 +359,11 @@ exports.removeitem = async (req, res) => {
     const { id, zone, cellIndex } = req.params;
     const { productId, barcode } = req.body;
 
-    console.log("=== REMOVE REQUEST RECEIVED ===");
-    console.log("Request params:", { id, zone, cellIndex });
-    console.log("Request body:", { productId, barcode });
-    console.log("ProductId type:", typeof productId, "Value:", productId);
-    console.log("Barcode type:", typeof barcode, "Value:", barcode);
+    // console.log("=== REMOVE REQUEST RECEIVED ===");
+    // console.log("Request params:", { id, zone, cellIndex });
+    // console.log("Request body:", { productId, barcode });
+    // console.log("ProductId type:", typeof productId, "Value:", productId);
+    // console.log("Barcode type:", typeof barcode, "Value:", barcode);
 
     const warehouse = await Warehouse.findById(id);
     if (!warehouse) {
@@ -380,8 +380,8 @@ exports.removeitem = async (req, res) => {
       return res.status(404).json({ message: "Cell not found" });
     }
 
-    console.log("Cell items before removal:", cell.items);
-    console.log("Looking for item with productId:", productId, "and barcode:", barcode);
+    // console.log("Cell items before removal:", cell.items);
+    // console.log("Looking for item with productId:", productId, "and barcode:", barcode);
 
     // Count items before removal
     const itemsBeforeRemoval = cell.items.length;
@@ -390,14 +390,14 @@ exports.removeitem = async (req, res) => {
     cell.items = cell.items.filter(
       (item) => {
         const productIdMatch = item.productId.toString() === productId;
-        console.log(`Item comparison:
-          - Item productId: ${item.productId} (${typeof item.productId}) vs Request: ${productId} (${typeof productId}) = ${productIdMatch}`);
+        // console.log(`Item comparison:
+        //   - Item productId: ${item.productId} (${typeof item.productId}) vs Request: ${productId} (${typeof productId}) = ${productIdMatch}`);
         return !productIdMatch; // Remove the item if productId matches
       }
     );
 
-    console.log("Cell items after removal:", cell.items);
-    console.log(`Removed ${itemsBeforeRemoval - cell.items.length} items`);
+    // console.log("Cell items after removal:", cell.items);
+    // console.log(`Removed ${itemsBeforeRemoval - cell.items.length} items`);
 
     // Clear product if no items remain
     if (cell.items.length === 0) {

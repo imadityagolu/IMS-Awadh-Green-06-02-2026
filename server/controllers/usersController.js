@@ -385,7 +385,7 @@ exports.toggleTwoFactor = async (req, res) => {
 // FOR ACTIVATE AND DEACTIVATE ACCOUNT
 exports.toggleAccountStatus = async (req, res) => {
   const { id } = req.params;
-  console.log("Toggle status for user ID:", id);
+  // console.log("Toggle status for user ID:", id);
 
   try {
     const user = await User.findById(id);

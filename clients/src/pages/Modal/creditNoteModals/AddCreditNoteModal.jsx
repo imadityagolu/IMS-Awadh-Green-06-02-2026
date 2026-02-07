@@ -687,11 +687,11 @@ function getProductRowCalculation(item) {
       )
     : 0;
 
-  console.log("🧮 Calculating for item:", item.productName || item.name, {
-    originalQty,
-    totalReturnedQty,
-    creditNotes: item.creditNotes,
-  });
+//   console.log("🧮 Calculating for item:", item.productName || item.name, {
+//     originalQty,
+//     totalReturnedQty,
+//     creditNotes: item.creditNotes,
+//   });
 
   const availableQtys = originalQty - totalReturnedQty;
   const saleQty = Number(item.returnQty || 1);
@@ -991,7 +991,7 @@ function getProductRowCalculation(item) {
                                                     selectedProducts.map((item, index) => {
 
                                                         const d = getProductRowCalculation(item);
-                                                        console.log("Calculations for", item.productName, d);
+                                                        // console.log("Calculations for", item.productName, d);
                                                         return (
 
                                                             <tr key={item._id}>

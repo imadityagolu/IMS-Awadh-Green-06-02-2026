@@ -46,7 +46,7 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
         setLoading(true);
 
         if (id && id !== "undefined") {
-          console.log(`📡 Fetching ${type} invoice from API with ID:`, id);
+          // console.log(`📡 Fetching ${type} invoice from API with ID:`, id);
 
           let apiUrl;
           if (type === "purchase") {
@@ -56,11 +56,11 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
           }
 
           const response = await api.get(apiUrl);
-          console.log("✅ API Response:", response.data);
+          // console.log("✅ API Response:", response.data);
 
           if (response.data.success && response.data.invoice) {
             const fullInvoice = response.data.invoice;
-            console.log("🛒 Invoice items:", fullInvoice.items?.length || 0);
+            // console.log("🛒 Invoice items:", fullInvoice.items?.length || 0);
 
             setInvoiceData(fullInvoice);
 
@@ -146,12 +146,12 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
         recipientName = invoiceData.customerId?.name || customerData?.name;
       }
 
-      console.log("📱 Contact details:", {
-        email: recipientEmail,
-        phone: recipientPhone,
-        name: recipientName,
-        type
-      });
+      // console.log("📱 Contact details:", {
+      //   email: recipientEmail,
+      //   phone: recipientPhone,
+      //   name: recipientName,
+      //   type
+      // });
 
       // Check if we have at least one contact method
       if (!recipientEmail && !recipientPhone) {
@@ -205,7 +205,7 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
   // Function to send via Email
   const sendViaEmail = async (email) => {
     try {
-      console.log("📧 Sending email to:", email);
+      // console.log("📧 Sending email to:", email);
 
       const response = await api.post('/api/invoices/send-email', {
         invoiceId: id,
@@ -214,7 +214,7 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
         subject: `${type === "purchase" ? 'Purchase' : 'Sales'} Invoice - ${invoiceData.invoiceNo}`
       });
 
-      console.log("📧 Email response:", response.data);
+      // console.log("📧 Email response:", response.data);
 
       if (response.data.success) {
         toast.success(`✅ Invoice sent via email to ${email}`);
@@ -250,7 +250,7 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
   // Function to send via WhatsApp
   const sendViaWhatsApp = async (phone, name = "") => {
     try {
-      console.log("📱 Sending WhatsApp to phone:", phone);
+      // console.log("📱 Sending WhatsApp to phone:", phone);
 
       // Format phone number for WhatsApp
       const cleanPhone = formatPhoneForWhatsApp(phone);
@@ -260,7 +260,7 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
         return;
       }
 
-      console.log("📱 Formatted phone:", cleanPhone);
+      // console.log("📱 Formatted phone:", cleanPhone);
 
       // Create message
       const message = createWhatsAppMessage(name);
@@ -269,11 +269,11 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
 
-      console.log("📱 WhatsApp URL:", whatsappUrl);
+      // console.log("📱 WhatsApp URL:", whatsappUrl);
 
       // Test the URL first
       const testUrl = `https://wa.me/${cleanPhone}`;
-      console.log("📱 Test URL:", testUrl);
+      // console.log("📱 Test URL:", testUrl);
 
       // Open WhatsApp in new tab
       window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
@@ -289,12 +289,12 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
   const formatPhoneForWhatsApp = (phone) => {
     if (!phone) return null;
 
-    console.log("📱 Original phone:", phone);
+    // console.log("📱 Original phone:", phone);
 
     // Remove all non-digit characters except plus
     let cleanPhone = phone.replace(/[^\d+]/g, '');
 
-    console.log("📱 After removing non-digits:", cleanPhone);
+    // console.log("📱 After removing non-digits:", cleanPhone);
 
     // If phone starts with '+', keep it
     if (cleanPhone.startsWith('+')) {
@@ -307,7 +307,7 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
       cleanPhone = cleanPhone.substring(1);
     }
 
-    console.log("📱 After removing leading 0:", cleanPhone);
+    // console.log("📱 After removing leading 0:", cleanPhone);
 
     // Check if it's a valid length
     if (cleanPhone.length < 10) {
@@ -321,7 +321,7 @@ const RecentViewInvoice = ({ type = "purchase" }) => {
     }
 
     // WhatsApp requires country code without +
-    console.log("📱 Final formatted phone:", cleanPhone);
+    // console.log("📱 Final formatted phone:", cleanPhone);
     return cleanPhone;
   };
 

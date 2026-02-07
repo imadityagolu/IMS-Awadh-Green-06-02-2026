@@ -10,8 +10,11 @@ const productSchema = new mongoose.Schema(
 
     description: { 
       type: String,
-      default: ""
+      default: "",
+      maxLength: 20
     },
+    
+    serialNumbers: [{ type: String }],
 
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -46,6 +49,8 @@ const productSchema = new mongoose.Schema(
     quantityInLot: { type: Number, default: 1 },
 
     sellingPrice: { type: Number, required: true, min: 1 },
+
+    stockQuantity: { type: Number },
 
     images: [
       {

@@ -128,6 +128,26 @@ const ProductForm = () => {
     setSelectedBrands(selectedOption);
   };
 
+  const [suppliers, setSuppliers] = useState([]);
+
+  const fetchSuppliers = async () => {
+    try {
+      const res = await api.get("/api/suppliers");
+      // console.log('ressssss', res.data)
+      setSuppliers(res.data.suppliers || []);
+    } catch (err) {
+      // console.error(err);
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  const [addserialpopup, setAddSerialPopup] = useState(false);
+
   const lotColumns = [
     { label: "Lot No.", editableValue: "12" },
     { label: "Lot MRP", editableValue: "₹ 2,367.08/-" },
@@ -292,6 +312,8 @@ const ProductForm = () => {
         newErrors.initialStock = "Invalid Initial Stock format";
       if (formData.trackType === "serial" && !formData.serialNumber)
         newErrors.serialNumber = "Serial Number is required";
+      if (settings.supplier && !formData.supplier)
+        newErrors.supplier = "Supplier is required";
       if (
         formData.serialNumber &&
         !validationPatterns.serialNumber.test(formData.serialNumber)
@@ -538,6 +560,7 @@ const ProductForm = () => {
           reorderLevel: "",
           initialStock: "",
           serialNumber: "",
+          supplier: "",
           batchNumber: "",
           returnable: false,
           expirationDate: "",
@@ -621,6 +644,10 @@ const ProductForm = () => {
         return validationPatterns.serialNumber.test(value)
           ? ""
           : t("invalidSerialNumberFormat");
+      case "supplier":
+        return validationPatterns.supplier.test(value)
+          ? ""
+          : t("invalidSupplierFormat");
       case "batchNumber":
         return validationPatterns.batchNumber.test(value)
           ? ""
@@ -860,6 +887,10 @@ const ProductForm = () => {
           newErrors[`variant_${index}_serialNumber`] = `Serial Number is required for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_serialNumber`);
         }
+        if (!variant.supplier && settings.supplier) {
+          newErrors[`variant_${index}_supplier`] = `Supplier is required for variant ${index + 1}`;
+          emptyFields.push(`variant_${index}_supplier`);
+        }
       });
     } else {
       // Validate Main Form Fields (Single Product)
@@ -905,6 +936,10 @@ const ProductForm = () => {
         newErrors.serialNumber = "Serial Number is required";
         emptyFields.push("variant_0_serialNumber");
       }
+      if (settings.supplier && !mainVariant.supplier) {
+        newErrors.supplier = "Supplier is required";
+        emptyFields.push("variant_0_supplier");
+      }
     }
 
     setHighlightedFields(emptyFields);
@@ -940,6 +975,7 @@ const ProductForm = () => {
     // Append itemBarcode
     if (settings.itembarcode) formPayload.append("itemBarcode", formData.itemBarcode || "");
     if (settings.serialno) formPayload.append("serialNumber", mainVariant.serialNumber || formData.serialNumber || "");
+    if (settings.supplier) formPayload.append("supplier", mainVariant.supplier || formData.supplier || "");
 
     // Append Main Product Fields (for single product creation)
 
@@ -2200,7 +2236,7 @@ const ProductForm = () => {
               </div>
 
               {/* Lot No. Section */}
-              <div style={{}} className="delete-hover">
+              <div style={{ borderBottom: '1px solid #EAEAEA', padding: '0px 0px 24px 0px' }} className="delete-hover">
                 <div
                   style={{
                     color: "black",
@@ -2223,7 +2259,7 @@ const ProductForm = () => {
                       // marginTop:'16px',
                       width: '1830px',
                       overflowX: 'auto',
-                      padding: '16px 8px',
+                      padding: '16px 8px 0px 0px',
                     }}
                   // className="row"
                   >
@@ -2385,7 +2421,7 @@ const ProductForm = () => {
                           padding: "0 12px",
                           background: "white",
                           borderRadius: "8px",
-                          border: highlightedFields.includes("brand") ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          border: highlightedFields.includes(`variant_${index}_supplier`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
                           justifyContent: "space-between",
                           alignItems: "center",
                           gap: "8px",
@@ -2393,14 +2429,13 @@ const ProductForm = () => {
                         }}
                       >
                         <select
-                          value={selectedBrands?.value || ""}
+                          value={variant.supplier || ""}
                           onChange={(e) => {
                             const selected =
-                              brandOptions.find(
-                                (opt) => opt.value === e.target.value
+                              suppliers.find(
+                                (opt) => opt._id === e.target.value
                               ) || null;
-
-                            handleBrandChange(selected);
+                            handleVariantChange(index, "supplier", selected);
                           }}
                           disabled={loading}
                           style={{
@@ -2415,12 +2450,12 @@ const ProductForm = () => {
                           }}
                         >
                           <option value="">
-                            {loading ? "Loading Brands..." : "Select Brand"}
+                            {loading ? "Loading Suppliers..." : "Select Supplier"}
                           </option>
 
-                          {brandOptions.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label.length > 40 ? opt.label.slice(0, 40) + "..." : opt.label}
+                          {suppliers.map((supplier, index) => (
+                            <option key={index} value={supplier._id}>
+                              {supplier.name}
                             </option>
                           ))}
                         </select>
@@ -2511,7 +2546,7 @@ const ProductForm = () => {
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "195px",
+                        width: "275px",
                       }}
                       className="col-1"
                     >
@@ -2545,6 +2580,7 @@ const ProductForm = () => {
                           *
                         </span>
                       </div>
+
                       <div
                         style={{
                           height: "40px",
@@ -2552,7 +2588,7 @@ const ProductForm = () => {
                           background: "white",
                           borderRadius: "8px",
                           border: highlightedFields.includes(`variant_${index}_purchasePrice`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
+                          justifyContent: "space-between",
                           alignItems: "center",
                           gap: "8px",
                           display: "flex",
@@ -2567,7 +2603,7 @@ const ProductForm = () => {
                         >
                           <input
                             type="number"
-                            placeholder="0.00"
+                            placeholder="Enter Purchase Price"
                             name="purchasePrice"
                             value={variant.purchasePrice || ""}
                             onChange={(e) => handleVariantChange(index, "purchasePrice", e.target.value)}
@@ -2583,6 +2619,32 @@ const ProductForm = () => {
                             }}
                           />
                         </div>
+
+                        <button
+                          type="button"
+                          style={{
+                            padding: "4px 6px",
+                            background: "var(--Blue, #1F7FFF)",
+                            borderRadius: "4px",
+                            border: "none",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--White, white)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                            }}
+                          >
+                            with Tax
+                          </span>
+                        </button>
                       </div>
                     </div>
 
@@ -2659,32 +2721,9 @@ const ProductForm = () => {
                           <option value="18">18%</option>
                         </select>
                       </div>
-                      <span
-                        style={{
-                          color: "var(--Black-Black, #0E101A)",
-                          fontSize: "11px",
-                          fontFamily: "Inter",
-                          fontWeight: "400",
-                          lineHeight: "14.40px",
-                          marginBottom: "0px",
-                        }}
-                      >
-                        TAX amount -{" "}
-                        <span
-                          style={{
-                            color: "var(--Black-Black, red)",
-                            fontSize: "11px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          ₹{(variant.sellingPrice * variant.tax / 100).toFixed(2)}/-
-                        </span>
-                      </span>
                     </div>
 
-                    {/* Opening Quantity */}
+                    {/* Quantity */}
                     <div
                       style={{
                         display: "flex",
@@ -2724,6 +2763,7 @@ const ProductForm = () => {
                           *
                         </span>
                       </div>
+
                       <div
                         style={{
                           height: "40px",
@@ -2762,6 +2802,29 @@ const ProductForm = () => {
                           />
                         </div>
                       </div>
+
+                      <span
+                        style={{
+                          color: "var(--Black-Black, #0E101A)",
+                          fontSize: "11px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          lineHeight: "14.40px",
+                        }}
+                      >
+                        Total Lot Cost -{" "}
+                        <span
+                          style={{
+                            color: "var(--Black-Black, green)",
+                            fontSize: "11px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          ₹ {(variant.sellingPrice - variant.purchasePrice).toFixed(2)}
+                        </span>
+                      </span>
                     </div>
 
                     {/* Selling Price */}
@@ -2770,7 +2833,7 @@ const ProductForm = () => {
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "195px",
+                        width: "275px",
                       }}
                       className="col-1"
                     >
@@ -2804,6 +2867,7 @@ const ProductForm = () => {
                           *
                         </span>
                       </div>
+
                       <div
                         style={{
                           height: "40px",
@@ -2826,7 +2890,7 @@ const ProductForm = () => {
                         >
                           <input
                             type="number"
-                            placeholder="0.00"
+                            placeholder="Enter Selling Price"
                             name="sellingPrice"
                             value={variant.sellingPrice || ""}
                             onChange={(e) => handleVariantChange(index, "sellingPrice", e.target.value)}
@@ -2842,7 +2906,34 @@ const ProductForm = () => {
                             }}
                           />
                         </div>
+
+                        <button
+                          type="button"
+                          style={{
+                            padding: "4px 6px",
+                            background: "var(--Blue, #1F7FFF)",
+                            borderRadius: "4px",
+                            border: "none",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--White, white)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                            }}
+                          >
+                            with Tax
+                          </span>
+                        </button>
                       </div>
+
                       <span
                         style={{
                           color: "var(--Black-Black, #0E101A)",
@@ -2852,7 +2943,7 @@ const ProductForm = () => {
                           lineHeight: "14.40px",
                         }}
                       >
-                        Profit -{" "}
+                        Selling Price / Lot -{" "}
                         <span
                           style={{
                             color: "var(--Black-Black, green)",
@@ -2862,8 +2953,7 @@ const ProductForm = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          ₹ {(variant.sellingPrice - variant.purchasePrice).toFixed(2)} (
-                          {(((variant.sellingPrice - variant.purchasePrice) / variant.purchasePrice) * 100).toFixed(2)}%)
+                          ₹ {(variant.sellingPrice - variant.purchasePrice).toFixed(2)}
                         </span>
                       </span>
                     </div>
@@ -3103,6 +3193,266 @@ const ProductForm = () => {
                       </div>
                     </div>}
 
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <u style={{ color: '#1F7FFF', cursor: 'pointer', fontSize: '14px', fontWeight: '600', }} onClick={() => setAddSerialPopup(true)}>
+                        Enter Serial No.
+                      </u>
+                    </div>
+
+
+                    {/* add serial no */}
+                    {addserialpopup && <div style={{
+                      position: "fixed",
+                      top: 0,
+                      left: 0,
+                      width: "100vw",
+                      height: "100vh",
+                      backgroundColor: "rgba(0,0,0,0.27)",
+                      backdropFilter: "blur(1px)",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      zIndex: 99999999,
+                    }}
+                      onClick={(e) => setAddSerialPopup(false)}
+                    >
+                      <div style={{ width: 'auto', height: 'auto', padding: '10px 16px', backgroundColor: '#F2F6F9', border: '1px solid #E1E1E1', borderRadius: '8px' }} onClick={(e) => e.stopPropagation()}>
+
+                        <div style={{ padding: '16px 8px', }} className="delete-hover">
+
+                          <div
+                            style={{
+                              color: "black",
+                              fontSize: "16px",
+                              fontFamily: "Inter",
+                              fontWeight: "500",
+                              lineHeight: "19.20px",
+                            }}
+                          >
+                            Add Serial No. For Lot No. -
+                          </div>
+
+                          <div style={{
+                            display: "flex",
+                            gap: "16px",
+                            // marginTop:'16px',
+                            // overflowX: 'auto',
+                            padding: '16px 8px',
+                            justifyContent: 'flex-start',
+                          }}>
+                            {/* select lot + serial no. + status */}
+                            <div
+                              style={{
+                                display: "flex",
+                                // marginTop:'16px',
+                                overflowX: 'auto',
+                                flexDirection: 'column',
+                              }}
+                            // className="row"
+                            >
+                              {/* serial no + status */}
+                              <div style={{
+                                display: "flex",
+                                gap: "16px",
+                                // marginTop:'16px',
+                                overflowX: 'auto',
+                                // padding: '16px 0px 0px 0px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                              }}>
+
+                                {/* quantity no */}
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                    width: "30px",
+                                  }}
+                                  className="col-1"
+                                >
+                                  <div
+                                    className=""
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "center",
+                                      alignItems: "center",
+                                      gap: '8px',
+                                      height: "100%",
+                                    }}
+                                  >
+                                    1<BsThreeDotsVertical className="fs-4" />
+                                  </div>
+                                </div>
+
+                                {/* serial no */}
+                                {settings.serialno && <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                    width: "195px",
+                                  }}
+                                  className="col-1"
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "baseline",
+                                      gap: "4px",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        color: "var(--Black-Grey, #727681)",
+                                        fontSize: "12px",
+                                        fontFamily: "Inter",
+                                        fontWeight: "400",
+                                        lineHeight: "14.40px",
+                                      }}
+                                    >
+                                      Serial No.
+                                    </span>
+                                    <span
+                                      style={{
+                                        color: "var(--Danger, #D00003)",
+                                        fontSize: "12px",
+                                        fontFamily: "Inter",
+                                        fontWeight: "400",
+                                        lineHeight: "14.40px",
+                                      }}
+                                    >
+                                      *
+                                    </span>
+                                  </div>
+                                  <div
+                                    style={{
+                                      height: "40px",
+                                      padding: "0 12px",
+                                      background: "white",
+                                      borderRadius: "8px",
+                                      border: "1px var(--White-Stroke, #EAEAEA) solid",
+                                      justifyContent: "flex-start",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      display: "flex",
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                      }}
+                                    >
+                                      <input
+                                        type="text"
+                                        placeholder="Enter Serial No."
+                                        name="purchasePrice"
+                                        style={{
+                                          width: "100%",
+                                          border: "none",
+                                          background: "transparent",
+                                          color: "var(--Black-Black, #0E101A)",
+                                          fontSize: "14px",
+                                          fontFamily: "Inter",
+                                          fontWeight: "400",
+                                          outline: "none",
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>}
+
+                                {/* status */}
+                                {settings.status && <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                    width: "195px",
+                                  }}
+                                  className="col-1"
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "baseline",
+                                      gap: "4px",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        color: "var(--Black-Grey, #727681)",
+                                        fontSize: "12px",
+                                        fontFamily: "Inter",
+                                        fontWeight: "400",
+                                        lineHeight: "14.40px",
+                                      }}
+                                    >
+                                      Status
+                                    </span>
+                                    <span
+                                      style={{
+                                        color: "var(--Danger, #D00003)",
+                                        fontSize: "12px",
+                                        fontFamily: "Inter",
+                                        fontWeight: "400",
+                                        lineHeight: "14.40px",
+                                      }}
+                                    >
+                                      *
+                                    </span>
+                                  </div>
+                                  <div
+                                    style={{
+                                      height: "40px",
+                                      padding: "0 12px",
+                                      background: "white",
+                                      borderRadius: "8px",
+                                      border: "1px var(--White-Stroke, #EAEAEA) solid",
+                                      justifyContent: "flex-start",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      display: "flex",
+                                    }}
+                                  >
+                                    <select
+                                      name="unit"
+                                      style={{
+                                        width: "100%",
+                                        border: "none",
+                                        background: "transparent",
+                                        color: "var(--Black-Black, #0E101A)",
+                                        fontSize: "14px",
+                                        fontFamily: "Inter",
+                                        fontWeight: "400",
+                                        outline: "none",
+                                      }}
+                                    >
+                                      <option value="">Select Status</option>
+                                      <option value="Active">Active</option>
+                                      <option value="Inactive">Inactive</option>
+                                    </select>
+                                  </div>
+                                </div>}
+                              </div>
+
+                            </div>
+                          </div>
+
+
+                        </div>
+                      </div>
+                    </div>}
+
                   </div>
                 ))}
 
@@ -3112,7 +3462,7 @@ const ProductForm = () => {
                     display: "flex",
                     alignItems: "center",
                     gap: "7px",
-                    marginTop: "8px",
+                    // marginTop: "8px",
                   }}
                 >
                   <div
@@ -3153,333 +3503,6 @@ const ProductForm = () => {
                 </div>
               </div>
 
-              {/* add serial no */}
-              <div style={{ borderTop: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', padding: '16px 8px', width: '99%' }} className="delete-hover">
-
-                <div
-                  style={{
-                    color: "black",
-                    fontSize: "16px",
-                    fontFamily: "Inter",
-                    fontWeight: "500",
-                    lineHeight: "19.20px",
-                  }}
-                >
-                  Add Serial No.
-                </div>
-
-                <div style={{
-                  display: "flex",
-                  gap: "16px",
-                  // marginTop:'16px',
-                  // overflowX: 'auto',
-                  padding: '16px 8px',
-                  justifyContent: 'flex-start',
-                }}>
-
-                  <div
-                    style={{
-                      marginTop: '30px',
-                    }}>
-
-                    {/* icon */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "25px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        className=""
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          gap: '8px',
-                          height: "100%",
-                        }}
-                      >
-                        <BsThreeDotsVertical className="fs-5" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* select lot + serial no. + status */}
-                  <div
-                    style={{
-                      display: "flex",
-                      // marginTop:'16px',
-                      overflowX: 'auto',
-                      flexDirection: 'column',
-                    }}
-                  // className="row"
-                  >
-
-                    {/* select lot */}
-                    <div style={{
-                      display: "flex",
-                      gap: "16px",
-                      // marginTop:'16px',
-                      overflowX: 'auto',
-                    }}>
-                      <div
-                        style={{
-                          width: "195px",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "4px",
-                        }}
-                        className="col-1"
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            gap: "4px",
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: "var(--Black-Grey, #727681)",
-                              fontSize: "12px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              lineHeight: "14.40px",
-                            }}
-                          >
-                            Select lot
-                          </span>
-                          <span
-                            style={{
-                              color: "var(--Danger, #D00003)",
-                              fontSize: "12px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              lineHeight: "14.40px",
-                            }}
-                          >
-                            *
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "40px",
-                            padding: "0 12px",
-                            background: "white",
-                            borderRadius: "8px",
-                            border: "1px var(--White-Stroke, #EAEAEA) solid",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: "8px",
-                            display: "flex",
-                          }}
-                        >
-                          <select
-                            value={selectedBrands?.value || ""}
-                            onChange={(e) => {
-                              const selected =
-                                brandOptions.find(
-                                  (opt) => opt.value === e.target.value
-                                ) || null;
-
-                              handleBrandChange(selected);
-                            }}
-                            disabled={loading}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              outline: "none",
-                            }}
-                          >
-                            <option value="">
-                              {loading ? "Loading Brands..." : "Select Supplier"}
-                            </option>
-
-                            {brandOptions.map((opt) => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.label.length > 40 ? opt.label.slice(0, 40) + "..." : opt.label}
-                              </option>
-                            ))}
-                          </select>
-
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* serial no + status */}
-                    <div style={{
-                      display: "flex",
-                      gap: "16px",
-                      // marginTop:'16px',
-                      overflowX: 'auto',
-                      padding: '16px 0px 0px 0px',
-                    }}>
-                      {/* serial no */}
-                      {settings.serialno && <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "4px",
-                          width: "195px",
-                        }}
-                        className="col-1"
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            gap: "4px",
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: "var(--Black-Grey, #727681)",
-                              fontSize: "12px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              lineHeight: "14.40px",
-                            }}
-                          >
-                            Serial No.
-                          </span>
-                          <span
-                            style={{
-                              color: "var(--Danger, #D00003)",
-                              fontSize: "12px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              lineHeight: "14.40px",
-                            }}
-                          >
-                            *
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            height: "40px",
-                            padding: "0 12px",
-                            background: "white",
-                            borderRadius: "8px",
-                            border: "1px var(--White-Stroke, #EAEAEA) solid",
-                            justifyContent: "flex-start",
-                            alignItems: "center",
-                            gap: "8px",
-                            display: "flex",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                            }}
-                          >
-                            <input
-                              type="text"
-                              placeholder="Enter Serial No."
-                              name="purchasePrice"
-                              style={{
-                                width: "100%",
-                                border: "none",
-                                background: "transparent",
-                                color: "var(--Black-Black, #0E101A)",
-                                fontSize: "14px",
-                                fontFamily: "Inter",
-                                fontWeight: "400",
-                                outline: "none",
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>}
-
-                      {/* status */}
-                      {settings.status && <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "4px",
-                          width: "195px",
-                        }}
-                        className="col-1"
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            gap: "4px",
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: "var(--Black-Grey, #727681)",
-                              fontSize: "12px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              lineHeight: "14.40px",
-                            }}
-                          >
-                            Status
-                          </span>
-                          <span
-                            style={{
-                              color: "var(--Danger, #D00003)",
-                              fontSize: "12px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              lineHeight: "14.40px",
-                            }}
-                          >
-                            *
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            height: "40px",
-                            padding: "0 12px",
-                            background: "white",
-                            borderRadius: "8px",
-                            border: "1px var(--White-Stroke, #EAEAEA) solid",
-                            justifyContent: "flex-start",
-                            alignItems: "center",
-                            gap: "8px",
-                            display: "flex",
-                          }}
-                        >
-                          <select
-                            name="unit"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              outline: "none",
-                            }}
-                          >
-                            <option value="">Select Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                          </select>
-                        </div>
-                      </div>}
-                    </div>
-
-                  </div>
-                </div>
-
-              </div>
 
               {/* Import Images */}
               <div

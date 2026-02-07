@@ -34,7 +34,7 @@ const ExpriedProduct = () => {
   product.variants?.['expiry'] ||
   product.variants?.get?.('Expire') ||
   product.variants?.['Expire'];
-    console.log('expiryArr:', expiryArr); // Debug log
+    // console.log('expiryArr:', expiryArr); // Debug log
     
     if (!expiryArr || expiryArr.length === 0) return new Date(0);
     const dateStr = expiryArr[0];

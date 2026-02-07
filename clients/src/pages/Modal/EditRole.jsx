@@ -168,11 +168,12 @@ const EditRole = () => {
     Connect: ["Chat", "Mail", "Whatsapp"],
     Inventory: [
       "Product",
+      "Brand",
       "Category",
       // "SubCategory",
       "DamageRecord",
       "LowStocks",
-      // "Brand",
+      
       // "Unit",
       "HSN",
       // "VariantAttributes",

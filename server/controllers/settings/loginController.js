@@ -30,9 +30,9 @@ const loginUser = async (req, res) => {
         .status(400)
         .json({ message: "Password not set for this user" });
     }
-    console.log("Received password:", password);
-    console.log("User from db", user);
-    console.log("Hashed password from DB:", user?.password);
+    // console.log("Received password:", password);
+    // console.log("User from db", user);
+    // console.log("Hashed password from DB:", user?.password);
 
     const isPasswordValid = await bcrypt.compare(
       String(password),
@@ -131,17 +131,17 @@ const logDevice = async (req, res) => {
         const { data } = await axios.get(`https://ipapi.co/${ip}/json/`);
         location = `${data.city}, ${data.region}, ${data.country_name}`;
       } catch (error) {
-        console.log("IP location failed:", error.message);
+        // console.log("IP location failed:", error.message);
       }
     }
-    console.log("Creating device log for:", {
-      userId,
-      ip,
-      location,
-      latitude,
-      longitude,
-      device,
-    });
+    // console.log("Creating device log for:", {
+    //   userId,
+    //   ip,
+    //   location,
+    //   latitude,
+    //   longitude,
+    //   device,
+    // });
 
     await DeviceSession.create({
       userId,
@@ -151,7 +151,7 @@ const logDevice = async (req, res) => {
       latitude,
       longitude,
     });
-    console.log("Device log saved successfully");
+    // console.log("Device log saved successfully");
     res.status(200).json({ message: "Device logged" });
   } catch (error) {
     console.error("Log Device Error", error.message);

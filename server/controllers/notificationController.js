@@ -139,16 +139,16 @@ exports.deleteSelectedNotification = async (req, res) => {
   try {
     const { notificationIds, userId } = req.body;
 
-    console.log('Bulk delete request:', { notificationIds, userId });
+    // console.log('Bulk delete request:', { notificationIds, userId });
 
     // Validate inputs
     if (!userId) {
-      console.log('Missing userId in request body');
+      // console.log('Missing userId in request body');
       return res.status(400).json({ message: 'User ID is required' });
     }
 
     if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
-      console.log('Invalid notificationIds:', notificationIds);
+      // console.log('Invalid notificationIds:', notificationIds);
       return res.status(400).json({ message: 'No valid notification IDs provided' });
     }
 
@@ -161,7 +161,7 @@ exports.deleteSelectedNotification = async (req, res) => {
       }
     });
 
-    console.log('Valid IDs count:', validIds.length, 'out of', notificationIds.length);
+    // console.log('Valid IDs count:', validIds.length, 'out of', notificationIds.length);
 
     if (validIds.length === 0) {
       return res.status(400).json({ message: 'No valid ObjectIDs provided' });
@@ -173,7 +173,7 @@ exports.deleteSelectedNotification = async (req, res) => {
       recipient: userId
     });
 
-    console.log('Found notifications to delete:', existingNotifications.length);
+    // console.log('Found notifications to delete:', existingNotifications.length);
 
     if (existingNotifications.length === 0) {
       return res.status(404).json({
@@ -189,7 +189,7 @@ exports.deleteSelectedNotification = async (req, res) => {
       recipient: userId
     });
 
-    console.log('Delete result:', result);
+    // console.log('Delete result:', result);
 
     if (result.deletedCount === 0) {
       return res.status(404).json({

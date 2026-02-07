@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 
 
 const SupplierDetails = ({ onClose, supplierId }) => {
-  console.log("Supplier ID in SupplierDetails:", supplierId);
+  // console.log("Supplier ID in SupplierDetails:", supplierId);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [supplierData, setSupplierData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ const SupplierDetails = ({ onClose, supplierId }) => {
     try {
       setLoading(true);
       const res = await api.get(`/api/suppliers/${supplierId}/statistics`);
-      console.log("Supplier statistics:", res.data);
+      // console.log("Supplier statistics:", res.data);
       setSupplierData(res.data);
     } catch (err) {
       toast.error("Failed to load supplier statistics");

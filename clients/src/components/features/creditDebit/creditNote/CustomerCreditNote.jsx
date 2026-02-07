@@ -581,7 +581,7 @@ const CustomerCreditNote = () => {
         fullyReceived: formData.fullyReceived,
       };
 
-      console.log("Submitting credit note:", creditNoteData);
+      // console.log("Submitting credit note:", creditNoteData);
 
       const response = await api.post("/api/credit-notes", creditNoteData);
 

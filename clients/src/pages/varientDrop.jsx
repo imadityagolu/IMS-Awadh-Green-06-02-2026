@@ -10,8 +10,8 @@ const VarientDrop = () => {
   const [values, setValues] = useState([]);
   const [selectedValue, setSelectedValue] = useState("");
   // const token = localStorage.getItem("token");
-  console.log("Selected Value:", selectedValue);
-  console.log("Selected Variant:", selectedVariant);
+  // console.log("Selected Value:", selectedValue);
+  // console.log("Selected Variant:", selectedVariant);
 
   useEffect(() => {
     api.get('/api/variant-attributes/active-variants')

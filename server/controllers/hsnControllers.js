@@ -84,7 +84,7 @@ exports.importHSN = async (req, res) => {
     }
 
     // 🔍 Debug logging
-    console.log("Received hsnItems:", hsnItems);
+    // console.log("Received hsnItems:", hsnItems);
 
     const bulkOps = hsnItems
       .filter(item => item.hsnCode && item.description) // Validate data

@@ -115,6 +115,7 @@ const CreateRole = () => {
     Connect: ["Chat", "Mail", "Whatsapp"],
     Inventory: [
       "Product",
+      "Brand",
       "Category",
       //   "SubCategory",
       "DamageRecord",

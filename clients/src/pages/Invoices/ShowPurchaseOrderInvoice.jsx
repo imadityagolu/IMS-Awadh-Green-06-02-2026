@@ -27,7 +27,7 @@ function ShowPurchaseOrderInvoice() {
             try {
                 // Change the API endpoint to fetch supplier invoice
                 const res = await api.get(`/api/purchase-orders/${invoiceId}`);
-                console.log("Supplier Invoice Data:", res.data);
+                // console.log("Supplier Invoice Data:", res.data);
                 setInvoiceData(res.data.invoice);
             } catch (err) {
                 toast.error("Failed to load supplier invoice");
@@ -42,7 +42,7 @@ function ShowPurchaseOrderInvoice() {
     const fetchCompanyData = async () => {
         try {
             const res = await api.get(`/api/companyprofile/get`);
-            console.log("Companyss data:", res.data);
+            // console.log("Companyss data:", res.data);
             setCompanyData(res.data.data);
         } catch (error) {
             console.error("Error fetching company profile:", error);
@@ -53,7 +53,7 @@ function ShowPurchaseOrderInvoice() {
         try {
             const res = await api.get('/api/notes-terms-settings');
             setTerms(res.data.data)
-            console.log('reddd', res.data)
+            // console.log('reddd', res.data)
         } catch (error) {
             console.error('Error fetching notes & terms settings:', error);
         }
@@ -63,7 +63,7 @@ function ShowPurchaseOrderInvoice() {
         try {
             const res = await api.get('/api/print-templates/all');
             setTemplate(res.data.data)
-            console.log('ddrrr', res.data)
+            // console.log('ddrrr', res.data)
         } catch (error) {
             console.error('Error fetching tempate settings:', error);
         }
@@ -81,9 +81,9 @@ function ShowPurchaseOrderInvoice() {
 
     // Assuming supplier data is in invoiceData.supplierId
     const supplier = invoiceData.supplierId || {};
-    console.log("sssuplier", supplier)
+    // console.log("sssuplier", supplier)
     const products = invoiceData.items || [];
-    console.log("sssuplssier", products)
+    // console.log("sssuplssier", products)
     const totalInWords =
         invoiceData.grandTotal != null
             ? `${numberToWords.toWords(invoiceData.grandTotal).toUpperCase()} RUPEES ONLY`

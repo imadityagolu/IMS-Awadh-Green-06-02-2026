@@ -197,7 +197,7 @@ const handleSavePrintTemplate = async (type, templateData) => {
     if (templateData.companyData) {
       // You might want to update company settings separately
       // or include it in the template save
-      console.log('Company data to update:', templateData.companyData);
+      // console.log('Company data to update:', templateData.companyData);
     }
 
     // Use template._id if it exists (for update), otherwise create new

@@ -163,7 +163,7 @@ function CustomerCreateQuotation() {
   const fetchCompanyData = async () => {
     try {
       const res = await api.get(`/api/companyprofile/get`);
-      console.log("Companyss data:", res.data);
+      // console.log("Companyss data:", res.data);
       setCompanyData(res.data.data);
     } catch (error) {
       console.error("Error fetching company profile:", error);
@@ -174,7 +174,7 @@ function CustomerCreateQuotation() {
     try {
       const res = await api.get("/api/company-bank/list");
       setBanks(res.data.data);
-      console.log("banks", res.data.data);
+      // console.log("banks", res.data.data);
     } catch (error) {
       console.error("Error fetching bank details:", error);
     }
@@ -184,7 +184,7 @@ function CustomerCreateQuotation() {
     try {
       const res = await api.get("/api/notes-terms-settings");
       setTerms(res.data.data);
-      console.log("reddd", res.data);
+      // console.log("reddd", res.data);
     } catch (error) {
       console.error("Error fetching notes & terms settings:", error);
     }
@@ -194,7 +194,7 @@ function CustomerCreateQuotation() {
     try {
       const res = await api.get("/api/print-templates/all");
       setTemplate(res.data.data);
-      console.log("ddrrr", res.data);
+      // console.log("ddrrr", res.data);
     } catch (error) {
       console.error("Error fetching tempate settings:", error);
     }
@@ -307,7 +307,7 @@ function CustomerCreateQuotation() {
         if (customerId) {
           const customerRes = await api.get(`/api/customers/${customerId}`);
           const c = customerRes.data;
-          console.log("Fetched customeree", c);
+          // console.log("Fetched customeree", c);
           setCustomer({
             name: c?.name || "",
             phone: c?.phone || "",
@@ -842,8 +842,8 @@ function CustomerCreateQuotation() {
 
   // Handle form submission for quotation
   const handleSubmit = async (shouldPrint = false) => {
-    console.log("handleSubmit called with shouldPrint:", shouldPrint);
-    console.log("Button clicked, isSubmitting:", isSubmitting);
+    // console.log("handleSubmit called with shouldPrint:", shouldPrint);
+    // console.log("Button clicked, isSubmitting:", isSubmitting);
 
     if (!customer.customerId) {
       toast.error("Please select a customer first");
@@ -851,7 +851,7 @@ function CustomerCreateQuotation() {
     }
 
     if (isSubmitting) {
-      console.log("Already submitting, returning...");
+      // console.log("Already submitting, returning...");
       return;
     }
 
@@ -973,7 +973,7 @@ function CustomerCreateQuotation() {
       // 🚨 CRITICAL: CHECK IF WE'RE UPDATING OR CREATING
       if (quotationId) {
         // UPDATE EXISTING QUOTATION
-        console.log("Updating existing quotation:", quotationId);
+        // console.log("Updating existing quotation:", quotationId);
         response = await api.put(`/api/quotations/${quotationId}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -982,7 +982,7 @@ function CustomerCreateQuotation() {
         toast.success("Quotation updated successfully!");
       } else {
         // CREATE NEW QUOTATION
-        console.log("Creating new quotation");
+        // console.log("Creating new quotation");
         response = await api.post("/api/quotations", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -991,7 +991,7 @@ function CustomerCreateQuotation() {
         toast.success("Quotation created successfully!");
       }
 
-      console.log("Response:", response.data);
+      // console.log("Response:", response.data);
 
       if (response.data.success) {
         const newQuotationId = response.data.quotation._id;
@@ -1024,7 +1024,7 @@ function CustomerCreateQuotation() {
       }
 
       // Log full error for debugging
-      console.log("Full error response:", error.response?.data);
+      // console.log("Full error response:", error.response?.data);
     } finally {
       setIsSubmitting(false);
     }

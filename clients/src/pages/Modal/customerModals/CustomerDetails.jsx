@@ -180,7 +180,7 @@ const CustomerDetails = ({ data, onClose, onEdit }) => {
 
   // Update the row click handler
   const handleRowClick = (purchase) => {
-    console.log("Row clicked:", purchase);
+    // console.log("Row clicked:", purchase);
 
     if (purchase && purchase._id) {
       // Navigate to sales invoice view

@@ -14,7 +14,7 @@ export const ALL_MODULES = {
   "SubCategory": "SubCategory",
   "DamageRecord": "DamageRecord",
   "LowStocks": "LowStocks",
-  // "Brand": "Brand",
+  "Brand": "Brand",
   // "Unit": "Unit",
   "HSN": "HSN",
   // "VariantAttributes": "VariantAttributes",

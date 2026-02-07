@@ -9,7 +9,7 @@ const assignCategoryCodesToExisting = async () => {
     await categoriesWithoutCode[i].save();
   }
 
-  console.log("Category codes assigned to existing categories.");
+  // console.log("Category codes assigned to existing categories.");
 };
 
 module.exports = assignCategoryCodesToExisting;

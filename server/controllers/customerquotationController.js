@@ -92,7 +92,7 @@ exports.createQuotation = async (req, res) => {
     // Parse FormData first
     const parsedBody = parseFormDataNested(req.body);
 
-    console.log("Parsed FormData for Quotation:", JSON.stringify(parsedBody, null, 2));
+    // console.log("Parsed FormData for Quotation:", JSON.stringify(parsedBody, null, 2));
 
     // Extract fields from parsed body
     let {

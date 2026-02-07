@@ -67,7 +67,7 @@ const updateUser = async (req, res) => {
 const updateUserProfile = async (req, res) => {
   const { name, email, currentpassword, newpassword, confirmpassword } =
     req.body;
-  console.log("ilhlihlijhol", currentpassword, newpassword, confirmpassword);
+  // console.log("ilhlihlijhol", currentpassword, newpassword, confirmpassword);
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -91,7 +91,7 @@ const updateUserProfile = async (req, res) => {
     }
     if (name) user.name = name;
     if (email) user.email = email;
-    console.log("New hashed password:", user.password);
+    // console.log("New hashed password:", user.password);
 
     const updatedUser = await user.save();
     res.json({
@@ -108,7 +108,7 @@ const updateUserProfile = async (req, res) => {
 
 const toggleAccountStatus = async (req, res) => {
   const { id } = req.params;
-  console.log("Toggle status for user ID:", id);
+  // console.log("Toggle status for user ID:", id);
 
   try {
     const user = await User.findById(id);

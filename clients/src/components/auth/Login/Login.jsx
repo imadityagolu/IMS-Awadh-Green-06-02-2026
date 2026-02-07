@@ -178,6 +178,9 @@ const Login = () => {
   };
 
 
+    const currentYear = new Date().getFullYear();
+
+
   return (
     <div className="main-wrapper">
       <div className="account-content">
@@ -254,7 +257,7 @@ const Login = () => {
                   <button type="submit" className="btn btn-primary w-100" disabled={loading}>{loading ? "Signing..." : "Sign In"}</button>
                 </div>
                 <div className="my-4 d-flex justify-content-center align-items-center copyright-text">
-                  <p>Copyright © 2025 Kasper Infotech Pvt. Ltd.</p>
+                  <p>Copyright © {currentYear}  Kasper Infotech Pvt. Ltd.</p>
                 </div>
               </div>
             </form>

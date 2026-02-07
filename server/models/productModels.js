@@ -8,6 +8,11 @@ const productSchema = new mongoose.Schema(
       ref: "Brand",
     },
 
+    description: { 
+      type: String,
+      default: ""
+    },
+
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
@@ -24,37 +29,23 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "HSN",
     },
-    serialno: { type: String, default: "" },
+    
+    lotNumber: { type: String, default: "" },
 
-    purchasePrice: { type: Number, required: true, min: 1 },
-
-    mrp: { type: Number },
-
-    sellingPrice: { type: Number, required: true, min: 1 },
-
-    tax: String,
-
-    size: String,
-
-    color: String,
-
-    expiryDate: Date,
+    lotSupplier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Supplier",
+    },
 
     unit: String,
 
-    openingQuantity: { type: Number, required: true, min: 1 },
+    purchasePrice: { type: Number, required: true, min: 1 },
 
-    minStockToMaintain: { type: Number, required: true, min: 1 },
+    tax: String,
 
-    discountAmount: Number,
+    quantityInLot: { type: Number, default: 1 },
 
-    discountType: String,
-
-    stockQuantity: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
+    sellingPrice: { type: Number, required: true, min: 1 },
 
     images: [
       {
@@ -62,17 +53,6 @@ const productSchema = new mongoose.Schema(
         public_id: { type: String, required: true },
       },
     ],
-
-    lotDetails: {
-      lotNo: String,
-      lotmrp: String,
-      fabricBatchNo: String,
-      productionDate: String,
-      designCode: String,
-      quantity: Number,
-      size: String,
-      color: String,
-    },
 
     isDelete: {
       type: Boolean,

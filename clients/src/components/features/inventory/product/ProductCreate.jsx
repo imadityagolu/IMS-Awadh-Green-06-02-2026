@@ -2723,7 +2723,7 @@ const ProductForm = () => {
                       </div>
                     </div>
 
-                    {/* Quantity */}
+                    {/* Quantity in lot */}
                     <div
                       style={{
                         display: "flex",
@@ -2958,241 +2958,6 @@ const ProductForm = () => {
                       </span>
                     </div>
 
-                    {/* Size */}
-                    {settings.variants.size && <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Size
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_size`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <select
-                          name="size"
-                          value={variant.size || ""}
-                          onChange={(e) => handleVariantChange(index, "size", e.target.value)}
-                          style={{
-                            width: "100%",
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--Black-Black, #0E101A)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            outline: "none",
-                          }}
-                        >
-                          <option value="">Select Size</option>
-                          <option value="XS">Extra Small (XS)</option>
-                          <option value="S">Small (S)</option>
-                          <option value="M">Medium (M)</option>
-                          <option value="L">Large (L)</option>
-                          <option value="XL">Extra Large (XL)</option>
-                        </select>
-                      </div>
-                    </div>}
-
-                    {/* Color */}
-                    {settings.variants.color && <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Color
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_color`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <select
-                          name="color"
-                          value={variant.color || ""}
-                          onChange={(e) => handleVariantChange(index, "color", e.target.value)}
-                          style={{
-                            width: "100%",
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--Black-Black, #0E101A)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            outline: "none",
-                          }}
-                        >
-                          <option value="">Select Color</option>
-                          <option value="Red">Red</option>
-                          <option value="Yellow">Yellow</option>
-                          <option value="Black">Black</option>
-                          <option value="Green">Green</option>
-                        </select>
-                      </div>
-                    </div>}
-
-                    {/* expiry */}
-                    {settings.expiry && <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Expiry Date
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_expiry`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <input
-                            type="date"
-                            placeholder="31/12/2026"
-                            name="expiryDate"
-                            value={variant.expiryDate || ""}
-                            onChange={(e) => handleVariantChange(index, "expiryDate", e.target.value)}
-                            style={{
-                              width: "170px",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>}
-
                     <div
                       style={{
                         display: "flex",
@@ -3236,7 +3001,7 @@ const ProductForm = () => {
                               lineHeight: "19.20px",
                             }}
                           >
-                            Add Serial No. For Lot No. -
+                            Add Serial No. 1/x Quantity
                           </div>
 
                           <div style={{
@@ -3247,7 +3012,6 @@ const ProductForm = () => {
                             padding: '16px 8px',
                             justifyContent: 'flex-start',
                           }}>
-                            {/* select lot + serial no. + status */}
                             <div
                               style={{
                                 display: "flex",
@@ -3255,9 +3019,8 @@ const ProductForm = () => {
                                 overflowX: 'auto',
                                 flexDirection: 'column',
                               }}
-                            // className="row"
                             >
-                              {/* serial no + status */}
+                              {/* quantity + serial no + status */}
                               <div style={{
                                 display: "flex",
                                 gap: "16px",
@@ -3302,36 +3065,6 @@ const ProductForm = () => {
                                   }}
                                   className="col-1"
                                 >
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "baseline",
-                                      gap: "4px",
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        color: "var(--Black-Grey, #727681)",
-                                        fontSize: "12px",
-                                        fontFamily: "Inter",
-                                        fontWeight: "400",
-                                        lineHeight: "14.40px",
-                                      }}
-                                    >
-                                      Serial No.
-                                    </span>
-                                    <span
-                                      style={{
-                                        color: "var(--Danger, #D00003)",
-                                        fontSize: "12px",
-                                        fontFamily: "Inter",
-                                        fontWeight: "400",
-                                        lineHeight: "14.40px",
-                                      }}
-                                    >
-                                      *
-                                    </span>
-                                  </div>
                                   <div
                                     style={{
                                       height: "40px",
@@ -3443,11 +3176,38 @@ const ProductForm = () => {
                                     </select>
                                   </div>
                                 </div>}
+
+                                {/* add button */}
+                                <button
+                                  type="button"
+                                  style={{
+                                    padding: "6px 6px",
+                                    background: "var(--Blue, #1F7FFF)",
+                                    borderRadius: "4px",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    width: "100px",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      color: "var(--White, white)",
+                                      fontSize: "14px",
+                                      fontFamily: "Inter",
+                                      fontWeight: "400",
+                                    }}
+                                  >
+                                    + Add
+                                  </span>
+                                </button>
+
                               </div>
 
                             </div>
                           </div>
-
 
                         </div>
                       </div>

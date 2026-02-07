@@ -42,7 +42,7 @@ function ShowCustomerInvoiceQuotation() {
   const fetchCompanyData = async () => {
     try {
       const res = await api.get(`/api/companyprofile/get`);
-      console.log("Companyss data:", res.data);
+      // console.log("Companyss data:", res.data);
       setCompanyData(res.data.data);
     } catch (error) {
       console.error("Error fetching company profile:", error);
@@ -52,7 +52,7 @@ function ShowCustomerInvoiceQuotation() {
     try {
       const res = await api.get("/api/company-bank/list");
       setBanks(res.data.data);
-      console.log("banks", res.data.data);
+      // console.log("banks", res.data.data);
     } catch (error) {
       console.error("Error fetching bank details:", error);
     }
@@ -62,7 +62,7 @@ function ShowCustomerInvoiceQuotation() {
     try {
       const res = await api.get('/api/notes-terms-settings');
       setTerms(res.data.data)
-      console.log('reddd', res.data)
+      // console.log('reddd', res.data)
     } catch (error) {
       console.error('Error fetching notes & terms settings:', error);
     }
@@ -72,7 +72,7 @@ function ShowCustomerInvoiceQuotation() {
     try {
       const res = await api.get('/api/print-templates/all');
       setTemplate(res.data.data)
-      console.log('ddrrr', res.data)
+      // console.log('ddrrr', res.data)
     } catch (error) {
       console.error('Error fetching tempate settings:', error);
     }

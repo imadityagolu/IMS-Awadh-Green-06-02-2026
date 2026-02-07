@@ -177,7 +177,7 @@ const SettingsCompanyDetails = () => {
     try {
       setIsLoading(true);
       const res = await api.get(`/api/companyprofile/get`);
-      console.log('rewwq', res.data)
+      // console.log('rewwq', res.data)
 
       if (res.data.success && res.data.data) {
         const profile = res.data.data;

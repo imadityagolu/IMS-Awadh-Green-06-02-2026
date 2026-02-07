@@ -126,8 +126,8 @@ const CustomerCreditNoteViewEdit = () => {
       const response = await api.get(`/api/credit-notes/${id}`);
       const data = response.data.creditNote ||  response.data;
 
-       console.log("Credit note data from API:", data); // ADD THIS
-    console.log("Items in credit note:", data.items); // ADD THIS
+      //  console.log("Credit note data from API:", data); // ADD THIS
+    // console.log("Items in credit note:", data.items); // ADD THIS
 
       if (!data) {
         toast.error("Credit note not found");
@@ -556,7 +556,7 @@ const CustomerCreditNoteViewEdit = () => {
   const fetchCompanyData = async () => {
     try {
       const res = await api.get(`/api/companyprofile/get`);
-      console.log("Company data:", res.data);
+      // console.log("Company data:", res.data);
       setCompanyData(res.data.data);
     } catch (error) {
       console.error("Error fetching company profile:", error);
@@ -567,7 +567,7 @@ const CustomerCreditNoteViewEdit = () => {
     try {
       const res = await api.get("/api/notes-terms-settings");
       setTerms(res.data.data);
-      console.log("Terms data:", res.data);
+      // console.log("Terms data:", res.data);
     } catch (error) {
       console.error("Error fetching notes & terms settings:", error);
     }
@@ -577,7 +577,7 @@ const CustomerCreditNoteViewEdit = () => {
     try {
       const res = await api.get("/api/print-templates/all");
       setTemplate(res.data.data);
-      console.log("Template data:", res.data);
+      // console.log("Template data:", res.data);
     } catch (error) {
       console.error("Error fetching template settings:", error);
     }
@@ -642,7 +642,7 @@ const CustomerCreditNoteViewEdit = () => {
         totalAmount: formData.totalAmount,
       };
 
-      console.log("Updating credit note:", creditNoteData);
+      // console.log("Updating credit note:", creditNoteData);
 
       const response = await api.put(
         `/api/credit-notes/${id}`,
@@ -2879,7 +2879,7 @@ const CustomerCreditNoteViewEdit = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {console.log("selectedItemsss", selectedItems)}
+                      {/* {console.log("selectedItemsss", selectedItems)} */}
                       {selectedItems.map((item, idx) => (
                         <tr key={idx}>
                           <td

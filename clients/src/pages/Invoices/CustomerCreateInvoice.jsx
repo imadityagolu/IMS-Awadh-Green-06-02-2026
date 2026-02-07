@@ -128,7 +128,7 @@ function CustomerCreateInvoice() {
   const fetchCompanyData = async () => {
     try {
       const res = await api.get(`/api/companyprofile/get`);
-      console.log("Companyss data:", res.data);
+      // console.log("Companyss data:", res.data);
       setCompanyData(res.data.data);
     } catch (error) {
       console.error("Error fetching company profile:", error);
@@ -139,7 +139,7 @@ function CustomerCreateInvoice() {
     try {
       const res = await api.get("/api/company-bank/list");
       setBanks(res.data.data);
-      console.log("banks", res.data.data);
+      // console.log("banks", res.data.data);
     } catch (error) {
       console.error("Error fetching bank details:", error);
     }
@@ -149,7 +149,7 @@ function CustomerCreateInvoice() {
     try {
       const res = await api.get("/api/notes-terms-settings");
       setTerms(res.data.data);
-      console.log("reddd", res.data);
+      // console.log("reddd", res.data);
     } catch (error) {
       console.error("Error fetching notes & terms settings:", error);
     }
@@ -159,7 +159,7 @@ function CustomerCreateInvoice() {
     try {
       const res = await api.get("/api/print-templates/all");
       setTemplate(res.data.data);
-      console.log("ddrrr", res.data);
+      // console.log("ddrrr", res.data);
     } catch (error) {
       console.error("Error fetching tempate settings:", error);
     }
@@ -1059,8 +1059,8 @@ function CustomerCreateInvoice() {
   // Handle form submission - FIXED VERSION
   // Handle form submission - CORRECTED VERSION for your backend
   const handleSubmit = async (shouldPrint = false) => {
-    console.log("handleSubmit called with shouldPrint:", shouldPrint);
-    console.log("Button clicked, isSubmitting:", isSubmitting);
+    // console.log("handleSubmit called with shouldPrint:", shouldPrint);
+    // console.log("Button clicked, isSubmitting:", isSubmitting);
     // check if we have a customer selected
     if (!customer.customerId) {
       toast.error("Please select a customer first");
@@ -1068,7 +1068,7 @@ function CustomerCreateInvoice() {
     }
 
     if (isSubmitting) {
-      console.log("Already submitting, returning...");
+      // console.log("Already submitting, returning...");
       return; // Prevent double submission
     }
     const { isValid, errors } = validateForm();
@@ -1246,13 +1246,13 @@ function CustomerCreateInvoice() {
       // Debug: Log what's being sent
       console.log("Sending form data:");
       for (let pair of formData.entries()) {
-        console.log(pair[0] + ": " + pair[1]);
+        // console.log(pair[0] + ": " + pair[1]);
       }
 
       // Debug: Log form data
-      console.log("FormData contents:");
+      // console.log("FormData contents:");
       for (let pair of formData.entries()) {
-        console.log(pair[0] + ": " + pair[1]);
+        // console.log(pair[0] + ": " + pair[1]);
       }
 
       // Send to backend
@@ -1262,7 +1262,7 @@ function CustomerCreateInvoice() {
         },
       });
 
-      console.log("Response:", response.data);
+      // console.log("Response:", response.data);
 
       if (response.data.success) {
         toast.success("Invoice created successfully!");
@@ -1297,7 +1297,7 @@ function CustomerCreateInvoice() {
       }
 
       // Log full error for debugging
-      console.log("Full error response:", error.response?.data);
+      // console.log("Full error response:", error.response?.data);
     } finally {
       setIsSubmitting(false);
     }

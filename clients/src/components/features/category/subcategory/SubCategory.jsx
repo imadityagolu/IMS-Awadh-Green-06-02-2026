@@ -86,7 +86,7 @@ const SubCategory = () => {
 
   const handleCategoryChange = (selectedOption) => {
     setSelectedCategory(selectedOption);
-    console.log("Selected category:", selectedOption);
+    // console.log("Selected category:", selectedOption);
   };
 
   const handleImageChange = (e) => {
@@ -233,7 +233,7 @@ const SubCategory = () => {
       // const token = localStorage.getItem("token");
       const res = await api.get("/api/subcategory/subcategories");
       const list = res.data.subcategories || res.data;
-      console.log('llsst', list)
+      // console.log('llsst', list)
       setSubcategories(list);
          setTotal(res.data.total || list.length)
      

@@ -680,16 +680,16 @@ const ProductForm = () => {
 
   const subCategoryChange = (selectedOption) => {
     setSelectedsubCategory(selectedOption);
-    console.log("Selected subcategory:", selectedOption);
+    // console.log("Selected subcategory:", selectedOption);
   };
   const handleBrandChange = (selectedOption) => {
     setSelectedBrands(selectedOption);
-    console.log("Selected brands:", selectedOption);
+    // console.log("Selected brands:", selectedOption);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting:", formData); // 🔍 See this in console
+    // console.log("Submitting:", formData); // 🔍 See this in console
 
     try {
       await axios.post(`${BASE_URL}/api/products/create`, formData);

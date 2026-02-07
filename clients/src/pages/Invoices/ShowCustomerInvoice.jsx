@@ -44,7 +44,7 @@ function ShowCustomerInvoice() {
       try {
         const res = await api.get(`/api/invoices/${invoiceId}`);
         const data = res.data;
-        console.log("ffdara", data);
+        // console.log("ffdara", data);
         setInvoiceData(res.data.invoice);
       } catch (err) {
         toast.error("Failed to load invoice");
@@ -59,7 +59,7 @@ function ShowCustomerInvoice() {
   const fetchCompanyData = async () => {
     try {
       const res = await api.get(`/api/companyprofile/get`);
-      console.log("Companyss data:", res.data);
+      // console.log("Companyss data:", res.data);
       setCompanyData(res.data.data);
     } catch (error) {
       console.error("Error fetching company profile:", error);
@@ -70,7 +70,7 @@ function ShowCustomerInvoice() {
     try {
       const res = await api.get("/api/company-bank/list");
       setBanks(res.data.data);
-      console.log("banks", res.data.data);
+      // console.log("banks", res.data.data);
     } catch (error) {
       console.error("Error fetching bank details:", error);
     }
@@ -80,7 +80,7 @@ function ShowCustomerInvoice() {
     try {
       const res = await api.get("/api/notes-terms-settings");
       setTerms(res.data.data);
-      console.log("reddd", res.data);
+      // console.log("reddd", res.data);
     } catch (error) {
       console.error("Error fetching notes & terms settings:", error);
     }
@@ -92,7 +92,7 @@ function ShowCustomerInvoice() {
       const res = await api.get("/api/print-templates?type=normal");
       if (res.data.success && res.data.data.template) {
         setTemplate(res.data.data.template);
-        console.log("Template settings loaded:", res.data.data.template);
+        // console.log("Template settings loaded:", res.data.data.template);
       }
     } catch (error) {
       console.error("Error fetching template settings:", error);

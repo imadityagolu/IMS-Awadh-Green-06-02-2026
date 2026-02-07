@@ -177,7 +177,7 @@ const Sales = () => {
       };
 
       const response = await api.get('/api/invoices/sales/list', { params });
-      console.log('responsedataww', response.data)
+      // console.log('responsedataww', response.data)
 
       if (response.data.success) {
         setSales(response.data.data.sales);
@@ -906,7 +906,7 @@ const Sales = () => {
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {console.log("Sale itemsdd:", sale.items)}
+                                    {/* {console.log("Sale itemsdd:", sale.items)} */}
                                     {sale.items?.map((item, i) => (
                                       <tr key={i}>
                                         <td style={{ padding: "10px 16px", color: "#0E101A" }}>

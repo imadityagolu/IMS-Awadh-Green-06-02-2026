@@ -41,7 +41,7 @@ const EditUnitModal = ({ selectedUnit, onUnitUpdated }) => {
         `/api/unit/units/${selectedUnit._id}`,
         updatedData
       );
-      console.log("Update response:", response.data);
+      // console.log("Update response:", response.data);
       
       // Close modal first
       window.$("#edit-units").modal("hide");

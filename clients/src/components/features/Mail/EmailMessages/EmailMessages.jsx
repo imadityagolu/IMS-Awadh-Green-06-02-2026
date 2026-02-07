@@ -56,13 +56,13 @@ const EmailMessages = ({
 
 
   const fetchUsers = async () => {
-    console.log("fetchUsers called");
+    // console.log("fetchUsers called");
     try {
       // const token = localStorage.getItem("token"); // ⬅️ Get token from localStorage
       // console.log('trken', token)
       const res = await api.get(`/api/user/getuser`);
 
-      console.log('usersss', res.data)
+      // console.log('usersss', res.data)
       setUsers(res.data);
     } catch (err) {
       console.error(err);
@@ -71,7 +71,7 @@ const EmailMessages = ({
   };
 
   useEffect(() => {
-    console.log("EmailMessages mounted");
+    // console.log("EmailMessages mounted");
     fetchUsers();
   }, []);
 
@@ -148,7 +148,7 @@ const EmailMessages = ({
           ? sentEmails : displayMailboxName.toLowerCase() === "allemails" ? [...inboxEmails, ...sentEmails].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : inboxEmails;
 
 
-  console.log("emailsToShow", emailsToShow);
+  // console.log("emailsToShow", emailsToShow);
 
 
   const setEmailsState = (updateFn) => {

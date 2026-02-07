@@ -106,11 +106,11 @@ exports.getDebitNoteById = async (req, res) => {
 // Create new debit note
 exports.createDebitNote = async (req, res) => {
   try {
-    console.log("Debit Note create request");
-    console.log("Request body", JSON.stringify(req.body, null, 2));
-    console.log("user from request", req.user);
-    console.log("user ID", req.user ? req.user?._id : "Null");
-    console.log("User Role", req.user ? req.user?.role : "Null");
+    // console.log("Debit Note create request");
+    // console.log("Request body", JSON.stringify(req.body, null, 2));
+    // console.log("user from request", req.user);
+    // console.log("user ID", req.user ? req.user?._id : "Null");
+    // console.log("User Role", req.user ? req.user?.role : "Null");
     if (!req.user) {
       console.error("Error: No User found in request");
       return res.status(401).json({
@@ -119,7 +119,7 @@ exports.createDebitNote = async (req, res) => {
       });
     }
     const debitNoteNumber = await SupplierDebitNote.generateDebitNoteNumber();
-    console.log("Generated Debit Note Number:", debitNoteNumber);
+    // console.log("Generated Debit Note Number:", debitNoteNumber);
 
     // Get supplier details
     const supplier = await Supplier.findById(req.body.supplierId);
@@ -129,7 +129,7 @@ exports.createDebitNote = async (req, res) => {
         error: "Supplier not found",
       });
     }
-    console.log("Supplier details fetched:", supplier.supplierName);
+    // console.log("Supplier details fetched:", supplier.supplierName);
 
     const debitNoteData = {
       ...req.body,
@@ -140,13 +140,13 @@ exports.createDebitNote = async (req, res) => {
       address: req.body.address || supplier.address,
       createdBy: req.user._id,
     };
-    console.log(
-      "Debit Note data to save:",
-      JSON.stringify(debitNoteData, null, 2),
-    );
+    // console.log(
+    //   "Debit Note data to save:",
+    //   JSON.stringify(debitNoteData, null, 2),
+    // );
     const debitNote = new SupplierDebitNote(debitNoteData);
     const savedDebitNote = await debitNote.save();
-    console.log("Debit note save successful:", savedDebitNote._id);
+    // console.log("Debit note save successful:", savedDebitNote._id);
 
     // Update supplier's payable amount if debit note is issued
     if (req.body.status === "issued" && req.body.supplierId) {

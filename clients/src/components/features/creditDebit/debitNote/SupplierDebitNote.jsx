@@ -83,13 +83,13 @@ const SupplierDebitNote = () => {
       // Then handle supplier
       if (invoice.supplierId) {
         if (typeof invoice.supplierId === "object" && invoice.supplierId._id) {
-          console.log(
-            "Using supplier from invoice object:",
-            invoice.supplierId,
-          );
+          // console.log(
+          //   "Using supplier from invoice object:",
+          //   invoice.supplierId,
+          // );
           handleSupplierSelect(invoice.supplierId);
         } else if (typeof invoice.supplierId === "string") {
-          console.log("Fetching supplier by ID:", invoice.supplierId);
+          // console.log("Fetching supplier by ID:", invoice.supplierId);
           fetchSupplierFromId(invoice.supplierId).catch((err) => {
             console.warn("Supplier fetch failed, using invoice data:", err);
             if (invoice.supplierName) {
@@ -103,7 +103,7 @@ const SupplierDebitNote = () => {
           });
         }
       } else if (invoice.supplierName) {
-        console.log("Using supplier name from invoice:", invoice.supplierName);
+        // console.log("Using supplier name from invoice:", invoice.supplierName);
         handleSupplierSelect({
           _id: "temp_" + Date.now(),
           supplierName: invoice.supplierName,
@@ -711,7 +711,7 @@ const SupplierDebitNote = () => {
         fullyReceived: formData.fullyReceived,
       };
 
-      console.log("Submitting debit note:", debitNoteData);
+      // console.log("Submitting debit note:", debitNoteData);
 
       const response = await api.post(
         "/api/supplier-debit-notes",

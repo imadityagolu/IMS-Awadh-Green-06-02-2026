@@ -48,14 +48,14 @@ const parseFormDataNested = (body) => {
   // parse dueDate if provided
   Object.keys(body).forEach((key) => {
     if (key.includes("dueDate")) {
-      console.log(`  ${key}: ${body[key]}`);
+      // console.log(`  ${key}: ${body[key]}`);
     }
   });
 
   // Check for dueDate in various possible formats
   if (body.dueDate !== undefined) {
     parsed.dueDate = body.dueDate;
-    console.log("Found dueDate in body.dueDate:", body.dueDate);
+    // console.log("Found dueDate in body.dueDate:", body.dueDate);
   } else if (body["dueDate[0]"] !== undefined) {
     // Handle array format dueDate[0], dueDate[1], etc.
     const dueDateArray = [];
@@ -65,7 +65,7 @@ const parseFormDataNested = (body) => {
       i++;
     }
     parsed.dueDate = dueDateArray;
-    console.log("Found dueDate as array:", dueDateArray);
+    // console.log("Found dueDate as array:", dueDateArray);
   }
 
     // ========== FIX: Parse tax settings properly ==========
@@ -174,7 +174,7 @@ exports.createInvoice = async (req, res) => {
     }
 
     // Debug log to see what's being received
-    console.log("Parsed FormData:", JSON.stringify(parsedBody, null, 2));
+    // console.log("Parsed FormData:", JSON.stringify(parsedBody, null, 2));
 
     // Extract fields from parsed body
     let {
@@ -222,26 +222,26 @@ exports.createInvoice = async (req, res) => {
     let finalDueDate;
 
     // Log what we're receiving
-    console.log("Raw dueDate received:", dueDate);
-    console.log("Type of dueDate:", typeof dueDate);
+    // console.log("Raw dueDate received:", dueDate);
+    // console.log("Type of dueDate:", typeof dueDate);
 
     // If dueDate is an array (this is the issue!)
     if (Array.isArray(dueDate)) {
-      console.log("dueDate is an array, processing...");
+      // console.log("dueDate is an array, processing...");
 
       // Get the first valid date from the array
       for (const dateStr of dueDate) {
         const date = new Date(dateStr);
         if (!isNaN(date.getTime())) {
           finalDueDate = date;
-          console.log("Selected valid date from array:", finalDueDate);
+          // console.log("Selected valid date from array:", finalDueDate);
           break;
         }
       }
 
       // If no valid date in array, use default
       if (!finalDueDate) {
-        console.log("No valid date in array, using default");
+        // console.log("No valid date in array, using default");
         const defaultDueDate = new Date(invoiceDate || new Date());
         defaultDueDate.setDate(defaultDueDate.getDate() + 7);
         finalDueDate = defaultDueDate;
@@ -250,11 +250,11 @@ exports.createInvoice = async (req, res) => {
     // If dueDate is a string (normal case)
     else if (dueDate && typeof dueDate === "string") {
       finalDueDate = new Date(dueDate);
-      console.log("dueDate is string, parsing:", finalDueDate);
+      // console.log("dueDate is string, parsing:", finalDueDate);
 
       // Validate date
       if (isNaN(finalDueDate.getTime())) {
-        console.log("Invalid date string, using default");
+        // console.log("Invalid date string, using default");
         const defaultDueDate = new Date(invoiceDate || new Date());
         defaultDueDate.setDate(defaultDueDate.getDate() + 7);
         finalDueDate = defaultDueDate;
@@ -262,13 +262,13 @@ exports.createInvoice = async (req, res) => {
     }
     // If no dueDate provided, use default
     else {
-      console.log("No dueDate provided, using default");
+      // console.log("No dueDate provided, using default");
       const defaultDueDate = new Date(invoiceDate || new Date());
       defaultDueDate.setDate(defaultDueDate.getDate() + 7);
       finalDueDate = defaultDueDate;
     }
 
-    console.log("Final dueDate to be saved:", finalDueDate);
+    // console.log("Final dueDate to be saved:", finalDueDate);
     // ========== END FIX ==========
 
     // Validate invoice date
@@ -1890,12 +1890,12 @@ exports.sendThroughEmail = async (req, res) => {
   try {
     const { invoiceId, toEmail, subject, type = "sales" } = req.body;
 
-    console.log("📧 Email sending request received:", {
-      invoiceId,
-      toEmail,
-      subject,
-      type,
-    });
+    // console.log("📧 Email sending request received:", {
+    //   invoiceId,
+    //   toEmail,
+    //   subject,
+    //   type,
+    // });
 
     // Validate inputs
     if (!toEmail || !invoiceId) {
@@ -1939,7 +1939,7 @@ exports.sendThroughEmail = async (req, res) => {
       });
     }
 
-    console.log("📄 Invoice found:", invoice.invoiceNo);
+    // console.log("📄 Invoice found:", invoice.invoiceNo);
 
     // 2. Get company info from database or use defaults
     const Company = require("../models/CompanyProfile"); // Adjust path as needed
@@ -2251,7 +2251,7 @@ async function sendEmailWithNodemailer(
       };
     }
 
-    console.log("🔧 Configuring email transporter...");
+    // console.log("🔧 Configuring email transporter...");
 
     // Create transporter
     const transporter = nodemailer.createTransport({
@@ -2268,9 +2268,9 @@ async function sendEmailWithNodemailer(
     });
 
     // Verify connection configuration
-    console.log("🔍 Verifying email configuration...");
+    // console.log("🔍 Verifying email configuration...");
     await transporter.verify();
-    console.log("✅ Email server is ready to take messages");
+    // console.log("✅ Email server is ready to take messages");
 
     // Prepare email options
     const mailOptions = {
@@ -2282,17 +2282,17 @@ async function sendEmailWithNodemailer(
       attachments: [], // You can add PDF attachment here if generated
     };
 
-    console.log("📤 Sending email...");
-    console.log("   From:", mailOptions.from);
-    console.log("   To:", mailOptions.to);
-    console.log("   Subject:", mailOptions.subject);
+    // console.log("📤 Sending email...");
+    // console.log("   From:", mailOptions.from);
+    // console.log("   To:", mailOptions.to);
+    // console.log("   Subject:", mailOptions.subject);
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
 
-    console.log("✅ Email sent successfully!");
-    console.log("   Message ID:", info.messageId);
-    console.log("   Response:", info.response);
+    // console.log("✅ Email sent successfully!");
+    // console.log("   Message ID:", info.messageId);
+    // console.log("   Response:", info.response);
 
     return {
       success: true,

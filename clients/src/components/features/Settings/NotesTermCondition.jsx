@@ -21,7 +21,7 @@ const NotesTermCondition = () => {
     setIsLoading(true);
 
     const response = await api.get('/api/notes-terms-settings');
-    console.log('Response:', response);
+    // console.log('Response:', response);
     
     if (response.data.success) {
       const settings = response.data.data;

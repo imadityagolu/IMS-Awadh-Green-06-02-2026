@@ -1337,7 +1337,7 @@ const Product = () => {
                               setSelectedRowIds(next);
                             }}
                           />
-                          Product Name & Category
+                          Product Name
                         </div>
                       </th>
 
@@ -1383,20 +1383,6 @@ const Product = () => {
                         >
                           Item Code
                         </th>}
-
-                      {/* serial no */}
-                      {settings.serialno && <th
-                        style={{
-                          textAlign: "left",
-                          padding: "4px 16px",
-                          color: "#727681",
-                          fontSize: 14,
-                          width: "auto",
-                          fontWeight: "400",
-                        }}
-                      >
-                        Serial No.
-                      </th>}
 
                       {/* purchase price */}
                       <th
@@ -1546,19 +1532,6 @@ const Product = () => {
                                     <div>
                                       {product.productName}{" "}
                                     </div>
-                                    <span
-                                      style={{
-                                        display: "inline-block",
-                                        padding: "4px 8px",
-                                        background: "#FFE0FC",
-                                        color: "#AE009B",
-                                        borderRadius: 36,
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                      }}
-                                    >
-                                      {product.category?.categoryName}
-                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -1700,28 +1673,6 @@ const Product = () => {
                                   </>
                                 )}
                               </td>}
-
-                            {/* serial no */}
-                            {settings.serialno && <td
-                              style={{
-                                padding: "4px 16px",
-                                fontSize: 14,
-                                color: "#0E101A",
-                                cursor: "pointer",
-                              }}
-                              // onClick={() => {
-                              //   handleViewMode(true);
-                              //   setSelectedProduct(product)
-                              // }
-                              // }
-                              onClick={() =>
-                                navigate(
-                                  `/product/view/${product._id}`, { state: { from: location.pathname } }
-                                )
-                              }
-                            >
-                              {product.serialno}
-                            </td>}
 
                             {/* Purchase Price */}
                             <td

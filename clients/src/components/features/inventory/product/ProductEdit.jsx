@@ -16,6 +16,7 @@ import CreateCategoryModal from "../../category/CreateCategoryModel"
 import CreateSubCategoryModel from "../../category/CreateSubCategoryModel";
 
 import { RiDeleteBinLine } from "react-icons/ri";
+import { BsThreeDotsVertical } from "react-icons/bs";
 import { FcAddImage } from "react-icons/fc";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 
@@ -23,10 +24,6 @@ const regexPatterns = {
   productName: /^[a-zA-Z0-9\s\-_&()]{2,100}$/, // Alphanumeric, spaces, some special chars, 2-100 chars
   price: /^\d+(\.\d{1,2})?$/, // Positive number with up to 2 decimal places
   quantity: /^(?:[1-9]\d*)$/,
-  discountValue: /^\d+(\.\d{1,2})?$/, // Positive number with up to 2 decimal places
-  leadTime: /^\d+$/, // Positive integer
-  reorderLevel: /^\d+$/, // Positive integer
-  initialStock: /^\d+$/, // Positive integer
 };
 
 const sanitizeOptions = {
@@ -99,7 +96,6 @@ const ProductEdit = () => {
     hsn: false,
     lotno: false,
     serialno: false,
-    variants: { size: false, color: false },
     units: false,
     expiry: false,
   });
@@ -122,10 +118,6 @@ const ProductEdit = () => {
           hsn: data.hsn || false,
           lotno: data.lotno || false,
           serialno: data.serialno || false,
-          variants: {
-            size: data.variants?.size || false,
-            color: data.variants?.color || false
-          },
           units: data.units || false,
           expiry: data.expiry || false,
         });
@@ -162,58 +154,37 @@ const ProductEdit = () => {
     t("variants"),
   ];
 
-  const variantTabs = [
-    t("color"),
-    t("size"),
-    t("expiry"),
-    t("material"),
-    t("model"),
-    t("weight"),
-    t("skinType"),
-    t("packagingType"),
-    t("flavour"),
-  ];
-
   const lotColumns = [
     { label: "Lot No.", editableValue: "12" },
-    { label: "Lot MRP", editableValue: "₹ 2,367.08/-" },
     { label: "Fabric Batch No.", editableValue: "MO123" },
     { label: "Production Date", editableValue: "22/09/2023", opacity: 0.69 },
     { label: "Design Code", editableValue: "DC-0123" },
     { label: "Quantity", editableValue: "112" },
-    { label: "Size", editableValue: "S, M, L, XL, XXL" },
-    { label: "Color", editableValue: "Red, Green, Yellow", opacity: 0.83 },
   ];
 
   const lotFieldKeys = [
     "lotNo",
-    "lotmrp",
     "fabricBatchNo",
     "productionDate",
     "designCode",
     "quantity",
-    "size",
-    "color",
   ];
 
   const [lotDetails, setLotDetails] = useState({
     lotNo: "",
-    lotmrp: "",
     fabricBatchNo: "",
     productionDate: "",
     designCode: "",
     quantity: "",
-    size: "",
-    color: "",
   });
 
   const [step, setStep] = useState(0);
   const [stepStatus, setStepStatus] = useState(
     Array(steps.length).fill("pending")
   );
-  const [activeTab, setActiveTab] = useState("Color");
   const [formData, setFormData] = useState({
     productName: "",
+    description: "",
     category: "",
     subCategory: "",
     // itemBarcode: "",
@@ -222,8 +193,6 @@ const ProductEdit = () => {
     wholesalePrice: "",
     retailPrice: "",
     quantity: "",
-    discountType: "",
-    discountValue: "",
     variants: {},
     sellingType: "",
     hsn: "",
@@ -263,6 +232,58 @@ const ProductEdit = () => {
   const [variantDropdown, setVariantDropdown] = useState([]);
   const [images, setImages] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
+  const [addserialpopup, setAddSerialPopup] = useState(false);
+  const [currentVariantIndex, setCurrentVariantIndex] = useState(null);
+
+  const handleAddSerialField = () => {
+    if (currentVariantIndex === null) return;
+    setVariants((prev) => {
+      const updated = [...prev];
+      const variant = { ...updated[currentVariantIndex] };
+      const serials = variant.serialNumbers ? [...variant.serialNumbers] : [];
+      serials.push("");
+      variant.serialNumbers = serials;
+      variant.quantityInLot = serials.length; // Update quantity
+      variant.openingQuantity = serials.length; // Update quantity
+      updated[currentVariantIndex] = variant;
+      return updated;
+    });
+  };
+
+  const handleSerialChange = (sIndex, value) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      const variant = { ...updated[currentVariantIndex] };
+      const serials = [...(variant.serialNumbers || [])];
+      serials[sIndex] = value;
+      variant.serialNumbers = serials;
+      updated[currentVariantIndex] = variant;
+      return updated;
+    });
+  };
+
+  const handleRemoveSerial = (sIndex) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      const variant = { ...updated[currentVariantIndex] };
+      const serials = [...(variant.serialNumbers || [])];
+      serials.splice(sIndex, 1);
+      variant.serialNumbers = serials;
+      variant.quantityInLot = serials.length; // Update quantity
+      variant.openingQuantity = serials.length; // Update quantity
+      updated[currentVariantIndex] = variant;
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    if (addserialpopup && currentVariantIndex !== null) {
+      const variant = variants[currentVariantIndex];
+      if (!variant.serialNumbers || variant.serialNumbers.length === 0) {
+        handleAddSerialField();
+      }
+    }
+  }, [addserialpopup, currentVariantIndex]);
 
   const onDrop = (acceptedFiles) => {
     const maxSize = 1 * 1024 * 1024; // 1MB in bytes
@@ -308,18 +329,10 @@ const ProductEdit = () => {
         };
         // setFormData(sanitizedData);
         // setFormData({ ...formData, ...data });
-        let computedDiscountValue = "";
-        if (data.discountType === "Fixed") {
-          computedDiscountValue = data.discountAmount;
-        } else if (data.discountType === "Percentage") {
-          computedDiscountValue = data.discountAmount;
-        }
-
         setFormData((prev) => ({
           ...prev,
           ...sanitizedData,
           ...data,
-          discountValue: computedDiscountValue, // Explicitly set discountValue
         }));
 
         if (data.lotDetails) {
@@ -334,13 +347,10 @@ const ProductEdit = () => {
           }
           setLotDetails({
             lotNo: details.lotNo || "",
-            lotmrp: details.lotmrp || "",
             fabricBatchNo: details.fabricBatchNo || "",
             productionDate: details.productionDate || "",
             designCode: details.designCode || "",
             quantity: details.quantity || "",
-            size: details.size || "",
-            color: details.color || "",
           });
         }
 
@@ -357,9 +367,8 @@ const ProductEdit = () => {
         }
 
         if (data.unit) setSelectedUnits({ value: data.unit, label: data.unit });
-        // if (data.supplier) setSelectedSupplier({ value: data.supplier._id || data.supplier, label: data.supplier.firstName ? `${data.supplier.firstName}${data.supplier.lastName} (${data.supplier.supplierCode})` : data.supplier });
-        if (data.supplier) {
-          setSupplierId(data.supplier._id || data.supplier);
+        if (data.lotSupplier) {
+          setSupplierId(data.lotSupplier._id || data.lotSupplier);
         }
 
         // if (data.warehouse) setSelectedWarehouse({ value: data.warehouse._id || data.warehouse, label: data.warehouse.warehouseName || data.warehouse });
@@ -377,23 +386,64 @@ const ProductEdit = () => {
 
         // --- VARIANTS PATCH ---
         // Map root product data to the first variant entry
+        
+        let safeSerialNumbers = data.serialNumbers || [];
+        
+        // Handle case where serialNumbers is a JSON string
+        if (typeof safeSerialNumbers === 'string') {
+            try {
+                safeSerialNumbers = JSON.parse(safeSerialNumbers);
+            } catch (e) {
+                safeSerialNumbers = []; 
+            }
+        }
+
+        // Fix for potentially double-stringified serial numbers from previous bad saves
+        if (Array.isArray(safeSerialNumbers)) {
+            safeSerialNumbers = safeSerialNumbers.flatMap(s => {
+                if (typeof s === 'string') {
+                    let cleaned = s.trim();
+                    // Recursively try to parse JSON if it looks like an array
+                    if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+                        try {
+                            const parsed = JSON.parse(cleaned);
+                            if (Array.isArray(parsed)) return parsed.flat();
+                            return parsed;
+                        } catch (e) {
+                            // Fallback: manually strip brackets and quotes if JSON fails
+                            cleaned = cleaned.replace(/^\["|"]$/g, '').replace(/^\[|]$/g, '').replace(/"/g, '');
+                        }
+                    }
+                    // Remove surrounding quotes if present
+                    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                        cleaned = cleaned.slice(1, -1);
+                    }
+                    
+                    // Extra safety: remove any remaining brackets or quotes if they look like artifacts
+                    if (cleaned.includes('[') || cleaned.includes(']') || cleaned.includes('"')) {
+                        cleaned = cleaned.replace(/[\[\]"]/g, '');
+                    }
+                    
+                    return cleaned;
+                }
+                return s;
+            });
+        }
+
         const existingVariant = {
           selectedVariant: "",
           selectedValue: [],
           valueDropdown: [],
           purchasePrice: data.purchasePrice,
-          mrp: data.mrp,
           sellingPrice: data.sellingPrice,
           tax: data.tax,
-          size: data.size,
-          color: data.color,
           openingQuantity: data.openingQuantity,
-          minStockToMaintain: data.minStockToMaintain,
-          discountAmount: data.discountAmount,
-          discountType: data.discountType,
-          expiryDate: data.expiryDate ? data.expiryDate.split("T")[0] : "",
+          quantityInLot: data.quantityInLot,
           unit: data.unit,
           serialno: data.serialno,
+          lotNumber: data.lotNumber || "",
+          serialNumbers: safeSerialNumbers,
+          supplier: data.lotSupplier || (data.supplier ? (data.supplier._id || data.supplier) : ""),
         };
         setVariants([existingVariant]);
 
@@ -477,6 +527,17 @@ const ProductEdit = () => {
       } catch (error) { }
     };
 
+    const fetchSuppliers = async () => {
+      try {
+        const res = await api.get("/api/suppliers");
+        const options = res.data.suppliers.map((supplier) => ({
+          value: supplier._id,
+          label: `${supplier.firstName} ${supplier.lastName} (${supplier.supplierCode})`,
+        }));
+        setOptions(options);
+      } catch (error) { }
+    };
+
     const fetchWarehouses = async () => {
       try {
         // const token = localStorage.getItem("token");
@@ -513,7 +574,7 @@ const ProductEdit = () => {
     fetchCategories();
     fetchBrands();
     fetchUnits();
-    // fetchSuppliers();
+    fetchSuppliers();
     fetchWarehouses();
     fetchHSN();
   }, []);
@@ -526,6 +587,15 @@ const ProductEdit = () => {
       }
     }
   }, [brandOptions, brandId]);
+
+  useEffect(() => {
+    if (options.length > 0 && supplierId) {
+      const found = options.find((opt) => opt.value === supplierId);
+      if (found) {
+        setSelectedSupplier(found);
+      }
+    }
+  }, [options, supplierId]);
 
   useEffect(() => {
     if (categoryId && categories.length > 0) {
@@ -577,15 +647,6 @@ const ProductEdit = () => {
       }
     }
   }, [subCategoryId, subcategories]);
-
-  useEffect(() => {
-    if (supplierId && options.length > 0) {
-      const found = options.find((opt) => opt.value === supplierId);
-      if (found) {
-        setSelectedSupplier(found);
-      }
-    }
-  }, [supplierId, options]);
 
   useEffect(() => {
     if (warehouseId && optionsware.length > 0) {
@@ -784,23 +845,18 @@ const ProductEdit = () => {
     // Validate variants fields
     variants.forEach((variant, index) => {
       if (variant.purchasePrice === "" || variant.purchasePrice === null || variant.purchasePrice === undefined || Number(variant.purchasePrice) < 1) emptyFields.push("purchasePrice");
-      if (variant.mrp === "" || variant.mrp === null || variant.mrp === undefined || Number(variant.mrp) < 1) emptyFields.push("mrp");
+      // if (variant.mrp === "" || variant.mrp === null || variant.mrp === undefined || Number(variant.mrp) < 1) emptyFields.push("mrp");
       if (variant.sellingPrice === "" || variant.sellingPrice === null || variant.sellingPrice === undefined || Number(variant.sellingPrice) < 1) emptyFields.push("sellingPrice");
-      if (variant.openingQuantity === "" || variant.openingQuantity === null || variant.openingQuantity === undefined || Number(variant.openingQuantity) < 1) emptyFields.push("openingQuantity");
-      if (variant.minStockToMaintain === "" || variant.minStockToMaintain === null || variant.minStockToMaintain === undefined || Number(variant.minStockToMaintain) < 1) emptyFields.push("minStockToMaintain");
+      if (variant.openingQuantity === "" || variant.openingQuantity === null || variant.openingQuantity === undefined || Number(variant.openingQuantity) < 0) emptyFields.push("openingQuantity");
 
-      if (settings.serialno && !variant.serialno) emptyFields.push(`variant_${index}_serialno`);
-      if (settings.variants.size && !variant.size) emptyFields.push(`variant_${index}_size`);
-      if (settings.variants.color && !variant.color) emptyFields.push(`variant_${index}_color`);
-      if (settings.expiry && !variant.expiryDate) emptyFields.push(`variant_${index}_expiryDate`);
+      // if (settings.serialno && !variant.serialno) emptyFields.push(`variant_${index}_serialno`);
       if (settings.units && !variant.unit) emptyFields.push(`variant_${index}_unit`);
     });
 
     if (emptyFields.includes("purchasePrice")) newErrors.purchasePrice = "Purchase Price must be at least 1";
-    if (emptyFields.includes("mrp")) newErrors.mrp = "MRP must be at least 1";
+
     if (emptyFields.includes("sellingPrice")) newErrors.sellingPrice = "Selling Price must be at least 1";
-    if (emptyFields.includes("openingQuantity")) newErrors.openingQuantity = "Opening Quantity must be at least 1";
-    if (emptyFields.includes("minStockToMaintain")) newErrors.minStockToMaintain = "Min Stock to Maintain must be at least 1";
+    // if (emptyFields.includes("openingQuantity")) newErrors.openingQuantity = "Opening Quantity must be at least 1";
 
     if (formData.purchasePrice && !regexPatterns.price.test(formData.purchasePrice)) newErrors.purchasePrice = "Purchase Price must be a positive number with up to 2 decimal places";
     if (formData.sellingPrice && !regexPatterns.price.test(formData.sellingPrice)) newErrors.sellingPrice = "Selling Price must be a positive number with up to 2 decimal places";
@@ -818,18 +874,6 @@ const ProductEdit = () => {
       toast.error("Please fill all the required fields");
       return;
     }
-    let newBarcode = "";
-    try {
-      const res = await api.post("/api/products/generate-barcode", { productId: id });
-      newBarcode = res.data?.barcode || "";
-      if (!newBarcode) {
-        toast.error("Failed to generate barcode");
-        return;
-      }
-    } catch (err) {
-      toast.error("Failed to generate barcode");
-      return;
-    }
 
     const formPayload = new FormData();
     // Append fields as before
@@ -838,79 +882,61 @@ const ProductEdit = () => {
     formPayload.append("brand", selectedBrands?.value || "");
     formPayload.append("category", selectedCategory?.value || "");
     formPayload.append("subcategory", selectedsubCategory?.value || "");
-    // formPayload.append("supplier", selectedSupplier?.value || "");
-    if (formData.store) formPayload.append("store", formData.store);
-    formPayload.append("warehouse", selectedWarehouse?.value || "");
+    if (settings.supplier) formPayload.append("supplier", selectedSupplier?.value || "");
+    // if (formData.store) formPayload.append("store", formData.store);
+    // formPayload.append("warehouse", selectedWarehouse?.value || "");
     // Use variants[0] for fields managed in the Variants section
     const primaryVariant = variants[0] || {};
 
     if (primaryVariant.purchasePrice !== undefined && primaryVariant.purchasePrice !== null && primaryVariant.purchasePrice !== "") formPayload.append("purchasePrice", primaryVariant.purchasePrice);
-    if (primaryVariant.mrp !== undefined && primaryVariant.mrp !== null && primaryVariant.mrp !== "") formPayload.append("mrp", primaryVariant.mrp);
     if (primaryVariant.sellingPrice !== undefined && primaryVariant.sellingPrice !== null && primaryVariant.sellingPrice !== "") formPayload.append("sellingPrice", primaryVariant.sellingPrice);
-
-    if (formData.retailPrice) formPayload.append("retailPrice", formData.retailPrice);
+    
+    // if (formData.retailPrice) formPayload.append("retailPrice", formData.retailPrice);
 
     if (primaryVariant.openingQuantity !== undefined && primaryVariant.openingQuantity !== null && primaryVariant.openingQuantity !== "") formPayload.append("openingQuantity", primaryVariant.openingQuantity);
-    if (primaryVariant.minStockToMaintain !== undefined && primaryVariant.minStockToMaintain !== null && primaryVariant.minStockToMaintain !== "") formPayload.append("minStockToMaintain", primaryVariant.minStockToMaintain);
+    if (primaryVariant.quantityInLot !== undefined && primaryVariant.quantityInLot !== null && primaryVariant.quantityInLot !== "") formPayload.append("quantityInLot", primaryVariant.quantityInLot);
 
-    if (primaryVariant.size) formPayload.append("size", primaryVariant.size);
-    if (primaryVariant.color) formPayload.append("color", primaryVariant.color);
-    if (primaryVariant.expiryDate) formPayload.append("expiryDate", primaryVariant.expiryDate);
-    if (primaryVariant.serialno) formPayload.append("serialno", primaryVariant.serialno);
+    if (primaryVariant.serialNumber) formPayload.append("serialNumber", primaryVariant.serialNumber);
+
+    // Add missing fields for update
+    formPayload.append("description", formData.description || "");
+    formPayload.append("lotNumber", primaryVariant.lotNumber || "");
+    formPayload.append("serialNumbers", JSON.stringify(primaryVariant.serialNumbers || []));
 
     if (primaryVariant.unit) formPayload.append("unit", primaryVariant.unit);
     else formPayload.append("unit", selectedUnits?.value || "");
     formPayload.append("tax", primaryVariant.tax ?? 0);
 
-    {
-      const hasDiscountAmount = !(
-        primaryVariant.discountAmount === "" ||
-        primaryVariant.discountAmount === null ||
-        typeof primaryVariant.discountAmount === "undefined"
-      );
-      const discountTypeVal = hasDiscountAmount ? (primaryVariant.discountType || "Fixed") : "Fixed";
-      formPayload.append("discountType", discountTypeVal);
-      formPayload.append("discountAmount", primaryVariant.discountAmount ?? 0);
-    }
-    if (formData.itemType) formPayload.append("itemType", formData.itemType);
-    if (formData.isAdvanced) formPayload.append("isAdvanced", formData.isAdvanced ? true : false);
-    if (formData.trackType) formPayload.append("trackType", formData.trackType);
-    formPayload.append("isReturnable", formData.isReturnable ? true : false);
-    if (formData.leadTime) formPayload.append("leadTime", formData.leadTime);
-    if (formData.reorderLevel) formPayload.append("reorderLevel", formData.reorderLevel);
-    if (formData.initialStock) formPayload.append("initialStock", formData.initialStock);
-    if (formData.batchNumber) formPayload.append("batchNumber", formData.batchNumber);
-    if (formData.returnable) formPayload.append("returnable", formData.returnable ? true : false);
-    if (formData.expirationDate) formPayload.append("expirationDate", formData.expirationDate);
+    // if (formData.itemType) formPayload.append("itemType", formData.itemType);
+    // if (formData.isAdvanced) formPayload.append("isAdvanced", formData.isAdvanced ? true : false);
+    // if (formData.trackType) formPayload.append("trackType", formData.trackType);
+    // formPayload.append("isReturnable", formData.isReturnable ? true : false);
+    // if (formData.returnable) formPayload.append("returnable", formData.returnable ? true : false);
     formPayload.append("hsn", selectedHSN?.value || "");
-    formPayload.append("itemBarcode", newBarcode);
+    // formPayload.append("itemBarcode", newBarcode);
 
-    formPayload.append(
-      "lotDetails",
-      JSON.stringify({
-        lotNo: lotDetails.lotNo,
-        lotmrp: lotDetails.lotmrp,
-        fabricBatchNo: lotDetails.fabricBatchNo,
-        productionDate: lotDetails.productionDate || null,
-        designCode: lotDetails.designCode,
-        quantity: lotDetails.quantity,
-        size: lotDetails.size,
-        color: lotDetails.color,
-      })
-    );
+    // formPayload.append(
+    //   "lotDetails",
+    //   JSON.stringify({
+    //     lotNo: lotDetails.lotNo,
+    //     fabricBatchNo: lotDetails.fabricBatchNo,
+    //     productionDate: lotDetails.productionDate || null,
+    //     designCode: lotDetails.designCode,
+    //     quantity: lotDetails.quantity,
+    //   })
+    // );
 
     // Prepare variants payload
     const variantsPayload = variants.map(v => {
       const taxVal = v.tax === "" || v.tax === null || v.tax === undefined ? 0 : Number(v.tax) || 0;
-      const hasDiscountAmount = !(v.discountAmount === "" || v.discountAmount === null || v.discountAmount === undefined);
-      const discountVal = hasDiscountAmount ? Number(v.discountAmount) || 0 : 0;
-      const discountTypeVal = hasDiscountAmount ? (v.discountType || "Fixed") : "Fixed";
       return {
         ...v,
         tax: taxVal,
-        discountAmount: discountVal,
-        discountType: discountTypeVal,
         imageCount: v.images ? v.images.length : 0,
+        description: formData.description || "",
+        lotNumber: v.lotNumber || "",
+        serialNumbers: v.serialNumbers || [],
+        supplier: v.supplier || "",
       };
     });
 
@@ -968,6 +994,7 @@ const ProductEdit = () => {
 
   const handleVariantChange = (index, fieldOrVariant, maybeValue) => {
     if (typeof maybeValue !== "undefined") {
+      if (fieldOrVariant === "quantityInLot" && settings.serialno) return;
       setVariants(prev =>
         prev.map((v, i) => (i === index ? { ...v, [fieldOrVariant]: maybeValue } : v))
       );
@@ -1386,6 +1413,158 @@ const ProductEdit = () => {
 
                     </div>
                   </div>}
+
+                  {/* Supplier */}
+                  {settings.supplier && (
+                    <div
+                      style={{
+                        width: "400px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          Supplier
+                        </span>
+                        <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: highlightedFields.includes("supplier")
+                            ? "1px var(--White-Stroke, #fa3333ff) solid"
+                            : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <select
+                          value={selectedSupplier?.value || ""}
+                          onChange={(e) => {
+                            const selected =
+                              options.find(
+                                (opt) => opt.value === e.target.value
+                              ) || null;
+                            setSelectedSupplier(selected);
+                          }}
+                          disabled={loading}
+                          style={{
+                            width: "100%",
+                            border: "none",
+                            background: "transparent",
+                            color: "var(--Black-Black, #0E101A)",
+                            fontSize: "14px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">
+                            {loading ? "Loading Suppliers..." : "Select Supplier"}
+                          </option>
+                          {options.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  <div
+                    style={{
+                      width: "400px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: "4px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "var(--Black-Grey, #727681)",
+                          fontSize: "12px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          lineHeight: "14.40px",
+                        }}
+                      >
+                        Description
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "40px",
+                        padding: "0 12px",
+                        background: "white",
+                        borderRadius: "8px",
+                        border: "1px var(--White-Stroke, #EAEAEA) solid",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "8px",
+                        display: "flex",
+                      }}
+                    >
+                      <input
+                        type="text"
+                        name="description"
+                        placeholder="Enter Description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        style={{
+                          width: "100%",
+                          border: "none",
+                          background: "transparent",
+                          color: "var(--Black-Black, #0E101A)",
+                          fontSize: "14px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          outline: "none",
+                        }}
+                      />
+                    </div>
+                  </div>
 
                   {/* category */}
                   {settings.category && <div
@@ -1813,7 +1992,7 @@ const ProductEdit = () => {
                       >
                         Item code / Bar code
                       </span>
-                      <span
+                      {/* <span
                         style={{
                           color: "var(--Danger, #D00003)",
                           fontSize: "12px",
@@ -1823,7 +2002,7 @@ const ProductEdit = () => {
                         }}
                       >
                         *
-                      </span>
+                      </span> */}
                     </div>
                     <div
                       style={{
@@ -1850,7 +2029,7 @@ const ProductEdit = () => {
                           fontWeight: "400",
                           outline: "none",
                         }}
-                      >{formData.itemBarcode || "Automatically Generated"}
+                      >{formData.itemBarcode || ""}
                       </div>
                     </div>
                   </div>}
@@ -1944,179 +2123,6 @@ const ProductEdit = () => {
                 </div>
               </div>
 
-              {/* Lot No. Section */}
-              {settings.lotno && <div style={{ width: "1660px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "7px",
-                    marginBottom: "8px",
-                  }}
-                >
-                  <label
-                    onClick={() => setIsOn(!isOn)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      fontSize: "16px",
-                      // fontFamily: "Inter",
-                      fontWeight: "500",
-                      cursor: "pointer",
-                      userSelect: "none",
-                    }}
-                  >
-                    {/* Toggle Switch */}
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "22px",
-                        borderRadius: "50px",
-                        backgroundColor: isOn ? "#1F7FFF" : "#ccc",
-                        position: "relative",
-                        transition: "background-color 0.3s ease",
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "2px",
-                          left: isOn ? "20px" : "2px",
-                          width: "18px",
-                          height: "18px",
-                          borderRadius: "50%",
-                          background: "white",
-                          transition: "left 0.3s ease",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-                        }}
-                      ></div>
-                    </div>
-
-                    {/* Label Text */}
-                    <span style={{ color: "#212436" }}>Lot No</span>
-                  </label>
-                </div>
-
-                {isOn && (
-                  <>
-                    <div
-                      style={{
-                        width: "100%",
-                        padding: "10px 30px",
-                        background: "white",
-                        borderRadius: "8px",
-                        justifyContent: "center",
-                        alignItems: "flex-start",
-                        display: "flex",
-                        overflowX: "auto",
-                        backgroundColor: "#E5F0FF",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: `repeat(${lotColumns.length}, minmax(100px, 1fr))`,
-                          gap: "0 8px",
-                          alignItems: "center",
-                          width: "100%",
-                        }}
-                      >
-                        {lotColumns.map((col, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              height: "auto",
-                              padding: "8px 0px",
-                              justifyContent: "center",
-                              alignItems: "center",
-                              gap: "0px",
-                              display: "flex",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                                alignItems: "center",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  padding: "4px",
-                                }}
-                              >
-                                {col.label}
-                              </span>
-                              <div
-                                style={{
-                                  borderTopLeftRadius:
-                                    index < lotColumns.length - 7 ? "8px" : "none",
-                                  borderBottomLeftRadius:
-                                    index < lotColumns.length - 7 ? "8px" : "none",
-                                  borderTopRightRadius:
-                                    index < lotColumns.length - 1 ? "" : "8px",
-                                  borderBottomRightRadius:
-                                    index < lotColumns.length - 1 ? "" : "8px",
-                                  backgroundColor: "white",
-                                  width: "200px",
-                                  padding: "8px 16px",
-                                  borderRight: index < lotColumns.length - 1 ? "1px solid #EAEAEA" : "none",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    padding: "0 12px",
-                                    borderRadius: "8px",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    display: "flex",
-                                    border: "1px solid gray",
-                                  }}
-                                >
-                                  <input
-                                    type="text"
-                                    name={lotFieldKeys[index]}
-                                    value={lotDetails[lotFieldKeys[index]] || ""}
-                                    onChange={(e) => {
-                                      setLotDetails((prev) => ({
-                                        ...prev,
-                                        [lotFieldKeys[index]]: e.target.value,
-                                      }));
-                                      setIsDirty(true);
-                                    }}
-                                    style={{
-                                      color: "var(--Black, #212436)",
-                                      fontSize: "18px",
-                                      outline: "none",
-                                      fontFamily: "Inter",
-                                      fontWeight: "500",
-                                      textAlign: "center",
-                                      border: "none",
-                                      background: "transparent",
-                                      width: "100%",
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        width: "1832px",
-                        height: "1px",
-                        background: "var(--Stroke, #EAEAEA)",
-                        marginTop: "15px",
-                      }}
-                    />
-                  </>
-                )}
-              </div>}
-
               {/* Pricing & Variants */}
               <div style={{}} className="delete-hover">
                 <div
@@ -2128,7 +2134,7 @@ const ProductEdit = () => {
                     lineHeight: "19.20px",
                   }}
                 >
-                  Pricing & Variants
+                  Lot / Batch
                 </div>
 
                 {/* variant section */}
@@ -2146,8 +2152,124 @@ const ProductEdit = () => {
                   // className="row"
                   >
 
-                    {/* serial no */}
-                    {settings.serialno && <div
+                    {/* lot no / serial no */}
+                    {(settings.lotno || settings.serialno) && <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "275px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          {settings.lotno ? "Lot No." : "Serial No."}
+                        </span>
+                        <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: (highlightedFields.includes(`variant_${index}_lotNumber`) || highlightedFields.includes(`variant_${index}_serialNumber`)) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        {settings.lotno && (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              flex: 1
+                            }}
+                          >
+                            <input
+                              type="text"
+                              placeholder="Enter Lot No."
+                              name="lotNumber"
+                              value={variant.lotNumber || ""}
+                              onChange={(e) => handleVariantChange(index, "lotNumber", e.target.value)}
+                              style={{
+                                width: "100%",
+                                border: "none",
+                                background: "transparent",
+                                color: "var(--Black-Black, #0E101A)",
+                                fontSize: "14px",
+                                fontFamily: "Inter",
+                                fontWeight: "400",
+                                outline: "none",
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        {settings.serialno && (
+                          <button
+                            type="button"
+                            style={{
+                              padding: "4px 6px",
+                              background: "var(--Blue, #1F7FFF)",
+                              borderRadius: "4px",
+                              border: "none",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: settings.lotno ? "120px" : "100%",
+                            }}
+                            onClick={() => {
+                              setCurrentVariantIndex(index);
+                              setAddSerialPopup(true);
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "var(--White, white)",
+                                fontSize: "14px",
+                                fontFamily: "Inter",
+                                fontWeight: "400",
+                              }}
+                            >
+                              + Serial No.
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    </div>}
+
+                    {/* unit */}
+                    {settings.units && <div
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -2172,7 +2294,7 @@ const ProductEdit = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          Serial No.
+                          Unit
                         </span>
                         <span
                           style={{
@@ -2192,38 +2314,34 @@ const ProductEdit = () => {
                           padding: "0 12px",
                           background: "white",
                           borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_serialNumber`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          border: highlightedFields.includes(`variant_${index}_unit`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
                           justifyContent: "flex-start",
                           alignItems: "center",
                           gap: "8px",
                           display: "flex",
                         }}
                       >
-                        <div
+                        <select
+                          name="unit"
+                          value={variant.unit || ""}
+                          onChange={(e) => handleVariantChange(index, "unit", e.target.value)}
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
+                            width: "100%",
+                            border: "none",
+                            background: "transparent",
+                            color: "var(--Black-Black, #0E101A)",
+                            fontSize: "14px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            outline: "none",
                           }}
                         >
-                          <input
-                            type="text"
-                            placeholder="SE12345"
-                            name="serialno"
-                            value={variant.serialno || ""}
-                            onChange={(e) => handleVariantChange(index, "serialno", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              outline: "none",
-                            }}
-                          />
-                        </div>
+                          <option value="">Select Unit</option>
+                          <option value="Piece">Piece</option>
+                          <option value="Kg">Kg</option>
+                          <option value="Liter">Liter</option>
+                          <option value="Metre">Metre</option>
+                        </select>
                       </div>
                     </div>}
 
@@ -2308,7 +2426,7 @@ const ProductEdit = () => {
                       </div>
                     </div>
 
-                    {/* MRP */}
+                    {/* Quantity in lot */}
                     <div
                       style={{
                         display: "flex",
@@ -2334,7 +2452,7 @@ const ProductEdit = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          MRP
+                          Quantity in lot
                         </span>
                         <span
                           style={{
@@ -2354,7 +2472,7 @@ const ProductEdit = () => {
                           padding: "0 12px",
                           background: "white",
                           borderRadius: "8px",
-                          border: (highlightedFields.includes("mrp") && (!variant.mrp || Number(variant.mrp) < 1)) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          border: (highlightedFields.includes("quantityInLot") && (!variant.quantityInLot || Number(variant.quantityInLot) < 1)) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
                           justifyContent: "flex-start",
                           alignItems: "center",
                           gap: "8px",
@@ -2370,10 +2488,14 @@ const ProductEdit = () => {
                         >
                           <input
                             type="number"
-                            placeholder="0.00"
-                            name="mrp"
-                            value={variant.mrp || ""}
-                            onChange={(e) => handleVariantChange(index, "mrp", e.target.value)}
+                            placeholder="00"
+                            name="quantityInLot"
+                            value={variant.quantityInLot || ""}
+                            onChange={(e) => {
+                              if (settings.serialno) return;
+                              handleVariantChange(index, "quantityInLot", e.target.value);
+                            }}
+                            readOnly={settings.serialno}
                             style={{
                               width: "100%",
                               border: "none",
@@ -2382,7 +2504,7 @@ const ProductEdit = () => {
                               fontSize: "14px",
                               fontFamily: "Inter",
                               fontWeight: "400",
-                              outline: "none",
+                              cursor: settings.serialno ? "not-allowed" : "text",
                             }}
                           />
                         </div>
@@ -2589,600 +2711,496 @@ const ProductEdit = () => {
                         </span>
                       </span>
                     </div>
+                  </div>))}
 
-                    {/* Size */}
-                    {settings.variants.size && <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Size
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_size`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <select
-                          name="size"
-                          value={variant.size || ""}
-                          onChange={(e) => handleVariantChange(index, "size", e.target.value)}
-                          style={{
-                            width: "100%",
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--Black-Black, #0E101A)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            outline: "none",
-                          }}
-                        >
-                          <option value="">Select Size</option>
-                          <option value="XS">Extra Small (XS)</option>
-                          <option value="S">Small (S)</option>
-                          <option value="M">Medium (M)</option>
-                          <option value="L">Large (L)</option>
-                          <option value="XL">Extra Large (XL)</option>
-                        </select>
-                      </div>
-                    </div>}
+                <div
+                  style={{
+                    width: "1832px",
+                    height: "1px",
+                    background: "var(--Stroke, #EAEAEA)",
+                  }}
+                />
 
-                    {/* Color */}
-                    {settings.variants.color && <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Color
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_color`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <select
-                          name="color"
-                          value={variant.color || ""}
-                          onChange={(e) => handleVariantChange(index, "color", e.target.value)}
-                          style={{
-                            width: "100%",
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--Black-Black, #0E101A)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            outline: "none",
-                          }}
-                        >
-                          <option value="">Select Color</option>
-                          <option value="Red">Red</option>
-                          <option value="Yellow">yellow</option>
-                          <option value="Black">black</option>
-                          <option value="Green">green</option>
-                        </select>
-                      </div>
-                    </div>}
-
-                    {/* expiry */}
-                    {settings.expiry && <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Expiry Date
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_expiryDate`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <input
-                            type="date"
-                            name="expiryDate"
-                            value={variant.expiryDate || ""}
-                            onChange={(e) => handleVariantChange(index, "expiryDate", e.target.value)}
-                            style={{
-                              width: "170px",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>}
-
-                    {/* unit */}
-                    {settings.units && <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-1"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Unit
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_unit`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <select
-                          name="unit"
-                          value={variant.unit || ""}
-                          onChange={(e) => handleVariantChange(index, "unit", e.target.value)}
-                          style={{
-                            width: "100%",
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--Black-Black, #0E101A)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            outline: "none",
-                          }}
-                        >
-                          <option value="">Select Unit</option>
-                          <option value="Piece">Piece</option>
-                          <option value="Kg">Kg</option>
-                          <option value="Liter">Liter</option>
-                          <option value="Metre">Metre</option>
-                        </select>
-                      </div>
-                    </div>}
-
-                    {/* Opening Quantity */}
+                {/* Import Images */}
+                <div
+                  style={{
+                    width: "auto",
+                    borderRadius: "8px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                    border: "1px solid #EAEAEA",
+                    padding: "16px",
+                  }}
+                >
+                  <div className="d-flex justify-content-start align-items-center gap-4">
                     <div
                       style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
+                        color: "black",
+                        fontSize: "16px",
+                        fontFamily: "Inter",
+                        fontWeight: "500",
+                        marginBottom: "20px",
                       }}
-                      className="col-1"
                     >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Opening Quantity
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: (highlightedFields.includes("openingQuantity") && (!variant.openingQuantity || Number(variant.openingQuantity) < 1)) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            placeholder="00"
-                            name="openingQuantity"
-                            value={variant.openingQuantity || ""}
-                            onChange={(e) => handleVariantChange(index, "openingQuantity", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                            }}
-                          />
-                        </div>
-                      </div>
+                      Import Images
                     </div>
-
-                    {/* Min. Stock to Maintain */}
                     <div
                       style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
+                        color: "black",
+                        fontSize: "16px",
+                        fontFamily: "Inter",
+                        fontWeight: "500",
+                        marginBottom: "20px",
                       }}
-                      className="col-1"
                     >
                       <div
                         style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Min. Stock to Maintain
-                        </span>
-                        <span
-                          style={{
-                            color: "var(--Danger, #D00003)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          *
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          height: "40px",
-                          padding: "0 12px",
-                          background: "white",
-                          borderRadius: "8px",
-                          border: (highlightedFields.includes("minStockToMaintain") && (!variant.minStockToMaintain || Number(variant.minStockToMaintain) < 1)) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          gap: "8px",
-                          display: "flex",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            placeholder="00"
-                            name="minStockToMaintain"
-                            value={variant.minStockToMaintain || ""}
-                            onChange={(e) => handleVariantChange(index, "minStockToMaintain", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Discount Section */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        width: "195px",
-                      }}
-                      className="col-2"
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--Black-Grey, #727681)",
-                            fontSize: "12px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            lineHeight: "14.40px",
-                          }}
-                        >
-                          Discount Price
-                        </span>
-                        {/* <span
-                        style={{
-                          color: "var(--Danger, #D00003)",
-                          fontSize: "12px",
-                          fontFamily: "Inter",
+                          padding: "6px 10px",
+                          background: "#1F7FFF",
+                          color: "white",
+                          fontSize: "16px",
                           fontWeight: "400",
-                          lineHeight: "14.40px",
+                          border: "none",
+                          borderRadius: "12px",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
+                          textDecoration: "none",
+                          boxShadow:
+                            "0 8px 20px rgba(31, 127, 255, 0.3), inset -1px -1px 6px rgba(0,0,0,0.2)",
+                          transition: "all 0.3s ease",
                         }}
                       >
-                        *
-                      </span> */}
+                        <img
+                          src={AiLogo}
+                          alt="Ai Logo"
+                          style={{ filter: "grayscale(100%) brightness(500%)" }}
+                        />
+                        Generate
                       </div>
-                      <div style={{ display: "flex", gap: "8px" }} className="">
-                        <div
-                          style={{
-                            height: "40px",
-                            paddingLeft: "8px",
-                            background: "var(--White, white)",
-                            borderRadius: "8px",
-                            border: "1px var(--Stroke, #EAEAEA) solid",
-                            justifyContent: "space-between",
-                            display: "flex",
-                            position: "relative",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            placeholder="00"
-                            name="discountAmount"
-                            value={variant.discountAmount || ""}
-                            onChange={(e) => handleVariantChange(index, "discountAmount", e.target.value)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              overflow: "hidden",
-                              outline: "none",
-                            }}
-                          />
-                          <div
-                            style={{
-                              paddingRight: "4px",
-                              background: "var(--Spinning-Frame, #E9F0F4)",
-                              borderTopRightRadius: "8px",
-                              borderBottomRightRadius: "8px",
-                              border: "1px var(--Stroke, #C2C9D1) solid",
-                              justifyContent: "center",
-                              alignItems: "center",
-                              display: "flex",
-                              padding: "6px",
-                            }}
-                          >
-                            <span
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      alignItems: "flex-start",
+                      gap: "24px",
+                      width: "100%",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {variants.map((variant, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "16px",
+                          padding: '16px',
+                        }}
+                      >
+
+                        {images.length === 0 ? (
+                          <>
+                            <label
+                              htmlFor={`variant-image-${index}`}
                               style={{
-                                color: "var(--Black-Secondary, #6C748C)",
-                                fontSize: "14px",
-                                fontFamily: "Poppins",
-                                fontWeight: "400",
+                                width: "350px",
+                                minHeight: "200px",
+                                cursor: "pointer",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                border: "2px dashed #EAEAEA",
+                                borderRadius: "8px",
+                                padding: '16px',
                               }}
                             >
-                              <select
-                                name="discountType"
-                                value={variant.discountType || ""}
-                                onChange={(e) => handleVariantChange(index, "discountType", e.target.value)}
-                                style={{
-                                  color: "var(--Black-Secondary, #6C748C)",
-                                  fontSize: "14px",
-                                  fontFamily: "Poppins",
-                                  fontWeight: "400",
-                                  border: "none",
-                                  background: "transparent",
-                                }}
-                              >
-                                <option value="">₹/%</option>
-                                <option value="Fixed">₹</option>
-                                <option value="Percentage">%</option>
-                              </select>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                              {/* Preview OR placeholder */}
+                              {variant.images?.length ? (
+                                <>
+                                  <div className="row" style={{ gap: 12 }}>
+                                    {variant.images.map((f, i) => (
+                                      <div
+                                        className="col-auto"
+                                        key={i}
+                                        style={{ position: "relative" }}
+                                      >
+                                        <img
+                                          key={i}
+                                          src={f.preview}
+                                          alt="preview"
+                                          className="img-thumbnail"
+                                          style={{
+                                            height: 100,
+                                            width: 100,
+                                            objectFit: "cover",
+                                          }}
+                                        />
+                                      </div>
+                                    ))}
+                                    {variant.images.length < 6 && (
+                                      <div
+                                        className="col-auto"
+                                        style={{
+                                          height: 100,
+                                          width: 100,
+                                          display: "flex",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                          border: "2px dashed #EAEAEA",
+                                          borderRadius: "8px",
+                                          marginLeft: 12,
+                                        }}
+                                      >
+                                        <FcAddImage size={30} />
+                                      </div>
+                                    )}
+                                  </div>
+                                </>
+                              ) : (
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    color: "#727681",
+                                    pointerEvents: "none",
+                                  }}
+                                >
+                                  <FcAddImage size={30} />
+                                  <span style={{ color: "#727681" }}>
+                                    Drag image here or <span style={{ color: "#1F7FFF" }}>browse</span>
+                                  </span>
+                                  <span style={{ fontSize: 12, color: "#727681" }}>
+                                    JPEG, PNG, JPG (max 1MB)
+                                  </span>
+                                </div>
+                              )}
 
-                    {/* Delete button */}
-                    {/* <div
+                              <input
+                                id={`variant-image-${index}`}
+                                type="file"
+                                multiple
+                                accept="image/jpeg,image/png,image/jpg"
+                                onChange={(e) => handleVariantImageChange(index, e)}
+                                style={{ display: "none" }}
+                              />
+                            </label>
+                          </>
+                        ) : (
+                          <>
+                            <div className="row mt-2" style={{ gap: 12 }}>
+                              {images.map((file, i) => (
+                                <div
+                                  className="col-auto"
+                                  key={`existing-${i}`}
+                                  style={{ position: "relative" }}
+                                >
+                                  <img
+                                    src={file.url || file.preview}
+                                    className="img-thumbnail"
+                                    style={{
+                                      height: 100,
+                                      width: 100,
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                  <button
+                                    type="button"
+                                    style={{
+                                      cursor: "pointer",
+                                      position: "absolute",
+                                      top: -6,
+                                      right: -0,
+                                      border: "none",
+                                      borderRadius: "50%",
+                                      backgroundColor: "red",
+                                      color: "white",
+                                      width: "20px",
+                                      height: "20px",
+                                      lineHeight: "20px",
+                                    }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleRemoveImage(file);
+                                    }}
+                                  >
+                                    &times;
+                                  </button>
+                                </div>
+                              ))}
+                              {variant.images?.map((file, i) => (
+                                <div
+                                  className="col-auto"
+                                  key={`new-${i}`}
+                                  style={{ position: "relative" }}
+                                >
+                                  <img
+                                    src={file.preview}
+                                    className="img-thumbnail"
+                                    style={{
+                                      height: 100,
+                                      width: 100,
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                  <button
+                                    type="button"
+                                    style={{
+                                      cursor: "pointer",
+                                      position: "absolute",
+                                      top: -6,
+                                      right: -0,
+                                      border: "none",
+                                      borderRadius: "50%",
+                                      backgroundColor: "red",
+                                      color: "white",
+                                      width: "20px",
+                                      height: "20px",
+                                      lineHeight: "20px",
+                                    }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleRemoveVariantImage(index, file);
+                                    }}
+                                  >
+                                    &times;
+                                  </button>
+                                </div>
+                              ))}
+                              {(images.length + (variant.images?.length || 0)) < 6 && (
+                                <div
+                                  className="col-auto"
+                                  onClick={() => document.getElementById(`variant-image-add-${index}`).click()}
+                                  style={{
+                                    height: 100,
+                                    width: 100,
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    border: "2px dashed #EAEAEA",
+                                    borderRadius: "8px",
+                                    marginLeft: 12,
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  <FcAddImage size={30} />
+                                  <input
+                                    id={`variant-image-add-${index}`}
+                                    type="file"
+                                    multiple
+                                    accept="image/jpeg,image/png,image/jpg"
+                                    onChange={(e) => handleVariantImageChange(index, e)}
+                                    style={{ display: "none" }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* cancel and Save Button */}
+                <div
+                  style={{
+                    width: "100%",
+                    justifyContent: "end",
+                    alignItems: "center",
+                    display: "flex",
+                    marginTop: 16,
+                  }}
+                >
+                  <div
+                    style={{
+                      paddingLeft: 47,
+                      paddingRight: 47,
+                      justifyContent: "flex-start",
+                      alignItems: "flex-start",
+                      gap: 8,
+                      display: "inline-flex",
+                    }}
+                  >
+                    <Link
+                      to="/product"
+                      style={{
+                        height: 36,
+                        padding: 8,
+                        background: "var(--White-Universal-White, white)",
+                        boxShadow: "-1px -1px 4px rgba(0, 0, 0, 0.25) inset",
+                        borderRadius: 8,
+                        outline: "1.50px var(--Blue-Blue, #1F7FFF) solid",
+                        outlineOffset: "-1.50px",
+                        justifyContent: "flex-start",
+                        alignItems: "center",
+                        gap: 4,
+                        display: "flex",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: "var(--Blue-Blue, #1F7FFF)",
+                          fontSize: 14,
+                          fontFamily: "Inter",
+                          fontWeight: "500",
+                          lineHeight: 5,
+                          wordWrap: "break-word",
+                        }}
+                      >
+                        Cancel
+                      </div>
+                    </Link>
+
+                    <button
+                      type="submit"
+                      className="button-color button-hover d-flex justify-content-center align-items-center"
+                      style={{
+                        height: 36,
+                        padding: 8,
+                        // background: "var(--Blue-Blue, #1F7FFF)",
+                        boxShadow: "-1px -1px 4px rgba(0, 0, 0, 0.25) inset",
+                        borderRadius: 8,
+                        // outline: "1.50px var(--Blue-Blue, #1F7FFF) solid",
+                        outlineOffset: "-1.50px",
+                        justifyContent: "flex-start",
+                        alignItems: "center",
+                        gap: 4,
+                        display: "flex",
+                        cursor: "pointer",
+                        opacity: 1,
+                      }}
+                      // disabled={!isDirty}
+                    >
+                      <div
+                        style={{
+                          color: "white",
+                          fontSize: 14,
+                          fontFamily: "Inter",
+                          fontWeight: "500",
+                          lineHeight: 5,
+                          wordWrap: "break-word",
+                        }}
+                      >
+                        Save
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+
+      {/* Add Serial Popup */}
+      {addserialpopup && currentVariantIndex !== null && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.27)",
+            backdropFilter: "blur(1px)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 999,
+          }}
+          onClick={(e) => setAddSerialPopup(false)}
+        >
+          <div
+            style={{
+              width: 'auto',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              padding: '10px 16px',
+              backgroundColor: '#F2F6F9',
+              border: '1px solid #E1E1E1',
+              borderRadius: '8px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '16px 8px', }} className="delete-hover">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                <div
+                  style={{
+                    color: "black",
+                    fontSize: "16px",
+                    fontFamily: "Inter",
+                    fontWeight: "500",
+                    lineHeight: "19.20px",
+                  }}
+                >
+                  Add Serial No. for {variants[currentVariantIndex]?.serialNumbers?.length || 0} Quantity
+                </div>
+
+                {/* add button */}
+                <button
+                  type="button"
+                  onClick={handleAddSerialField}
+                  style={{
+                    padding: "6px 6px",
+                    background: "var(--Blue, #1F7FFF)",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100px",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "var(--White, white)",
+                      fontSize: "14px",
+                      fontFamily: "Inter",
+                      fontWeight: "400",
+                    }}
+                  >
+                    + Add
+                  </span>
+                </button>
+              </div>
+
+              <div style={{
+                display: "flex",
+                gap: "16px",
+                padding: '16px 8px',
+                justifyContent: 'flex-start',
+                flexDirection: 'column'
+              }}>
+                {(variants[currentVariantIndex]?.serialNumbers || []).map((serial, sIndex) => (
+                  <div key={sIndex} style={{
+                    display: "flex",
+                    gap: "16px",
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+
+                    {/* quantity no */}
+                    <div
                       style={{
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "50px",
+                        width: "30px",
                       }}
                       className="col-1"
                     >
@@ -3192,459 +3210,98 @@ const ProductEdit = () => {
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
+                          gap: '8px',
                           height: "100%",
-                          cursor: index === 0 ? "not-allowed" : "pointer",
-                        }}
-                        onClick={() => {
-                          if (index === 0) return;
-                          if (variants.length <= 1) return;
-                          setVariants(variants.filter((_, i) => i !== index));
                         }}
                       >
-                        <RiDeleteBinLine className="delete-hover-icon text-danger fs-5" />
+                        {sIndex + 1}<BsThreeDotsVertical className="fs-4" />
                       </div>
-                    </div> */}
-                  </div>
-                ))}
-
-                {/* add variant button */}
-                {/* <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "7px",
-                    marginTop: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      overflow: "hidden",
-                      border: "2px solid var(--Blue, #1F7FFF)",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      borderRadius: "4px",
-                    }}
-                    onClick={() => setVariants([...variants, {}])}
-                  >
-                    <div
-                      style={{
-                        color: "#1F7FFF",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      +
                     </div>
-                  </div>
-                  <span
-                    style={{
-                      color: "var(--Black, #212436)",
-                      fontSize: "16px",
-                      fontFamily: "Inter",
-                      fontWeight: "400",
-                      lineHeight: "19.20px",
-                    }}
-                  >
-                    Add New Variant
-                  </span>
-                </div> */}
-              </div>
 
-              <div
-                style={{
-                  width: "1832px",
-                  height: "1px",
-                  background: "var(--Stroke, #EAEAEA)",
-                }}
-              />
-
-              {/* Import Images */}
-              <div
-                style={{
-                  width: "auto",
-                  borderRadius: "8px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                  border: "1px solid #EAEAEA",
-                  padding: "16px",
-                }}
-              >
-                <div className="d-flex justify-content-start align-items-center gap-4">
-                  <div
-                    style={{
-                      color: "black",
-                      fontSize: "16px",
-                      fontFamily: "Inter",
-                      fontWeight: "500",
-                      marginBottom: "20px",
-                    }}
-                  >
-                    Import Images
-                  </div>
-                  <div
-                    style={{
-                      color: "black",
-                      fontSize: "16px",
-                      fontFamily: "Inter",
-                      fontWeight: "500",
-                      marginBottom: "20px",
-                    }}
-                  >
+                    {/* serial no */}
                     <div
-                      style={{
-                        padding: "6px 10px",
-                        background: "#1F7FFF",
-                        color: "white",
-                        fontSize: "16px",
-                        fontWeight: "400",
-                        border: "none",
-                        borderRadius: "12px",
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        textDecoration: "none",
-                        boxShadow:
-                          "0 8px 20px rgba(31, 127, 255, 0.3), inset -1px -1px 6px rgba(0,0,0,0.2)",
-                        transition: "all 0.3s ease",
-                      }}
-                    >
-                      <img
-                        src={AiLogo}
-                        alt="Ai Logo"
-                        style={{ filter: "grayscale(100%) brightness(500%)" }}
-                      />
-                      Generate
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    alignItems: "flex-start",
-                    gap: "24px",
-                    width: "100%",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {variants.map((variant, index) => (
-                    <div
-                      key={index}
                       style={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: "16px",
-                        padding: '16px',
+                        gap: "4px",
+                        width: "195px",
                       }}
+                      className="col-1"
                     >
-
-                      {images.length === 0 ? (
-                        <>
-                          <label
-                            htmlFor={`variant-image-${index}`}
-                            style={{
-                              width: "350px",
-                              minHeight: "200px",
-                              cursor: "pointer",
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems: "center",
-                              border: "2px dashed #EAEAEA",
-                              borderRadius: "8px",
-                              padding: '16px',
+                      <div
+                        style={{
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            width: "100%"
+                          }}
+                        >
+                          <input
+                            id={`serial-input-${sIndex}`}
+                            type="text"
+                            placeholder="Enter Serial No."
+                            value={serial}
+                            onChange={(e) => handleSerialChange(sIndex, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleAddSerialField();
+                                setTimeout(() => {
+                                  const nextInput = document.getElementById(`serial-input-${sIndex + 1}`);
+                                  if (nextInput) nextInput.focus();
+                                }, 100);
+                              }
                             }}
-                          >
-                            {/* Preview OR placeholder */}
-                            {variant.images?.length ? (
-                              <>
-                                <div className="row" style={{ gap: 12 }}>
-                                  {variant.images.map((f, i) => (
-                                    <div
-                                      className="col-auto"
-                                      key={i}
-                                      style={{ position: "relative" }}
-                                    >
-                                      <img
-                                        key={i}
-                                        src={f.preview}
-                                        alt="preview"
-                                        className="img-thumbnail"
-                                        style={{
-                                          height: 100,
-                                          width: 100,
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    </div>
-                                  ))}
-                                  {variant.images.length < 6 && (
-                                    <div
-                                      className="col-auto"
-                                      style={{
-                                        height: 100,
-                                        width: 100,
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        border: "2px dashed #EAEAEA",
-                                        borderRadius: "8px",
-                                        marginLeft: 12,
-                                      }}
-                                    >
-                                      <FcAddImage size={30} />
-                                    </div>
-                                  )}
-                                </div>
-                              </>
-                            ) : (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  gap: 8,
-                                  color: "#727681",
-                                  pointerEvents: "none",
-                                }}
-                              >
-                                <FcAddImage size={30} />
-                                <span style={{ color: "#727681" }}>
-                                  Drag image here or <span style={{ color: "#1F7FFF" }}>browse</span>
-                                </span>
-                                <span style={{ fontSize: 12, color: "#727681" }}>
-                                  JPEG, PNG, JPG (max 1MB)
-                                </span>
-                              </div>
-                            )}
-
-                            <input
-                              id={`variant-image-${index}`}
-                              type="file"
-                              multiple
-                              accept="image/jpeg,image/png,image/jpg"
-                              onChange={(e) => handleVariantImageChange(index, e)}
-                              style={{ display: "none" }}
-                            />
-                          </label>
-                        </>
-                      ) : (
-                        <>
-                          <div className="row mt-2" style={{ gap: 12 }}>
-                            {images.map((file, i) => (
-                              <div
-                                className="col-auto"
-                                key={`existing-${i}`}
-                                style={{ position: "relative" }}
-                              >
-                                <img
-                                  src={file.url || file.preview}
-                                  className="img-thumbnail"
-                                  style={{
-                                    height: 100,
-                                    width: 100,
-                                    objectFit: "cover",
-                                  }}
-                                />
-                                <button
-                                  type="button"
-                                  style={{
-                                    cursor: "pointer",
-                                    position: "absolute",
-                                    top: -6,
-                                    right: -0,
-                                    border: "none",
-                                    borderRadius: "50%",
-                                    backgroundColor: "red",
-                                    color: "white",
-                                    width: "20px",
-                                    height: "20px",
-                                    lineHeight: "20px",
-                                  }}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleRemoveImage(file);
-                                  }}
-                                >
-                                  &times;
-                                </button>
-                              </div>
-                            ))}
-                            {variant.images?.map((file, i) => (
-                              <div
-                                className="col-auto"
-                                key={`new-${i}`}
-                                style={{ position: "relative" }}
-                              >
-                                <img
-                                  src={file.preview}
-                                  className="img-thumbnail"
-                                  style={{
-                                    height: 100,
-                                    width: 100,
-                                    objectFit: "cover",
-                                  }}
-                                />
-                                <button
-                                  type="button"
-                                  style={{
-                                    cursor: "pointer",
-                                    position: "absolute",
-                                    top: -6,
-                                    right: -0,
-                                    border: "none",
-                                    borderRadius: "50%",
-                                    backgroundColor: "red",
-                                    color: "white",
-                                    width: "20px",
-                                    height: "20px",
-                                    lineHeight: "20px",
-                                  }}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleRemoveVariantImage(index, file);
-                                  }}
-                                >
-                                  &times;
-                                </button>
-                              </div>
-                            ))}
-                            {(images.length + (variant.images?.length || 0)) < 6 && (
-                              <div
-                                className="col-auto"
-                                onClick={() => document.getElementById(`variant-image-add-${index}`).click()}
-                                style={{
-                                  height: 100,
-                                  width: 100,
-                                  display: "flex",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  border: "2px dashed #EAEAEA",
-                                  borderRadius: "8px",
-                                  marginLeft: 12,
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <FcAddImage size={30} />
-                                <input
-                                  id={`variant-image-add-${index}`}
-                                  type="file"
-                                  multiple
-                                  accept="image/jpeg,image/png,image/jpg"
-                                  onChange={(e) => handleVariantImageChange(index, e)}
-                                  style={{ display: "none" }}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      )}
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              outline: "none",
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* cancel and Save Button */}
-              <div
-                style={{
-                  width: "100%",
-                  justifyContent: "end",
-                  alignItems: "center",
-                  display: "flex",
-                  marginTop: 16,
-                }}
-              >
-                <div
-                  style={{
-                    paddingLeft: 47,
-                    paddingRight: 47,
-                    justifyContent: "flex-start",
-                    alignItems: "flex-start",
-                    gap: 8,
-                    display: "inline-flex",
-                  }}
-                >
-                  <Link
-                    to="/product"
-                    style={{
-                      height: 36,
-                      padding: 8,
-                      background: "var(--White-Universal-White, white)",
-                      boxShadow: "-1px -1px 4px rgba(0, 0, 0, 0.25) inset",
-                      borderRadius: 8,
-                      outline: "1.50px var(--Blue-Blue, #1F7FFF) solid",
-                      outlineOffset: "-1.50px",
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                      gap: 4,
-                      display: "flex",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSerial(sIndex)}
                       style={{
-                        color: "var(--Blue-Blue, #1F7FFF)",
-                        fontSize: 14,
-                        fontFamily: "Inter",
-                        fontWeight: "500",
-                        lineHeight: 5,
-                        wordWrap: "break-word",
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--Danger, #D00003)",
+                        cursor: "pointer",
+                        fontSize: "18px"
                       }}
                     >
-                      Cancel
-                    </div>
-                  </Link>
-
-                  <button
-                    type="submit"
-                    className="button-color button-hover d-flex justify-content-center align-items-center"
-                    style={{
-                      height: 36,
-                      padding: 8,
-                      // background: "var(--Blue-Blue, #1F7FFF)",
-                      boxShadow: "-1px -1px 4px rgba(0, 0, 0, 0.25) inset",
-                      borderRadius: 8,
-                      // outline: "1.50px var(--Blue-Blue, #1F7FFF) solid",
-                      outlineOffset: "-1.50px",
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                      gap: 4,
-                      display: "flex",
-                      cursor: isDirty ? "pointer" : "not-allowed",
-                      opacity: isDirty ? 1 : 0.6,
-                    }}
-                    disabled={!isDirty}
-                  >
-                    <div
-                      style={{
-                        color: "white",
-                        fontSize: 14,
-                        fontFamily: "Inter",
-                        fontWeight: "500",
-                        lineHeight: 5,
-                        wordWrap: "break-word",
-                      }}
-                    >
-                      Save
-                    </div>
-                  </button>
-                </div>
+                      &times;
+                    </button>
+                  </div>
+                ))}
               </div>
+
             </div>
           </div>
-
-        </form>
-      </div>
+        </div>
+      )}
 
       {showAddCategoryModel && (
         <CreateCategoryModal

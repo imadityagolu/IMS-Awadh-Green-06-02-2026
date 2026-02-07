@@ -71,7 +71,6 @@ const ProductForm = () => {
     supplier: false,
     status: false,
     serialno: false,
-    variants: { size: false, color: false },
     units: false,
     expiry: false,
   });
@@ -97,10 +96,6 @@ const ProductForm = () => {
           supplier: data.supplier || false,
           status: data.status || false,
           serialno: data.serialno || false,
-          variants: {
-            size: data.variants?.size || false,
-            color: data.variants?.color || false
-          },
           units: data.units || false,
           expiry: data.expiry || false,
         });
@@ -197,46 +192,9 @@ const ProductForm = () => {
     }
   }, [addserialpopup, currentVariantIndex]);
 
-  const lotColumns = [
-    { label: "Lot No.", editableValue: "12" },
-    { label: "Lot MRP", editableValue: "₹ 2,367.08/-" },
-    { label: "Fabric Batch No.", editableValue: "MO123" },
-    { label: "Production Date", editableValue: "22/09/2023", opacity: 0.69 },
-    { label: "Design Code", editableValue: "DC-0123" },
-    { label: "Quantity", editableValue: "112" },
-    { label: "Size", editableValue: "S, M, L, XL, XXL" },
-    { label: "Color", editableValue: "Red, Green, Yellow", opacity: 0.83 },
-  ];
-
-  // Lot No. state (array for each column)
-  const [lotData, setLotData] = useState(
-    lotColumns.map((col) => ({
-      ...col,
-      label: col.label,
-      editableValue: col.value,
-    }))
-  );
-
-  const lotFieldKeys = [
-    "lotNo",
-    "lotmrp",
-    "fabricBatchNo",
-    "productionDate",
-    "designCode",
-    "quantity",
-    "size",
-    "color",
-  ];
-
   const [lotDetails, setLotDetails] = useState({
     lotNo: "",
-    lotmrp: "",
-    fabricBatchNo: "",
-    productionDate: "",
-    designCode: "",
     quantity: "",
-    size: "",
-    color: "",
   });
 
   const validationPatterns = {
@@ -246,12 +204,7 @@ const ProductForm = () => {
     description: /^[\w\s.,!?\-]{0,300}$/,
     seoTitle: /^[a-zA-Z0-9\s\-]{2,60}$/,
     seoDescription: /^[a-zA-Z0-9\s\-,.]{2,160}$/,
-    leadTime: /^\d{1,4}$/,
-    reorderLevel: /^\d{1,6}$/,
-    initialStock: /^\d{1,6}$/,
     serialNumber: /^[A-Z0-9\-]{1,50}$/,
-    batchNumber: /^[A-Z0-9\-]{1,50}$/,
-    discountValue: /^\d+(\.\d{1,2})?$/,
     categoryName: /^[A-Za-z\s]{2,50}$/,
     categorySlug: /^[a-z0-9\-]{2,50}$/,
     variantValue: /^[a-zA-Z0-9\s,]{1,100}$/,
@@ -280,24 +233,11 @@ const ProductForm = () => {
     t("variants"),
   ];
 
-  const variantTabs = [
-    t("color"),
-    t("size"),
-    t("expiry"),
-    t("material"),
-    t("model"),
-    t("weight"),
-    t("skinType"),
-    t("packagingType"),
-    t("flavour"),
-  ];
-
   // const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [stepStatus, setStepStatus] = useState(
     Array(steps.length).fill("pending")
   );
-  const [activeTab, setActiveTab] = useState("Color");
   // const [images, setImages] = useState([]); // Removed unused global images
   // const variantImageInputRef = useRef(null); // Removed unused ref
   const objectUrlsRef = useRef([]);
@@ -341,24 +281,6 @@ const ProductForm = () => {
     if (formData.itemType === "Good" && !selectedBrands)
       newErrors.brand = "Brand is required";
     if (formData.isAdvanced) {
-      if (!formData.leadTime) newErrors.leadTime = "Lead Time is required";
-      if (
-        formData.leadTime &&
-        !validationPatterns.leadTime.test(formData.leadTime)
-      )
-        newErrors.leadTime = "Invalid Lead Time";
-      if (!formData.reorderLevel) newErrors.reorderLevel = "Reorder Level is required";
-      if (
-        formData.reorderLevel &&
-        !validationPatterns.reorderLevel.test(formData.reorderLevel)
-      )
-        newErrors.reorderLevel = "Invalid Reorder Level";
-      if (!formData.initialStock) newErrors.initialStock = "Initial Stock is required";
-      if (
-        formData.initialStock &&
-        !validationPatterns.initialStock.test(formData.initialStock)
-      )
-        newErrors.initialStock = "Invalid Initial Stock format";
       if (formData.trackType === "serial" && !formData.serialNumber)
         newErrors.serialNumber = "Serial Number is required";
       if (settings.supplier && !formData.supplier)
@@ -368,13 +290,6 @@ const ProductForm = () => {
         !validationPatterns.serialNumber.test(formData.serialNumber)
       )
         newErrors.serialNumber = "Invalid Serial Number";
-      if (formData.trackType === "batch" && !formData.batchNumber)
-        newErrors.batchNumber = "Batch Number is required";
-      if (
-        formData.batchNumber &&
-        !validationPatterns.batchNumber.test(formData.batchNumber)
-      )
-        newErrors.batchNumber = "Invalid Batch Number";
     }
     // Step 1: Pricing
 
@@ -406,13 +321,6 @@ const ProductForm = () => {
     if (!selectedUnits) newErrors.unit = "Unit is required";
     if (!formData.taxType) newErrors.taxType = "Tax Type is required";
     if (!formData.tax) newErrors.tax = "Tax Rate is required";
-    if (!formData.discountType) newErrors.discountType = "Discount Type is required";
-    if (!formData.discountValue) newErrors.discountValue = "Discount Value must be a positive number with up to 2 decimal places";
-    if (
-      formData.discountValue &&
-      !validationPatterns.discountValue.test(formData.discountValue)
-    )
-      newErrors.discountValue = "Discount Value must be a positive number with up to 2 decimal places";
 
     if (!formData.description) newErrors.description = "Description is required";
     if (
@@ -556,16 +464,10 @@ const ProductForm = () => {
     productName: "",
     itemBarcode: "",   // ✅ ADD
     purchasePrice: "",
-    mrp: "",
     sellingPrice: "",
     tax: "",
-    size: "",
-    color: "",
-    expiry: "",
     units: "",
     openingQuantity: "",
-    discountType: "",  // ✅ ADD
-    discountValue: "", // ✅ ADD
   });
 
   const handleChange = (e) => {
@@ -581,15 +483,12 @@ const ProductForm = () => {
         setFormData((prev) => ({
           ...prev,
           itemType: value,
-          mrp: "",
           wholesalePrice: "",
           retailPrice: "",
           quantity: "",
           unit: "",
           taxType: "",
           tax: "",
-          discountType: "",
-          discountValue: "",
           description: "",
           seoTitle: "",
           seoDescription: "",
@@ -599,14 +498,9 @@ const ProductForm = () => {
           isAdvanced: false,
           trackType: "serial",
           isReturnable: false,
-          leadTime: "",
-          reorderLevel: "",
-          initialStock: "",
           serialNumber: "",
           supplier: "",
-          batchNumber: "",
           returnable: false,
-          expirationDate: "",
         }));
       } else if (value === "Good") {
         // Clear all Service-specific fields (if any in future)
@@ -635,7 +529,6 @@ const ProductForm = () => {
       [
         "productName",
         "quantity",
-        "discountValue",
       ].includes(name)
     ) {
       return t("fieldRequired");
@@ -671,18 +564,6 @@ const ProductForm = () => {
         return validationPatterns.seoDescription.test(value)
           ? ""
           : t("invalidSeoDescriptionFormat");
-      case "leadTime":
-        return validationPatterns.leadTime.test(value)
-          ? ""
-          : t("invalidLeadTimeFormat");
-      case "reorderLevel":
-        return validationPatterns.reorderLevel.test(value)
-          ? ""
-          : t("invalidReorderLevelFormat");
-      case "initialStock":
-        return validationPatterns.initialStock.test(value)
-          ? ""
-          : t("invalidInitialStockFormat");
       case "serialNumber":
         return validationPatterns.serialNumber.test(value)
           ? ""
@@ -899,18 +780,6 @@ const ProductForm = () => {
           newErrors[`variant_${index}_sellingPrice`] = `Selling Price must be at least 1 for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_sellingPrice`);
         }
-        // if (!variant.size && settings.variants.size) {
-        //   newErrors[`variant_${index}_size`] = `Size is required for variant ${index + 1}`;
-        //   emptyFields.push(`variant_${index}_size`);
-        // }
-        // if (!variant.color && settings.variants.color) {
-        //   newErrors[`variant_${index}_color`] = `Color is required for variant ${index + 1}`;
-        //   emptyFields.push(`variant_${index}_color`);
-        // }
-        // if (!variant.expiryDate && settings.expiry) {
-        //   newErrors[`variant_${index}_expiry`] = `Expiry is required for variant ${index + 1}`;
-        //   emptyFields.push(`variant_${index}_expiry`);
-        // }
         if (!variant.unit && settings.units) {
           newErrors[`variant_${index}_unit`] = `Unit is required for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_unit`);
@@ -944,19 +813,7 @@ const ProductForm = () => {
         newErrors.sellingPrice = "Selling Price must be at least 1";
         emptyFields.push("variant_0_sellingPrice");
       }
-      // settings.variants.size/color check? Usually main product uses "size"/"color" fields if enabled.
-      // if (settings.variants.size && !mainVariant.size) {
-      //   newErrors.size = "Size is required";
-      //   emptyFields.push("variant_0_size");
-      // }
-      // if (settings.variants.color && !mainVariant.color) {
-      //   newErrors.color = "Color is required";
-      //   emptyFields.push("variant_0_color");
-      // }
-      // if (settings.expiry && !mainVariant.expiryDate) {
-      //   newErrors.expiry = "Expiry is required";
-      //   emptyFields.push("variant_0_expiry");
-      // }
+      
       if (settings.units && !mainVariant.unit) {
         newErrors.units = "Unit is required";
         emptyFields.push("variant_0_unit");
@@ -1002,7 +859,6 @@ const ProductForm = () => {
     // Use first variant if available (Single Product Mode uses variant input fields)
     const mainVariant = variants[0] || {};
 
-    formPayload.append("mrp", mainVariant.mrp || formData.mrp || 0); // Added MRP
     if (settings.brand) formPayload.append("brand", selectedBrands?.value || "");
     if (settings.category) formPayload.append("category", selectedCategory?.value || "");
     if (settings.subcategory) formPayload.append("subCategory", selectedsubCategory?.value || "");
@@ -1031,20 +887,9 @@ const ProductForm = () => {
     formPayload.append("purchasePrice", mainVariant.purchasePrice || formData.purchasePrice || 0);
     formPayload.append("sellingPrice", mainVariant.sellingPrice || formData.sellingPrice || 0);
     formPayload.append("tax", mainVariant.tax || formData.tax || 0);
-    formPayload.append("size", mainVariant.size || formData.size || "");
-    formPayload.append("color", mainVariant.color || formData.color || "");
-    if (settings.expiry) formPayload.append("expiryDate", mainVariant.expiryDate || formData.expiry || "");
     if (settings.units) formPayload.append("unit", mainVariant.unit || formData.units || "");
     formPayload.append("openingQuantity", mainVariant.openingQuantity || formData.openingQuantity || 0);
-    formPayload.append("minStockToMaintain", mainVariant.minStockToMaintain || formData.minStockToMaintain || 0);
-
-    // Append discount fields
-    const discountAmt = mainVariant.discountAmount || formData.discountValue;
-    const discountTyp = mainVariant.discountType || formData.discountType || "Fixed";
-
-    formPayload.append("discountType", discountTyp);
-    formPayload.append("discountAmount", discountAmt || 0);
-
+    
     // Append variants data ONLY if active/valid
     // Check if we have actual variants defined (e.g., first one has selectedVariant) OR multiple lots
     let validVariants = [];
@@ -1055,15 +900,15 @@ const ProductForm = () => {
     const variantsPayload = validVariants.map(v => {
       const taxVal =
         v.tax === "" || v.tax === null || v.tax === undefined ? 0 : Number(v.tax) || 0;
-      const hasDiscountAmount = !(v.discountAmount === "" || v.discountAmount === null || v.discountAmount === undefined);
-      const discountVal = hasDiscountAmount ? Number(v.discountAmount) || 0 : 0;
-      const discountTypeVal = hasDiscountAmount ? (v.discountType || "Fixed") : "Fixed";
       return {
         ...v,
         tax: taxVal,
-        discountAmount: discountVal,
-        discountType: discountTypeVal,
         imageCount: v.images ? v.images.length : 0,
+        // Ensure these fields are included explicitly if needed, though ...v covers them
+        description: formData.description || "", // Add description to variant if needed by backend
+        lotNumber: v.lotNumber || "",
+        serialNumbers: v.serialNumbers || [],
+        supplier: v.supplier || "",
       };
     });
     formPayload.append("variants", JSON.stringify(variantsPayload));
@@ -1078,20 +923,6 @@ const ProductForm = () => {
     }
 
     allImages.forEach((img) => formPayload.append("images", img));
-
-    formPayload.append(
-      "lotDetails",
-      JSON.stringify({
-        lotNo: lotDetails.lotNo,
-        lotmrp: lotDetails.lotmrp,
-        fabricBatchNo: lotDetails.fabricBatchNo,
-        productionDate: lotDetails.productionDate || null,
-        designCode: lotDetails.designCode,
-        quantity: lotDetails.quantity,
-        size: lotDetails.size,
-        color: lotDetails.color,
-      })
-    );
 
     try {
       await api.post("/api/products/create", formPayload);
@@ -1146,13 +977,9 @@ const ProductForm = () => {
     // variants.forEach((variant, index) => {
     //   const vPrefix = `Variant ${index + 1}`;
     //   if (!isFilled(variant.purchasePrice)) missingFields.push(`${vPrefix} Purchase Price`);
-    //   if (!isFilled(variant.mrp)) missingFields.push(`${vPrefix} MRP`);
     //   if (!isFilled(variant.sellingPrice)) missingFields.push(`${vPrefix} Selling Price`);
     //   if (!isFilled(variant.tax)) missingFields.push(`${vPrefix} Tax`);
-    //   if (!isFilled(variant.size)) missingFields.push(`${vPrefix} Size`);
-    //   if (!isFilled(variant.color)) missingFields.push(`${vPrefix} Color`);
     //   if (!isFilled(variant.openingQuantity)) missingFields.push(`${vPrefix} Opening Quantity`);
-    //   if (!isFilled(variant.discountAmount)) missingFields.push(`${vPrefix} Discount Amount`);
     // });
 
     // if (missingFields.length > 0) {

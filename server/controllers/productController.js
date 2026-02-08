@@ -224,7 +224,7 @@ exports.getAllProducts = async (req, res) => {
       brand: p.brand || null,
       hsn: p.hsn,
       itemBarcode: p.itemBarcode || "",
-  serialNumbers: p.serialNumbers || [],   // ⭐ ADD THIS
+  serialNumbers: p.serialNumbers || [],   // ⭐ ADD THIS  
   lotNumber: p.lotNumber || "",           // ⭐ ADD THIS
       expiryDate: p.expiryDate ? new Date(p.expiryDate).toLocaleDateString("en-GB") : "",
       purchasePrice: p.purchasePrice || 0,

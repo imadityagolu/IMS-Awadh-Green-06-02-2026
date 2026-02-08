@@ -2059,11 +2059,14 @@ const Product = () => {
                     background: "#FCFCFC",
                     border: "1px solid #EAEAEA",
                     borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
                   }}
                 >
-                  <IoIosSearch />
+                  <IoIosSearch className="fs-4" />
                   <input
-                    type="text"
+                    type="search"
                     placeholder="Search"
                     value={leftSearch}
                     onChange={(e) => setLeftSearch(e.target.value)}
@@ -2072,7 +2075,8 @@ const Product = () => {
                       outline: "none",
                       fontSize: 14,
                       color: "#727681",
-                      background: 'transparent'
+                      background: 'transparent',
+                      width: '100%',
                     }}
                   />
                 </div>
@@ -2168,7 +2172,7 @@ const Product = () => {
                         gap: 16,
                       }}
                     >
-                      {/* overview */}
+                      {/* overview + manage button */}
                       <div
                         style={{
                           display: "flex",
@@ -2262,8 +2266,8 @@ const Product = () => {
                                       Edit
                                     </span>
                                   </div>
-                                  <div
-                                    to="/m/editproduct"
+                                  <Link
+                                    to="/create-purchase-orders"
                                     style={{
                                       display: "flex",
                                       justifyContent: "flex-start",
@@ -2285,9 +2289,9 @@ const Product = () => {
                                     <span style={{ color: "black" }}>
                                       Stock In
                                     </span>
-                                  </div>
-                                  <div
-                                    to="/m/editproduct"
+                                  </Link>
+                                  <Link
+                                    to="/createinvoice"
                                     style={{
                                       display: "flex",
                                       justifyContent: "flex-start",
@@ -2309,7 +2313,7 @@ const Product = () => {
                                     <span style={{ color: "black" }}>
                                       Stock Out
                                     </span>
-                                  </div>
+                                  </Link>
                                   <div
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -2420,9 +2424,9 @@ const Product = () => {
 
                       {/* Tabs + Details + Images */}
                       <div style={{ display: "flex", gap: 16 }}>
+
                         {/* Left: Tabs & Details */}
                         <div style={{ flex: 1 }}>
-
                           {/* tab switches */}
                           <div
                             style={{
@@ -2470,95 +2474,9 @@ const Product = () => {
                             >
                               {[
                                 ["Name:", selectedProduct.productName],
-                                [
-                                  "Category:",
-                                  selectedProduct.category?.categoryName + (selectedProduct.subcategory?.name ? " -> " + selectedProduct.subcategory?.name : ""),
-                                ],
+                                ["Brand:", selectedProduct.brand?.brandName || "-",],
                                 ["HSN:", selectedProduct.hsn?.hsnCode || "-"],
-                                [
-                                  "Item Code:",
-                                  <span
-                                    key="code"
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 8,
-                                    }}
-
-                                  >
-                                    <div
-                                      style={{ cursor: "pointer" }}
-                                      onClick={() => setBarcodeModal(selectedProduct)}
-                                    >
-                                      {selectedProduct.itemBarcode}
-                                    </div>
-                                    {barcodeModal && (
-                                      <div
-                                        style={{
-                                          position: "fixed",
-                                          inset: 0,
-                                          background: "rgba(0,0,0,0.5)",
-                                          zIndex: 999999,
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                        }}
-                                        onClick={() => setBarcodeModal(null)}
-                                      >
-                                        <div style={{
-                                          width: "70%",
-                                          backgroundColor: "#f5f4f4ff",
-                                          borderRadius: 16,
-                                          padding: 24,
-                                          display: "flex",
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                        }}>
-                                          <div
-                                            style={{
-                                              width: "300px",
-                                              height: "auto",
-                                              backgroundColor: "white",
-                                              outfit: "contain",
-                                              boxShadow:
-                                                "10px 10px 40px rgba(0,0,0,0.10)",
-                                              borderRadius: 16,
-                                              padding: 16,
-                                              border: "2px solid #dbdbdbff",
-                                              display: "flex",
-                                              flexDirection: "column",
-                                              gap: 8,
-                                            }}
-                                          >
-                                            <span>
-                                              {barcodeModal.productName} / ₹{barcodeModal.purchasePrice}/-
-                                            </span>
-                                            <div className="d-flex justify-content-center align-items-center">
-                                              <svg id="barcode-svg-modal"></svg>
-                                              {/* <span className="fs-2">
-                                                {barcodeModal.itemBarcode}
-                                              </span> */}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {selectedProduct.itemBarcode ? (
-                                      <FaBarcode className="fs-6 text-secondary" />
-                                    ) : (
-                                      <span>-</span>
-                                    )}
-                                  </span>,
-                                ],
-                                [
-                                  "Available Qty:",
-                                  selectedProduct.stockQuantity < selectedProduct.minStockToMaintain ? <span style={{ color: "#D8484A" }}>{selectedProduct.stockQuantity} {selectedProduct.unit.toLowerCase()}</span> : <span style={{ color: "black" }}>{selectedProduct.stockQuantity} {selectedProduct.unit.toLowerCase()}</span>,
-                                ],
-                                [
-                                  "Min. Stock to Maintain:",
-                                  selectedProduct.minStockToMaintain,
-                                ],
+                                ["Category:", (selectedProduct.category?.categoryName ? selectedProduct.category?.categoryName : "-") + (selectedProduct.subcategory?.name ? " -> " + selectedProduct.subcategory?.name : ""),],
                               ].map(([label, value]) => (
                                 <div
                                   key={label}
@@ -2582,57 +2500,41 @@ const Product = () => {
 
                           {/* Other Details */}
                           {detailsTab === "Other Details" && (
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr 1fr",
-                                gap: 16,
-                                flexWrap: "wrap",
-                              }}
-                            >
-                              {[
-                                [
-                                  "MRP:",
-                                  "₹" + selectedProduct.mrp + "/-",
-                                ],
-                                ["Batch No.:", selectedProduct.lotDetails?.fabricBatchNo],
-                                ["Model No.:", selectedProduct.lotDetails?.lotNo],
-                                [
-                                  "Mfg Date:",
-                                  <span
-                                    key="code"
+                            <>
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "1fr 1fr 1fr",
+                                  gap: 16,
+                                  flexWrap: "wrap",
+                                }}
+                              >
+                                {[
+                                  ["Description:", selectedProduct.description || "-"],
+                                  ["Opening Qty:", selectedProduct.openingQuantity + " " + selectedProduct.unit.toLowerCase()],
+                                  ["Available Qty:", selectedProduct.stockQuantity < selectedProduct.minStockToMaintain ? <span style={{ color: "#D8484A" }}>{selectedProduct.stockQuantity} {selectedProduct.unit.toLowerCase()}</span> : <span style={{ color: "black" }}>{selectedProduct.stockQuantity} {selectedProduct.unit.toLowerCase()}</span>,],
+                                  ["lot Number:", selectedProduct?.lotNumber || "-"],
+                                  ["Supplier:", selectedProduct?.lotSupplier?.supplierName || "-"],
+                                ].map(([label, value]) => (
+                                  <div
+                                    key={label}
                                     style={{
                                       display: "flex",
                                       alignItems: "center",
                                       gap: 8,
+                                      fontSize: 16,
                                     }}
                                   >
-                                    {(
-                                      selectedProduct.lotDetails?.productionDate
-                                    )}
-                                  </span>,
-                                ],
-                                ["Design Code:", selectedProduct.lotDetails?.designCode],
-                                ["Opening Qty:", selectedProduct.openingQuantity + " " + selectedProduct.unit.toLowerCase()],
-                              ].map(([label, value]) => (
-                                <div
-                                  key={label}
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 8,
-                                    fontSize: 16,
-                                  }}
-                                >
-                                  <span style={{ color: "#727681" }}>
-                                    {label}
-                                  </span>
-                                  <span style={{ color: "#0E101A" }}>
-                                    {value || "-"}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
+                                    <span style={{ color: "#727681" }}>
+                                      {label}
+                                    </span>
+                                    <span style={{ color: "#0E101A" }}>
+                                      {value || "-"}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </>
                           )}
 
                           {/* Pricing Details */}
@@ -2657,7 +2559,7 @@ const Product = () => {
                                   ],
                                   [
                                     "Profit:",
-                                    selectedProduct.sellingPrice -
+                                    (selectedProduct.sellingPrice +  + (selectedProduct.sellingPrice * selectedProduct.tax / 100)) -
                                     selectedProduct.purchasePrice,
                                   ],
                                   [
@@ -2712,27 +2614,6 @@ const Product = () => {
                                     </span>
                                     <span style={{ color: "#0E101A" }}>
                                       GST @ {selectedProduct.tax} %
-                                    </span>
-                                  </div>
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 8,
-                                      fontSize: 16,
-                                    }}
-                                  >
-                                    <span style={{ color: "#727681" }}>
-                                      Discount:{" "}
-                                    </span>
-                                    <span style={{ color: "#0E101A" }}>
-                                      {selectedProduct.discountType === "Percentage" ? (
-                                        `${selectedProduct.discountAmount}%`
-                                      ) : selectedProduct.discountType === "Fixed" ? (
-                                        `₹${selectedProduct.discountAmount}`
-                                      ) : (
-                                        "-"
-                                      )}
                                     </span>
                                   </div>
                                 </div>
@@ -2882,6 +2763,27 @@ const Product = () => {
                       </div>
                     </div>
 
+                              {/* Serial Numbers Display */}
+                              {selectedProduct.serialNumbers && selectedProduct.serialNumbers.length > 0 && (
+                                <div style={{ width: "100%", padding: "12px", background: "#fff", borderRadius: "8px", border: "1px solid #EAEAEA" }}>
+                                  <div style={{ fontSize: "14px", fontWeight: "500", marginBottom: "8px", color: "#1F1F1F" }}>Total Serial Numbers : {selectedProduct.serialNumbers.length}</div>
+                                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                    {selectedProduct.serialNumbers.map((sn, i) => (
+                                      <span key={i} style={{
+                                        padding: "4px 8px",
+                                        background: "#F9FAFB",
+                                        borderRadius: "4px",
+                                        fontSize: "12px",
+                                        border: "1px solid #EAEAEA",
+                                        color: "#333"
+                                      }}>
+                                        {sn}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+              
                     {/* Transactions */}
                     <div
                       style={{

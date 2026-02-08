@@ -196,7 +196,7 @@ const ProductView = () => {
         const res = await api.get("/api/suppliers");
         const options = res.data.suppliers.map((supplier) => ({
           value: supplier._id,
-          label: sanitizeHtml(`${supplier.firstName} ${supplier.lastName} (${supplier.supplierCode})`, sanitizeOptions),
+          label: sanitizeHtml(`${supplier.supplierName} (${supplier.supplierCode})`, sanitizeOptions),
         }));
         setOptions(options);
       } catch (error) { }
@@ -333,7 +333,7 @@ const ProductView = () => {
               lineHeight: "26.4px",
             }}
           >
-            View Product
+            View Product Details
           </h2>
         </div>
         <div>
@@ -557,25 +557,10 @@ const ProductView = () => {
                   </div>
                 </div>
 
-                {/* Quantity in lot */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "195px" }}>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-                    <span style={{ color: "#727681", fontSize: "12px", fontFamily: "Inter" }}>Quantity in lot</span>
-                  </div>
-                  <div style={{ height: "40px", padding: "0 12px", background: "white", borderRadius: "8px", border: "1px solid #EAEAEA", display: "flex", alignItems: "center" }}>
-                    <input
-                      type="number"
-                      value={variant.quantityInLot || ""}
-                      readOnly
-                      style={{ width: "100%", border: "none", background: "transparent", fontSize: "14px", outline: "none" }}
-                    />
-                  </div>
-                </div>
-
                 {/* Stock Quantity */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "195px" }}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-                    <span style={{ color: "#727681", fontSize: "12px", fontFamily: "Inter" }}>Stock Quantity</span>
+                    <span style={{ color: "#727681", fontSize: "12px", fontFamily: "Inter" }}>Available Quantity</span>
                   </div>
                   <div style={{ height: "40px", padding: "0 12px", background: "white", borderRadius: "8px", border: "1px solid #EAEAEA", display: "flex", alignItems: "center" }}>
                     <input

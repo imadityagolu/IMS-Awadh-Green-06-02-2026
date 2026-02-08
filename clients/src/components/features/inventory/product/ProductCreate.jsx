@@ -2046,7 +2046,7 @@ const ProductForm = () => {
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "45px",
+                        width: "65px",
                       }}
                       className="col-1"
                     >
@@ -2056,7 +2056,7 @@ const ProductForm = () => {
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
-                          gap: '8px',
+                          gap: '6px',
                           height: "100%",
                           cursor: index === 0 ? "not-allowed" : "pointer",
                         }}
@@ -2066,7 +2066,7 @@ const ProductForm = () => {
                           setVariants(variants.filter((_, i) => i !== index));
                         }}
                       >
-                        <BsThreeDotsVertical className="fs-4" /> <RiDeleteBinLine className="text-danger fs-4" />
+                        <span>{index + 1}.</span><BsThreeDotsVertical className="fs-4" /> <RiDeleteBinLine className="text-danger fs-4" />
                       </div>
                     </div>
 
@@ -2712,8 +2712,12 @@ const ProductForm = () => {
                           }}
                         >
                           <option value="">Select GST</option>
+                          <option value="0">0%</option>
+                          <option value="0.25">0.25%</option>
+                          <option value="3">3%</option>
                           <option value="5">5%</option>
                           <option value="18">18%</option>
+                          <option value="40">40%</option>
                         </select>
                       </div>
                     </div>
@@ -3072,7 +3076,7 @@ const ProductForm = () => {
                           lineHeight: "16.80px",
                         }}
                       >
-                        {`${index + 1} Lot`}
+                        {`${index + 1}. Lot`}
                       </span>
 
                       <div

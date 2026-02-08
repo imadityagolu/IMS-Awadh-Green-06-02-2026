@@ -18,11 +18,59 @@ function ShowCustomerInvoiceQuotation() {
   const [quotationData, setQuotationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [companyData, setCompanyData] = useState(null);
-    const [banks, setBanks] = useState([]);
+  const [banks, setBanks] = useState([]);
   const [terms, setTerms] = useState(null);
   const [template, setTemplate] = useState(null);
   const invoiceRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  // State for template setting
+  const [normalTemplate, setNormalTemplate] = useState(null);
+  const [printSettings, setPrintSettings] = useState({
+    showHSN: true,
+    showRate: true,
+    showTax: true,
+    showTotalsInWords: true,
+    showBankDetails: true,
+    showTermsConditions: true,
+    signatureUrl: "",
+    showLotNumber: true,
+    showSerialNumbers: true,
+  });
+  // fetch print template setting
+  const fetchPrintTemplate = async () => {
+    try {
+      const res = await api.get("/api/print-templates?type=normal");
+      if (res.data.success && res.data.data.template) {
+        const template = res.data.data.template;
+        setNormalTemplate(template);
+        // Apply the field visibility settings
+        if (template.fieldVisibility) {
+          setPrintSettings({
+            showHSN: template.fieldVisibility.showHSN !== false,
+            showRate: template.fieldVisibility.showRate !== false,
+            showTax: template.fieldVisibility.showTax !== false,
+            showTotalsInWords:
+              template.fieldVisibility.showTotalsInWords !== false,
+            showBankDetails: template.fieldVisibility.showBankDetails !== false,
+            showTermsConditions:
+              template.fieldVisibility.showTermsConditions !== false,
+            signatureUrl: template.signatureUrl || "",
+            showLotNumber: template.fieldVisibility.showLotNumber !== false,
+            showSerialNumbers: template.fieldVisibility.showSerialNumbers !== false,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching print template", error);
+    }
+  };
+  useEffect(() => {
+    fetchCompanyData();
+    fetchSettings();
+    fetchSignature();
+    fetchBanks();
+    fetchPrintTemplate(); // Add this line
+  }, []);
 
   useEffect(() => {
     const fetchQuotation = async () => {
@@ -48,7 +96,7 @@ function ShowCustomerInvoiceQuotation() {
       console.error("Error fetching company profile:", error);
     }
   };
-    const fetchBanks = async () => {
+  const fetchBanks = async () => {
     try {
       const res = await api.get("/api/company-bank/list");
       setBanks(res.data.data);
@@ -287,18 +335,54 @@ function ShowCustomerInvoiceQuotation() {
                         <table style={{ width: "100%", border: "1px solid #EAEAEA", borderCollapse: "collapse" }}>
                           <thead style={{ textAlign: "center" }}>
                             <tr>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">Sr No.</th>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">Name of the Products</th>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">HSN</th>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">QTY</th>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">Rate</th>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} colSpan="2">Tax</th>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">Total</th>
+                              <th style={{width:"60px", borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
+                                Sr No.
+                              </th>
+                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
+                                Name of the Products
+                              </th>
+                              {printSettings.showHSN && (
+                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
+                                  HSN
+                                </th>
+                              )}
+                              {printSettings.showLotNumber && (
+                                <th style={{ borderRight: "1px solid #EAEAEA", width: "100px", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
+                                  Lot No.
+                                </th>
+                              )}
+                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
+                                QTY
+                              </th>
+                              {/* {printSettings.showSerialNumbers && (
+                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
+                                  Serial No.
+                                </th>
+                              )} */}
+                              {printSettings.showRate && (
+                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
+                                  Rate
+                                </th>
+                              )}
+                              {printSettings.showTax && (
+                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} colSpan="2">
+                                  Tax
+                                </th>
+                              )}
+                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
+                                Total
+                              </th>
                             </tr>
-                            <tr>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", width: "40px", fontWeight: "400" }}>%</th>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", width: "40px", fontWeight: "400" }}>₹</th>
-                            </tr>
+                            {printSettings.showTax && (
+                              <tr>
+                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", width: "40px", fontWeight: "400" }}>
+                                  %
+                                </th>
+                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", width: "40px", fontWeight: "400" }}>
+                                  ₹
+                                </th>
+                              </tr>
+                            )}
                           </thead>
                           <tbody>
                             {products.map((item, i) => (
@@ -307,26 +391,50 @@ function ShowCustomerInvoiceQuotation() {
                                   <td style={{ borderRight: "1px solid #EAEAEA", height: "40px", textAlign: "center" }}>
                                     {i + 1}
                                   </td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", padding: "0px 20px" }}>
-                                    {item.itemName}
+                                  <td style={{ borderRight: "1px solid #EAEAEA", padding: "8px 20px", verticalAlign: "top" }}>
+                                    <div style={{ fontWeight: "500", marginBottom: "4px" }}>
+                                      {item.itemName}
+                                    </div>
+                                    {/* Serial Numbers Below Product Name */}
+                                    {printSettings.showSerialNumbers && item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
+                                      <div style={{ fontSize: "11px", color: "#666", fontStyle: "italic", marginTop: "4px", lineHeight: "1.3" }}>
+                                        <div style={{ fontWeight: "400", marginBottom: "2px" }}>
+                                          {item.selectedSerialNos.map(serial => 
+      serial.replace(/[\[\]"]/g, '')).join(", ")}
+                                        </div>
+                                      </div>
+                                    )}
                                   </td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                    {item.hsnCode || "-"}
-                                  </td>
+                                  {printSettings.showHSN && (
+                                    <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
+                                      {item.hsnCode || "-"}
+                                    </td>
+                                  )}
+                                  {printSettings.showLotNumber && (
+                                    <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center", verticalAlign: "top", paddingTop: "8px" }}>
+                                      {item.lotNumber || "-"}
+                                    </td>
+                                  )}
                                   <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
                                     {item.qty}
                                   </td>
+                                  {printSettings.showRate && (
+                                    <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
+                                      {item.unitPrice}
+                                    </td>
+                                  )}
+                                  {printSettings.showTax && (
+                                    <>
+                                      <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
+                                        {item.taxRate?.toFixed(2)}%
+                                      </td>
+                                      <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
+                                        ₹{item.taxAmount?.toFixed(2)}
+                                      </td>
+                                    </>
+                                  )}
                                   <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                    {item.unitPrice}
-                                  </td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                    {item.taxRate}%
-                                  </td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                    ₹{item.taxAmount}
-                                  </td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                    ₹{item.amount}
+                                    ₹{item.amount?.toFixed(2)}
                                   </td>
                                 </tr>
                                 <tr>
@@ -362,10 +470,14 @@ function ShowCustomerInvoiceQuotation() {
                           flexDirection: "column",
                           alignItems: "center",
                         }}>
-                          <u>Total in words</u>
-                          <div style={{ fontSize: "12px", marginTop: "5px", fontWeight: "600" }}>
-                            {totalInWords}
-                          </div>
+                          {printSettings.showTotalsInWords && (
+                            <>
+                              <u>Total in words</u>
+                              <div style={{ fontSize: "12px", marginTop: "5px", fontWeight: "600" }}>
+                                {totalInWords}
+                              </div>
+                            </>
+                          )}
                           <div style={{ width: "100%", height: 0.76, background: "var(--White-Stroke, #EAEAEA)", marginTop: "10px" }} />
                           {/* <div style={{ marginTop: "2px", textDecoration: "underline" }}>
                             Bank Details
@@ -1869,7 +1981,7 @@ function ShowCustomerInvoiceQuotation() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 

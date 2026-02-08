@@ -152,9 +152,9 @@ exports.createQuotation = async (req, res) => {
     // Validate customer exists
     const customer = await Customer.findById(customerId);
     if (!customer) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Customer not found" 
+      return res.status(404).json({
+        success: false,
+        error: "Customer not found",
       });
     }
 
@@ -192,6 +192,8 @@ exports.createQuotation = async (req, res) => {
         productId: item.productId,
         itemName: item.itemName || product.productName,
         hsnCode: item.hsnCode || product.hsnCode || "",
+        lotNumber: item.lotNumber || product.lotNumber || "", // Add lot number
+        selectedSerialNos: item.selectedSerialNos || [], // Add serial numbers
         qty: parseFloat(item.qty) || 1,
         unit: item.unit || product.unit || "Piece",
         unitPrice: parseFloat(item.unitPrice) || product.sellingPrice || 0,
@@ -242,7 +244,9 @@ exports.createQuotation = async (req, res) => {
       calculatedExpiryDate = new Date(expiryDate);
     } else {
       calculatedExpiryDate = new Date(quotationDate || new Date());
-      calculatedExpiryDate.setDate(calculatedExpiryDate.getDate() + validForDays);
+      calculatedExpiryDate.setDate(
+        calculatedExpiryDate.getDate() + validForDays,
+      );
     }
 
     // Create quotation
@@ -277,7 +281,7 @@ exports.createQuotation = async (req, res) => {
     if (autoRoundOff) {
       const itemsDiscount = validatedItems.reduce(
         (sum, item) => sum + (item.discountAmt || 0),
-        0
+        0,
       );
       const additionalDiscountValue =
         additionalDiscount.amt +
@@ -299,18 +303,15 @@ exports.createQuotation = async (req, res) => {
 
     // Update customer shopping points if used
     if (shoppingPointsUsed > 0) {
-      await Customer.findByIdAndUpdate(
-        customerId,
-        {
-          $inc: {
-            availablePoints: -shoppingPointsUsed,
-            usedPoints: shoppingPointsUsed,
-          },
-          $set: {
-            lastPointsRedeemedDate: new Date(),
-          },
-        }
-      );
+      await Customer.findByIdAndUpdate(customerId, {
+        $inc: {
+          availablePoints: -shoppingPointsUsed,
+          usedPoints: shoppingPointsUsed,
+        },
+        $set: {
+          lastPointsRedeemedDate: new Date(),
+        },
+      });
     }
 
     // Populate and return response
@@ -507,13 +508,13 @@ exports.getQuotationById = async (req, res) => {
     const quotation = await Quotation.findById(req.params.id)
       .populate(
         "customerId",
-        "name phone email address city state country pincode gstin"
+        "name phone email address city state country pincode gstin",
       )
       .populate("createdBy", "firstName lastName email")
       .populate("convertedToInvoice", "invoiceNo invoiceDate status grandTotal")
       .populate(
         "items.productId",
-        "productName hsnCode sku barcode unit sellingPrice tax"
+        "productName hsnCode sku barcode unit sellingPrice tax",
       );
 
     if (!quotation) {
@@ -570,9 +571,9 @@ exports.updateQuotation = async (req, res) => {
 
     const quotation = await Quotation.findById(req.params.id);
     if (!quotation) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Quotation not found" 
+      return res.status(404).json({
+        success: false,
+        error: "Quotation not found",
       });
     }
 
@@ -580,7 +581,7 @@ exports.updateQuotation = async (req, res) => {
     let updateData = req.body;
     if (
       Object.keys(req.body).some(
-        (key) => key.includes("[") && key.includes("]")
+        (key) => key.includes("[") && key.includes("]"),
       )
     ) {
       updateData = parseFormDataNested(req.body);
@@ -655,7 +656,8 @@ exports.updateQuotation = async (req, res) => {
           }
 
           // Update customer points
-          customer.availablePoints = (customer.availablePoints || 0) - pointsDiff;
+          customer.availablePoints =
+            (customer.availablePoints || 0) - pointsDiff;
           customer.usedPoints = (customer.usedPoints || 0) + pointsDiff;
           await customer.save();
         }
@@ -688,7 +690,9 @@ exports.updateQuotation = async (req, res) => {
     // Update expiry date based on validForDays if changed
     if (updateData.validForDays !== undefined && !updateData.expiryDate) {
       quotation.expiryDate = new Date(quotation.quotationDate);
-      quotation.expiryDate.setDate(quotation.expiryDate.getDate() + quotation.validForDays);
+      quotation.expiryDate.setDate(
+        quotation.expiryDate.getDate() + quotation.validForDays,
+      );
     }
 
     // Save updated quotation
@@ -749,9 +753,9 @@ exports.deleteQuotation = async (req, res) => {
 
     const quotation = await Quotation.findById(req.params.id);
     if (!quotation) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Quotation not found" 
+      return res.status(404).json({
+        success: false,
+        error: "Quotation not found",
       });
     }
 
@@ -772,8 +776,12 @@ exports.deleteQuotation = async (req, res) => {
     if (shoppingPointsUsed > 0) {
       const customer = await Customer.findById(customerId);
       if (customer) {
-        customer.availablePoints = (customer.availablePoints || 0) + shoppingPointsUsed;
-        customer.usedPoints = Math.max(0, (customer.usedPoints || 0) - shoppingPointsUsed);
+        customer.availablePoints =
+          (customer.availablePoints || 0) + shoppingPointsUsed;
+        customer.usedPoints = Math.max(
+          0,
+          (customer.usedPoints || 0) - shoppingPointsUsed,
+        );
         await customer.save();
       }
     }
@@ -786,9 +794,9 @@ exports.deleteQuotation = async (req, res) => {
           cloudinary.uploader.destroy(attachment.public_id).catch((err) => {
             console.error(
               `Failed to delete Cloudinary file ${attachment.public_id}:`,
-              err.message
+              err.message,
             );
-          })
+          }),
         );
 
       await Promise.allSettled(deletePromises);
@@ -831,9 +839,9 @@ exports.convertToInvoice = async (req, res) => {
 
     const quotation = await Quotation.findById(req.params.id);
     if (!quotation) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Quotation not found" 
+      return res.status(404).json({
+        success: false,
+        error: "Quotation not found",
       });
     }
 
@@ -850,7 +858,7 @@ exports.convertToInvoice = async (req, res) => {
     if (quotation.expiryDate < new Date() && quotation.status !== "expired") {
       quotation.status = "expired";
       await quotation.save();
-      
+
       return res.status(400).json({
         success: false,
         error: "Cannot convert expired quotation",
@@ -934,9 +942,9 @@ exports.updateStatus = async (req, res) => {
 
     const quotation = await Quotation.findById(req.params.id);
     if (!quotation) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Quotation not found" 
+      return res.status(404).json({
+        success: false,
+        error: "Quotation not found",
       });
     }
 
@@ -1040,11 +1048,17 @@ exports.getQuotationStats = async (req, res) => {
         if (period === "today") {
           matchStage.quotationDate.$gte = new Date(now.setHours(0, 0, 0, 0));
         } else if (period === "week") {
-          matchStage.quotationDate.$gte = new Date(now.setDate(now.getDate() - 7));
+          matchStage.quotationDate.$gte = new Date(
+            now.setDate(now.getDate() - 7),
+          );
         } else if (period === "month") {
-          matchStage.quotationDate.$gte = new Date(now.setMonth(now.getMonth() - 1));
+          matchStage.quotationDate.$gte = new Date(
+            now.setMonth(now.getMonth() - 1),
+          );
         } else if (period === "year") {
-          matchStage.quotationDate.$gte = new Date(now.setFullYear(now.getFullYear() - 1));
+          matchStage.quotationDate.$gte = new Date(
+            now.setFullYear(now.getFullYear() - 1),
+          );
         }
       }
 
@@ -1212,7 +1226,12 @@ exports.getQuotationStats = async (req, res) => {
           conversionRate: {
             $cond: {
               if: { $gt: ["$count", 0] },
-              then: { $round: [{ $multiply: [{ $divide: ["$converted", "$count"] }, 100] }, 2] },
+              then: {
+                $round: [
+                  { $multiply: [{ $divide: ["$converted", "$count"] }, 100] },
+                  2,
+                ],
+              },
               else: 0,
             },
           },
@@ -1256,7 +1275,17 @@ exports.getQuotationStats = async (req, res) => {
           conversionRate: {
             $cond: {
               if: { $gt: ["$quotationCount", 0] },
-              then: { $round: [{ $multiply: [{ $divide: ["$convertedCount", "$quotationCount"] }, 100] }, 2] },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      { $divide: ["$convertedCount", "$quotationCount"] },
+                      100,
+                    ],
+                  },
+                  2,
+                ],
+              },
               else: 0,
             },
           },

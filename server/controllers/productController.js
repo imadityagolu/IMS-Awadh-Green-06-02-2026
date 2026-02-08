@@ -778,8 +778,10 @@ exports.updateProduct = async (req, res) => {
       const oldQty = Number(oldProduct.quantityInLot) || 0;
       const diff = newQty - oldQty;
       
-      const currentStock = Number(oldProduct.stockQuantity) || 0;
-      updateData.stockQuantity = currentStock + diff;
+      if (diff !== 0) {
+        const currentStock = Number(oldProduct.stockQuantity) || 0;
+        updateData.stockQuantity = currentStock + diff;
+      }
       
       // Ensure quantityInLot is updated in DB
       updateData.quantityInLot = newQty;

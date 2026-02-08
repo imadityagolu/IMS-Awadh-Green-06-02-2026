@@ -634,9 +634,8 @@ const Product = () => {
     doc.text("Product Data", 14, 15);
     const tableColumns = [
       "Product Name",
-      "Category",
-      "Quantity",
-      "Item Code",
+      "Available Quantity",
+      "Brand",
       "Purchasing Price",
       "Selling Price",
     ];
@@ -647,11 +646,12 @@ const Product = () => {
 
     const tableRows = visibleRows.map((e) => [
       e.productName,
-      e.category?.categoryName,
+      // e.category?.categoryName,
       e.stockQuantity,
-      e.itemBarcode,
-      e.purchasePrice,
-      e.sellingPrice,
+      e.brand?.brandName,
+      // e.itemBarcode,
+      e.purchasePrice + "/-",
+      e.sellingPrice + "/-",
     ]);
 
     autoTable(doc, {
@@ -1166,9 +1166,9 @@ const Product = () => {
                 >
                   {[
                     { label: "All", count: listCounts.totalAll },
-                    { label: "Low Stocks", count: listCounts.lowStocks },
+                    // { label: "Low Stocks", count: listCounts.lowStocks },
                     { label: "Out of Stocks", count: listCounts.outOfStocks },
-                    { label: "Expired", count: 0 },
+                    // { label: "Expired", count: 0 },
                     { label: "Old Stock", count: listCounts.oldStocks },
                     { label: "New Stocks", count: listCounts.newStocks },
                   ].map((tab) => (
@@ -1897,8 +1897,8 @@ const Product = () => {
                                             View Details
                                           </span>
                                         </div>
-                                        <div
-                                          to="/m/editproduct"
+                                        <Link
+                                          to="/create-purchase-orders"
                                           style={{
                                             display: "flex",
                                             justifyContent: "flex-start",
@@ -1920,9 +1920,9 @@ const Product = () => {
                                           <span style={{ color: "black" }}>
                                             Stock In
                                           </span>
-                                        </div>
-                                        <div
-                                          to="/m/editproduct"
+                                        </Link>
+                                        <Link
+                                          to="/createinvoice"
                                           style={{
                                             display: "flex",
                                             justifyContent: "flex-start",
@@ -1944,8 +1944,8 @@ const Product = () => {
                                           <span style={{ color: "black" }}>
                                             Stock Out
                                           </span>
-                                        </div>
-                                        <div
+                                        </Link>
+                                        {/* <div
                                           to="/m/editproduct"
                                           style={{
                                             display: "flex",
@@ -1968,7 +1968,7 @@ const Product = () => {
                                           <span style={{ color: "black" }}>
                                             Duplicate
                                           </span>
-                                        </div>
+                                        </div> */}
                                         <div
                                           onClick={() =>
                                             handleDelete(product._id)

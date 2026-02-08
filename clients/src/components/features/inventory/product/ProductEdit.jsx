@@ -243,8 +243,9 @@ const ProductEdit = () => {
       const serials = variant.serialNumbers ? [...variant.serialNumbers] : [];
       serials.push("");
       variant.serialNumbers = serials;
-      variant.quantityInLot = serials.length; // Update quantity
-      variant.openingQuantity = serials.length; // Update quantity
+      // variant.quantityInLot = serials.length; // Update quantity
+      // variant.openingQuantity = serials.length; // Update quantity
+      variant.stockQuantity = serials.length;
       updated[currentVariantIndex] = variant;
       return updated;
     });
@@ -269,8 +270,9 @@ const ProductEdit = () => {
       const serials = [...(variant.serialNumbers || [])];
       serials.splice(sIndex, 1);
       variant.serialNumbers = serials;
-      variant.quantityInLot = serials.length; // Update quantity
-      variant.openingQuantity = serials.length; // Update quantity
+      // variant.quantityInLot = serials.length; // Update quantity
+      // variant.openingQuantity = serials.length; // Update quantity
+      variant.stockQuantity = serials.length;
       updated[currentVariantIndex] = variant;
       return updated;
     });
@@ -386,48 +388,48 @@ const ProductEdit = () => {
 
         // --- VARIANTS PATCH ---
         // Map root product data to the first variant entry
-        
+
         let safeSerialNumbers = data.serialNumbers || [];
-        
+
         // Handle case where serialNumbers is a JSON string
         if (typeof safeSerialNumbers === 'string') {
-            try {
-                safeSerialNumbers = JSON.parse(safeSerialNumbers);
-            } catch (e) {
-                safeSerialNumbers = []; 
-            }
+          try {
+            safeSerialNumbers = JSON.parse(safeSerialNumbers);
+          } catch (e) {
+            safeSerialNumbers = [];
+          }
         }
 
         // Fix for potentially double-stringified serial numbers from previous bad saves
         if (Array.isArray(safeSerialNumbers)) {
-            safeSerialNumbers = safeSerialNumbers.flatMap(s => {
-                if (typeof s === 'string') {
-                    let cleaned = s.trim();
-                    // Recursively try to parse JSON if it looks like an array
-                    if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
-                        try {
-                            const parsed = JSON.parse(cleaned);
-                            if (Array.isArray(parsed)) return parsed.flat();
-                            return parsed;
-                        } catch (e) {
-                            // Fallback: manually strip brackets and quotes if JSON fails
-                            cleaned = cleaned.replace(/^\["|"]$/g, '').replace(/^\[|]$/g, '').replace(/"/g, '');
-                        }
-                    }
-                    // Remove surrounding quotes if present
-                    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
-                        cleaned = cleaned.slice(1, -1);
-                    }
-                    
-                    // Extra safety: remove any remaining brackets or quotes if they look like artifacts
-                    if (cleaned.includes('[') || cleaned.includes(']') || cleaned.includes('"')) {
-                        cleaned = cleaned.replace(/[\[\]"]/g, '');
-                    }
-                    
-                    return cleaned;
+          safeSerialNumbers = safeSerialNumbers.flatMap(s => {
+            if (typeof s === 'string') {
+              let cleaned = s.trim();
+              // Recursively try to parse JSON if it looks like an array
+              if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+                try {
+                  const parsed = JSON.parse(cleaned);
+                  if (Array.isArray(parsed)) return parsed.flat();
+                  return parsed;
+                } catch (e) {
+                  // Fallback: manually strip brackets and quotes if JSON fails
+                  cleaned = cleaned.replace(/^\["|"]$/g, '').replace(/^\[|]$/g, '').replace(/"/g, '');
                 }
-                return s;
-            });
+              }
+              // Remove surrounding quotes if present
+              if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                cleaned = cleaned.slice(1, -1);
+              }
+
+              // Extra safety: remove any remaining brackets or quotes if they look like artifacts
+              if (cleaned.includes('[') || cleaned.includes(']') || cleaned.includes('"')) {
+                cleaned = cleaned.replace(/[\[\]"]/g, '');
+              }
+
+              return cleaned;
+            }
+            return s;
+          });
         }
 
         const existingVariant = {
@@ -439,6 +441,7 @@ const ProductEdit = () => {
           tax: data.tax,
           openingQuantity: data.openingQuantity,
           quantityInLot: data.quantityInLot,
+          stockQuantity: data.stockQuantity,
           unit: data.unit,
           serialno: data.serialno,
           lotNumber: data.lotNumber || "",
@@ -890,11 +893,12 @@ const ProductEdit = () => {
 
     if (primaryVariant.purchasePrice !== undefined && primaryVariant.purchasePrice !== null && primaryVariant.purchasePrice !== "") formPayload.append("purchasePrice", primaryVariant.purchasePrice);
     if (primaryVariant.sellingPrice !== undefined && primaryVariant.sellingPrice !== null && primaryVariant.sellingPrice !== "") formPayload.append("sellingPrice", primaryVariant.sellingPrice);
-    
+
     // if (formData.retailPrice) formPayload.append("retailPrice", formData.retailPrice);
 
     if (primaryVariant.openingQuantity !== undefined && primaryVariant.openingQuantity !== null && primaryVariant.openingQuantity !== "") formPayload.append("openingQuantity", primaryVariant.openingQuantity);
     if (primaryVariant.quantityInLot !== undefined && primaryVariant.quantityInLot !== null && primaryVariant.quantityInLot !== "") formPayload.append("quantityInLot", primaryVariant.quantityInLot);
+    if (primaryVariant.stockQuantity !== undefined && primaryVariant.stockQuantity !== null && primaryVariant.stockQuantity !== "") formPayload.append("stockQuantity", primaryVariant.stockQuantity);
 
     if (primaryVariant.serialNumber) formPayload.append("serialNumber", primaryVariant.serialNumber);
 
@@ -2123,7 +2127,15 @@ const ProductEdit = () => {
                 </div>
               </div>
 
-              {/* Pricing & Variants */}
+              <div
+                style={{
+                  width: "1832px",
+                  height: "1px",
+                  background: "var(--Stroke, #EAEAEA)",
+                }}
+              />
+
+              {/* lot / batch section */}
               <div style={{}} className="delete-hover">
                 <div
                   style={{
@@ -2146,7 +2158,7 @@ const ProductEdit = () => {
                       gap: "16px",
                       // marginTop:'16px',
                       width: '1830px',
-                      overflowX: 'scroll',
+                      overflowX: 'auto',
                       padding: '16px 8px',
                     }}
                   // className="row"
@@ -2489,11 +2501,11 @@ const ProductEdit = () => {
                           <input
                             type="number"
                             placeholder="00"
-                            name="quantityInLot"
-                            value={variant.quantityInLot || ""}
+                            name="stockQuantity"
+                            value={variant.stockQuantity || ""}
                             onChange={(e) => {
                               if (settings.serialno) return;
-                              handleVariantChange(index, "quantityInLot", e.target.value);
+                              handleVariantChange(index, "stockQuantity", e.target.value);
                             }}
                             readOnly={settings.serialno}
                             style={{
@@ -2731,6 +2743,7 @@ const ProductEdit = () => {
                     gap: "16px",
                     border: "1px solid #EAEAEA",
                     padding: "16px",
+                    marginTop: "16px",
                   }}
                 >
                   <div className="d-flex justify-content-start align-items-center gap-4">
@@ -3082,7 +3095,7 @@ const ProductEdit = () => {
                         cursor: "pointer",
                         opacity: 1,
                       }}
-                      // disabled={!isDirty}
+                    // disabled={!isDirty}
                     >
                       <div
                         style={{
@@ -3104,7 +3117,6 @@ const ProductEdit = () => {
           </div>
         </form>
       </div>
-
 
       {/* Add Serial Popup */}
       {addserialpopup && currentVariantIndex !== null && (
@@ -3298,6 +3310,34 @@ const ProductEdit = () => {
                 ))}
               </div>
 
+              {/* done button */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button
+                  style={{
+                    padding: "6px 6px",
+                    background: "var(--Blue, #1F7FFF)",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "70px",
+                  }}
+                  onClick={(e) => setAddSerialPopup(false)}
+                >
+                  <span
+                    style={{
+                      color: "var(--White, white)",
+                      fontSize: "14px",
+                      fontFamily: "Inter",
+                      fontWeight: "400",
+                    }}
+                  >
+                    Done
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

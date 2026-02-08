@@ -813,7 +813,7 @@ const ProductForm = () => {
         newErrors.sellingPrice = "Selling Price must be at least 1";
         emptyFields.push("variant_0_sellingPrice");
       }
-      
+
       if (settings.units && !mainVariant.unit) {
         newErrors.units = "Unit is required";
         emptyFields.push("variant_0_unit");
@@ -875,10 +875,10 @@ const ProductForm = () => {
       formPayload.append("serialNumbers", JSON.stringify(mainVariant.serialNumbers || []));
     }
     if (settings.lotno) {
-       formPayload.append("lotNumber", mainVariant.lotNumber || formData.lotNumber || "");
+      formPayload.append("lotNumber", mainVariant.lotNumber || formData.lotNumber || "");
     }
     if (settings.supplier) formPayload.append("supplier", mainVariant.supplier || formData.supplier || "");
-    
+
     // Append Description
     formPayload.append("description", formData.description || "");
 
@@ -889,7 +889,7 @@ const ProductForm = () => {
     formPayload.append("tax", mainVariant.tax || formData.tax || 0);
     if (settings.units) formPayload.append("unit", mainVariant.unit || formData.units || "");
     formPayload.append("openingQuantity", mainVariant.openingQuantity || formData.openingQuantity || 0);
-    
+
     // Append variants data ONLY if active/valid
     // Check if we have actual variants defined (e.g., first one has selectedVariant) OR multiple lots
     let validVariants = [];
@@ -1872,105 +1872,6 @@ const ProductForm = () => {
                     </div>
                   </div>}
 
-                  {/* item code / bar code */}
-                  {settings.itembarcode && <div
-                    style={{
-                      width: "400px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "baseline",
-                        gap: "4px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: "var(--Black-Grey, #727681)",
-                          fontSize: "12px",
-                          fontFamily: "Inter",
-                          fontWeight: "400",
-                          lineHeight: "14.40px",
-                        }}
-                      >
-                        Item code / Bar code
-                      </span>
-                      <span
-                        style={{
-                          color: "var(--Danger, #D00003)",
-                          fontSize: "12px",
-                          fontFamily: "Inter",
-                          fontWeight: "400",
-                          lineHeight: "14.40px",
-                        }}
-                      >
-                        *
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "40px",
-                        padding: "0 12px",
-                        background: "white",
-                        borderRadius: "8px",
-                        border: highlightedFields.includes("itemBarcode") ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "8px",
-                        display: "flex",
-                      }}
-                    >
-                      {/* <input
-                          type="text"
-                          name="itemBarcode"
-                          value={formData.itemBarcode || ""}
-                          onChange={handleChange}
-                          placeholder="Generate barcode"
-                          style={{
-                            flex: 1,
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--Black-Black, #0E101A)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            outline: "none",
-                          }}
-                        /> */}
-                      <span style={{ color: 'black' }}>{formData.itemBarcode || "click to..."}</span>
-                      <button
-                        type="button"
-                        onClick={handleGenerateBarcode}
-                        style={{
-                          padding: "4px 6px",
-                          background: "var(--Blue, #1F7FFF)",
-                          borderRadius: "4px",
-                          border: "none",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--White, white)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                          }}
-                        >
-                          Generate
-                        </span>
-                      </button>
-                    </div>
-                  </div>}
-
                   {/* hsn code */}
                   {settings.hsn && <div
                     style={{
@@ -2223,64 +2124,64 @@ const ProductForm = () => {
                         }}
                       >
                         {settings.lotno && (
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            flex: 1
-                          }}
-                        >
-                          <input
-                            type="text"
-                            placeholder="Enter Lot No."
-                            name="lotNumber"
-                            value={variant.lotNumber || ""}
-                            onChange={(e) => handleVariantChange(index, "lotNumber", e.target.value)}
+                          <div
                             style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              outline: "none",
-                            }}
-                          />
-                        </div>
-                        )}
-                        
-                        {settings.serialno && (
-                        <button
-                          type="button"
-                          style={{
-                            padding: "4px 6px",
-                            background: "var(--Blue, #1F7FFF)",
-                            borderRadius: "4px",
-                            border: "none",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: settings.lotno ? "120px" : "100%",
-                          }}
-                           onClick={() => {
-                             setCurrentVariantIndex(index);
-                             setAddSerialPopup(true);
-                           }}
-                        >
-                          <span
-                            style={{
-                              color: "var(--White, white)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              flex: 1
                             }}
                           >
-                            + Serial No.
-                          </span>
-                        </button>
+                            <input
+                              type="text"
+                              placeholder="Enter Lot No."
+                              name="lotNumber"
+                              value={variant.lotNumber || ""}
+                              onChange={(e) => handleVariantChange(index, "lotNumber", e.target.value)}
+                              style={{
+                                width: "100%",
+                                border: "none",
+                                background: "transparent",
+                                color: "var(--Black-Black, #0E101A)",
+                                fontSize: "14px",
+                                fontFamily: "Inter",
+                                fontWeight: "400",
+                                outline: "none",
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        {settings.serialno && (
+                          <button
+                            type="button"
+                            style={{
+                              padding: "4px 6px",
+                              background: "var(--Blue, #1F7FFF)",
+                              borderRadius: "4px",
+                              border: "none",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: settings.lotno ? "120px" : "100%",
+                            }}
+                            onClick={() => {
+                              setCurrentVariantIndex(index);
+                              setAddSerialPopup(true);
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "var(--White, white)",
+                                fontSize: "14px",
+                                fontFamily: "Inter",
+                                fontWeight: "400",
+                              }}
+                            >
+                              + Serial No.
+                            </span>
+                          </button>
                         )}
                       </div>
                     </div>}
@@ -2610,7 +2511,7 @@ const ProductForm = () => {
                             }}
                           />
                         </div>
-                        
+
                       </div>
 
                       <span
@@ -2837,19 +2738,19 @@ const ProductForm = () => {
 
                         <div style={{ padding: '16px 8px', }} className="delete-hover">
 
-                        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'20px'}}>
-                          <div
-                            style={{
-                              color: "black",
-                              fontSize: "16px",
-                              fontFamily: "Inter",
-                              fontWeight: "500",
-                              lineHeight: "19.20px",
-                            }}
-                          >
-                            Add Serial No. for {variants[currentVariantIndex]?.serialNumbers?.length || 0} Quantity
-                          </div>
-                          
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                            <div
+                              style={{
+                                color: "black",
+                                fontSize: "16px",
+                                fontFamily: "Inter",
+                                fontWeight: "500",
+                                lineHeight: "19.20px",
+                              }}
+                            >
+                              Add Serial No. for {variants[currentVariantIndex]?.serialNumbers?.length || 0} Quantity
+                            </div>
+
                             {/* add button */}
                             <button
                               type="button"
@@ -2877,7 +2778,7 @@ const ProductForm = () => {
                                 + Add
                               </span>
                             </button>
-                        </div>
+                          </div>
 
                           <div style={{
                             display: "flex",
@@ -2887,117 +2788,145 @@ const ProductForm = () => {
                             flexDirection: 'column'
                           }}>
                             {(variants[currentVariantIndex]?.serialNumbers || []).map((serial, sIndex) => (
-                                <div key={sIndex} style={{
-                                  display: "flex",
-                                  gap: "16px",
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
-                                }}>
+                              <div key={sIndex} style={{
+                                display: "flex",
+                                gap: "16px",
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                              }}>
 
-                                  {/* quantity no */}
+                                {/* quantity no */}
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                    width: "30px",
+                                  }}
+                                  className="col-1"
+                                >
                                   <div
+                                    className=""
                                     style={{
                                       display: "flex",
-                                      flexDirection: "column",
-                                      gap: "4px",
-                                      width: "30px",
+                                      justifyContent: "center",
+                                      alignItems: "center",
+                                      gap: '8px',
+                                      height: "100%",
                                     }}
-                                    className="col-1"
+                                  >
+                                    {sIndex + 1}<BsThreeDotsVertical className="fs-4" />
+                                  </div>
+                                </div>
+
+                                {/* serial no */}
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                    width: "195px",
+                                  }}
+                                  className="col-1"
+                                >
+                                  <div
+                                    style={{
+                                      height: "40px",
+                                      padding: "0 12px",
+                                      background: "white",
+                                      borderRadius: "8px",
+                                      border: "1px var(--White-Stroke, #EAEAEA) solid",
+                                      justifyContent: "flex-start",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      display: "flex",
+                                    }}
                                   >
                                     <div
-                                      className=""
                                       style={{
                                         display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        gap: '8px',
-                                        height: "100%",
-                                      }}
-                                    >
-                                      {sIndex + 1}<BsThreeDotsVertical className="fs-4" />
-                                    </div>
-                                  </div>
-
-                                  {/* serial no */}
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      flexDirection: "column",
-                                      gap: "4px",
-                                      width: "195px",
-                                    }}
-                                    className="col-1"
-                                  >
-                                    <div
-                                      style={{
-                                        height: "40px",
-                                        padding: "0 12px",
-                                        background: "white",
-                                        borderRadius: "8px",
-                                        border: "1px var(--White-Stroke, #EAEAEA) solid",
-                                        justifyContent: "flex-start",
                                         alignItems: "center",
                                         gap: "8px",
-                                        display: "flex",
+                                        width: "100%"
                                       }}
                                     >
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: "8px",
-                                          width: "100%"
+                                      <input
+                                        id={`serial-input-${sIndex}`}
+                                        type="text"
+                                        placeholder="Enter Serial No."
+                                        value={serial}
+                                        onChange={(e) => handleSerialChange(sIndex, e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleAddSerialField();
+                                            setTimeout(() => {
+                                              const nextInput = document.getElementById(`serial-input-${sIndex + 1}`);
+                                              if (nextInput) nextInput.focus();
+                                            }, 100);
+                                          }
                                         }}
-                                      >
-                                        <input
-                                          id={`serial-input-${sIndex}`}
-                                          type="text"
-                                          placeholder="Enter Serial No."
-                                          value={serial}
-                                          onChange={(e) => handleSerialChange(sIndex, e.target.value)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === "Enter") {
-                                              e.preventDefault();
-                                              handleAddSerialField();
-                                              setTimeout(() => {
-                                                const nextInput = document.getElementById(`serial-input-${sIndex + 1}`);
-                                                if (nextInput) nextInput.focus();
-                                              }, 100);
-                                            }
-                                          }}
-                                          style={{
-                                            width: "100%",
-                                            border: "none",
-                                            background: "transparent",
-                                            color: "var(--Black-Black, #0E101A)",
-                                            fontSize: "14px",
-                                            fontFamily: "Inter",
-                                            fontWeight: "400",
-                                            outline: "none",
-                                          }}
-                                        />
-                                      </div>
+                                        style={{
+                                          width: "100%",
+                                          border: "none",
+                                          background: "transparent",
+                                          color: "var(--Black-Black, #0E101A)",
+                                          fontSize: "14px",
+                                          fontFamily: "Inter",
+                                          fontWeight: "400",
+                                          outline: "none",
+                                        }}
+                                      />
                                     </div>
                                   </div>
-
-                                  {/* Remove button */}
-                                  <button
-                                      type="button"
-                                      onClick={() => handleRemoveSerial(sIndex)}
-                                      style={{
-                                          background: "transparent",
-                                          border: "none",
-                                          color: "var(--Danger, #D00003)",
-                                          cursor: "pointer",
-                                          fontSize: "18px"
-                                      }}
-                                  >
-                                      &times;
-                                  </button>
                                 </div>
+
+                                {/* Remove button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSerial(sIndex)}
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    color: "var(--Danger, #D00003)",
+                                    cursor: "pointer",
+                                    fontSize: "18px"
+                                  }}
+                                >
+                                  &times;
+                                </button>
+                              </div>
                             ))}
                           </div>
 
+                          {/* done button */}
+                          <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <button
+                              style={{
+                                padding: "6px 6px",
+                                background: "var(--Blue, #1F7FFF)",
+                                borderRadius: "4px",
+                                border: "none",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: "70px",
+                              }}
+                              onClick={(e) => setAddSerialPopup(false)}
+                            >
+                              <span
+                                style={{
+                                  color: "var(--White, white)",
+                                  fontSize: "14px",
+                                  fontFamily: "Inter",
+                                  fontWeight: "400",
+                                }}
+                              >
+                                Done
+                              </span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>}

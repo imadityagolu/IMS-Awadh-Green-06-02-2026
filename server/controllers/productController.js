@@ -14,18 +14,10 @@ exports.createProduct = async (req, res) => {
       itemBarcode,
       hsn,
       purchasePrice,
-      mrp,
       sellingPrice,
       tax,
-      size,
-      color,
-      expiryDate,
       unit,
       openingQuantity,
-      minStockToMaintain,
-      discountAmount,
-      // discountPercent,
-      discountType,
       description,
       lotNumber,
       supplier,
@@ -46,14 +38,14 @@ exports.createProduct = async (req, res) => {
       return res.status(400).json({ message: "Description must be under 20 characters." });
     }
 
-    // ✅ LOT DETAILS
-    let lotDetails = {};
-    if (req.body.lotDetails) {
-      lotDetails =
-        typeof req.body.lotDetails === "string"
-          ? JSON.parse(req.body.lotDetails)
-          : req.body.lotDetails;
-    }
+    // ✅ LOT DETAILS - Deprecated
+    // let lotDetails = {};
+    // if (req.body.lotDetails) {
+    //   lotDetails =
+    //     typeof req.body.lotDetails === "string"
+    //       ? JSON.parse(req.body.lotDetails)
+    //       : req.body.lotDetails;
+    // }
 
     // ✅ VARIANTS PROCESSING
     let variants = [];
@@ -116,27 +108,19 @@ exports.createProduct = async (req, res) => {
 
           // Variant specific fields override global ones
           purchasePrice: variant.purchasePrice,
-          mrp: variant.mrp,
           sellingPrice: variant.sellingPrice,
           tax: variant.tax,
-          size: variant.size,
-          color: variant.color,
-          expiryDate: variant.expiryDate,
           unit: variant.unit,
           serialno: variant.serialNumber || req.body.serialNumber || "",
           quantityInLot: openingQty,
           stockQuantity: openingQty,
-          minStockToMaintain: variant.minStockToMaintain,
-          discountAmount: variant.discountAmount,
-          // discountPercent: variant.discountPercent,
-          discountType: variant.discountType,
 
           images: variantImages,
-          lotDetails, // Shared lot details
+          // lotDetails, // Shared lot details - Deprecated
           
           description: description || "",
           lotNumber: variant.lotNumber || "",
-          lotSupplier: variant.supplier,
+          lotSupplier: variant.supplier || undefined,
           serialNumbers: variant.serialNumbers || [],
         });
 
@@ -156,21 +140,14 @@ exports.createProduct = async (req, res) => {
         brand,
         itemBarcode,
         purchasePrice,
-        mrp,
         sellingPrice,
-        size,
-        color,
-        expiryDate,
         unit,
         tax,
         serialno: req.body.serialNumber || "",
-        discountAmount: discountAmount || 0,
-        discountType: discountType || "Fixed",
         images: allUploadedImages,
         quantityInLot: openingQty,
         stockQuantity: openingQty,
-        minStockToMaintain,
-        lotDetails,
+        // lotDetails,
         description: description || "",
         lotNumber: lotNumber || "",
         lotSupplier: supplier || undefined,
@@ -208,6 +185,7 @@ exports.getAllProducts = async (req, res) => {
         .populate("subcategory", "name")
         .populate("brand", "brandName")
         .populate("hsn", "hsnCode description")
+        .populate("lotSupplier", "supplierName supplierCode")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -224,23 +202,19 @@ exports.getAllProducts = async (req, res) => {
       brand: p.brand || null,
       hsn: p.hsn,
       itemBarcode: p.itemBarcode || "",
-  serialNumbers: p.serialNumbers || [],   // ⭐ ADD THIS  
-  lotNumber: p.lotNumber || "",           // ⭐ ADD THIS
-      expiryDate: p.expiryDate ? new Date(p.expiryDate).toLocaleDateString("en-GB") : "",
+      serialno: p.serialno || "",
       purchasePrice: p.purchasePrice || 0,
-      mrp: p.mrp || 0,
       sellingPrice: p.sellingPrice || 0,
       tax: p.tax || "",
-      size: p.size || "",
-      color: p.color || "",
-      openingQuantity: p.openingQuantity || 0,
+      openingQuantity: p.quantityInLot || 0, // Mapped from quantityInLot
+      quantityInLot: p.quantityInLot || 0,
       stockQuantity: p.stockQuantity || 0,
-      minStockToMaintain: p.minStockToMaintain || 0,
       unit: p.unit || "",
 
-      discountAmount: p.discountAmount || 0,
-      // discountPercent: p.discountPercent || 0,
-      discountType: p.discountType || "",
+      description: p.description || "",
+      lotNumber: p.lotNumber || "",
+      lotSupplier: p.lotSupplier || null,
+      serialNumbers: p.serialNumbers || [],
 
       lotDetails: p.lotDetails || {},
 
@@ -279,7 +253,7 @@ exports.searchProductsByName = async (req, res) => {
       .populate("subcategory")
       .populate("brand")
       .populate("hsn")
-      // .populate("supplier")
+      .populate("lotSupplier")
       .sort({ createdAt: -1 });
 
     // Add hsnCode and availableQty logic for frontend
@@ -336,8 +310,7 @@ exports.getProductStock = async (req, res) => {
       .populate("category")
       .populate("subcategory")
       .populate("hsn")
-      // .populate("supplier")
-      .populate("warehouse")
+      .populate("lotSupplier")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -376,26 +349,7 @@ exports.getProductStock = async (req, res) => {
       const availableStock = calculateAvailableStock(prod);
       const purchasePrice = Number(prod.purchasePrice) || 0;
       const stockValue = availableStock * purchasePrice;
-      let warehouseName = "";
-      if (prod.warehouse) {
-        if (typeof prod.warehouse === "object" && prod.warehouse !== null) {
-          warehouseName =
-            prod.warehouse.name ||
-            prod.warehouse.warehouseName ||
-            prod.warehouse._id ||
-            "";
-        } else {
-          warehouseName = prod.warehouse;
-        }
-      }
-      // let supplierName = '';
-      // if (prod.supplier) {
-      //   if (typeof prod.supplier === 'object' && prod.supplier !== null) {
-      //     supplierName = prod.supplier.name || prod.supplier.supplierName || prod.supplier.companyName || prod.supplier.firstName || prod.supplier._id || '';
-      //   } else {
-      //     supplierName = prod.supplier;
-      //   }
-      // }
+      
       let image = "";
       if (Array.isArray(prod.images) && prod.images.length > 0) {
         image = prod.images[0].url;
@@ -408,8 +362,6 @@ exports.getProductStock = async (req, res) => {
         unit: prod.unit,
         purchasePrice,
         stockValue,
-        warehouseName,
-        // supplierName,
         image,
       };
     });
@@ -431,8 +383,6 @@ exports.getPurchaseReturnStock = async (req, res) => {
       .populate("category")
       .populate("subcategory")
       .populate("hsn")
-      .populate("supplier")
-      .populate("warehouse")
       .sort({ createdAt: -1 });
 
     const productsWithReturnStock = products.map((prod) => {
@@ -486,7 +436,13 @@ exports.getProductById = async (req, res) => {
     const product = await Product.findOne({
       _id: req.params.id,
       isDelete: { $ne: true },
-    });
+    })
+    .populate("category")
+    .populate("subcategory")
+    .populate("brand")
+    .populate("hsn")
+    .populate("lotSupplier"); // Populating lotSupplier for frontend editing
+
     if (!product) return res.status(404).json({ message: "Product not found" });
     res.status(200).json(product);
   } catch (err) {
@@ -683,28 +639,16 @@ exports.updateProduct = async (req, res) => {
   try {
     const {
       productName,
-      sku,
       brand,
       category,
       subcategory,
-      // supplier,
+      supplier,
       // itemBarcode,
-      store,
-      warehouse,
       purchasePrice,
       sellingPrice,
-      wholesalePrice,
-      retailPrice,
-      quantity,
       unit,
-      taxType,
       tax,
-      discountType,
-      discountAmount,
-      minStockToMaintain,
       description,
-      seoTitle,
-      seoDescription,
       hsn,
       variants: variantsRaw,
     } = req.body;
@@ -727,28 +671,41 @@ exports.updateProduct = async (req, res) => {
     if (!variants || typeof variants !== "object" || Array.isArray(variants)) {
       variants = {};
     }
-    let lotDetails = {};
-    if (typeof req.body.lotDetails !== "undefined") {
+    // let lotDetails = {};
+    // if (typeof req.body.lotDetails !== "undefined") {
+    //   try {
+    //     if (typeof req.body.lotDetails === "string") {
+    //       lotDetails = JSON.parse(req.body.lotDetails);
+    //     } else if (
+    //       typeof req.body.lotDetails === "object" &&
+    //       req.body.lotDetails !== null
+    //     ) {
+    //       lotDetails = req.body.lotDetails;
+    //     }
+    //   } catch (e) {
+    //     lotDetails = {};
+    //   }
+    // }
+    // if (
+    //   !lotDetails ||
+    //   typeof lotDetails !== "object" ||
+    //   Array.isArray(lotDetails)
+    // ) {
+    //   lotDetails = {};
+    // }
+
+    // Parse serialNumbers if sent as JSON string (Fix for double stringification)
+    let serialNumbers = [];
+    if (req.body.serialNumbers) {
       try {
-        if (typeof req.body.lotDetails === "string") {
-          lotDetails = JSON.parse(req.body.lotDetails);
-        } else if (
-          typeof req.body.lotDetails === "object" &&
-          req.body.lotDetails !== null
-        ) {
-          lotDetails = req.body.lotDetails;
-        }
+        serialNumbers = typeof req.body.serialNumbers === "string" 
+          ? JSON.parse(req.body.serialNumbers) 
+          : req.body.serialNumbers;
       } catch (e) {
-        lotDetails = {};
+        serialNumbers = [];
       }
     }
-    if (
-      !lotDetails ||
-      typeof lotDetails !== "object" ||
-      Array.isArray(lotDetails)
-    ) {
-      lotDetails = {};
-    }
+    
     // Upload new images if provided
     let newImages = [];
     if (req.files && req.files.length > 0) {
@@ -782,7 +739,20 @@ exports.updateProduct = async (req, res) => {
 
     // Logic to handle discountType and discountValue for update
     let updateData = { ...req.body };
-    const { discountValue } = req.body;
+    
+    // Assign parsed serialNumbers
+    if (req.body.serialNumbers) {
+      updateData.serialNumbers = serialNumbers;
+    }
+
+    // Map supplier to lotSupplier
+    if (supplier) {
+      updateData.lotSupplier = supplier;
+    }
+    
+    if (updateData.lotSupplier === "" || updateData.lotSupplier === "null" || updateData.lotSupplier === "undefined") {
+      delete updateData.lotSupplier;
+    }
 
     // Clean up empty ObjectId fields to prevent BSONError
     if (updateData.hsn === "" || updateData.hsn === "null" || updateData.hsn === "undefined") {
@@ -797,37 +767,34 @@ exports.updateProduct = async (req, res) => {
     if (updateData.brand === "" || updateData.brand === "null" || updateData.brand === "undefined") {
       delete updateData.brand;
     }
-    if (updateData.warehouse === "" || updateData.warehouse === "null" || updateData.warehouse === "undefined") {
-      delete updateData.warehouse;
-    }
-
-    // Handle Discount
-    if (discountType && discountValue) {
-      if (discountType === "Fixed") {
-        updateData.discountAmount = discountValue;
-      } else if (discountType === "Percentage") {
-        updateData.discountAmount = discountValue; // Storing the percentage value in discountAmount as per schema
-      }
-      // Ensure discountType is set
-      updateData.discountType = discountType;
-    }
-
-    // If opening Quantity is being updated, also update stock quantity appropriately
-    if (req.body.openingQuantity !== undefined) {
-      const oldProduct = await Product.findById(req.params.id);
-      const newOpening = req.body.openingQuantity || 0;
-      // calculate stockQuantity adjustment
-      const openingDiff = newOpening - oldProduct.openingQuantity;
-      req.body.stockQuantity = (oldProduct.stockQuantity || 0) + openingDiff;
-    }
 
     const oldProduct = await Product.findById(req.params.id);
+    if (!oldProduct) return res.status(404).json({ message: "Product not found" });
+
+    // If quantityInLot (or openingQuantity) is being updated, also update stock quantity appropriately
+    const newQuantityInLot = updateData.quantityInLot !== undefined 
+        ? updateData.quantityInLot 
+        : req.body.openingQuantity;
+
+    if (newQuantityInLot !== undefined) {
+      const newQty = Number(newQuantityInLot) || 0;
+      const oldQty = Number(oldProduct.quantityInLot) || 0;
+      const diff = newQty - oldQty;
+      
+      if (diff !== 0) {
+        const currentStock = Number(oldProduct.stockQuantity) || 0;
+        updateData.stockQuantity = currentStock + diff;
+      }
+      
+      // Ensure quantityInLot is updated in DB
+      updateData.quantityInLot = newQty;
+    }
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       {
         ...updateData,
         images: allImages,
-        lotDetails,
+        // lotDetails,
       },
       { new: true },
     );
@@ -919,38 +886,36 @@ exports.importProducts = async (req, res) => {
         brand: row.brand, // Make sure this is an ObjectId if using ref
         category: row.category,
         subcategory: row.subcategory,
-        // supplier: row.supplier,
-        // itemBarcode: row.itemBarcode,
-        store: row.store,
-        warehouse: row.warehouse,
+        // store: row.store,
+        // warehouse: row.warehouse,
         purchasePrice: row.purchasePrice,
         sellingPrice: row.sellingPrice,
-        wholesalePrice: row.wholesalePrice,
-        retailPrice: row.retailPrice,
-        quantity: row.quantity,
+        // wholesalePrice: row.wholesalePrice,
+        // retailPrice: row.retailPrice,
+        // quantity: row.quantity,
         unit: row.unit,
-        taxType: row.taxType,
+        // taxType: row.taxType,
         tax: row.tax,
-        discountType: row.discountType,
-        discountValue: row.discountValue,
-        quantityAlert: row.quantityAlert,
+        // discountType: row.discountType,
+        // discountValue: row.discountValue,
+        // quantityAlert: row.quantityAlert,
         description: row.description,
-        seoTitle: row.seoTitle,
-        seoDescription: row.seoDescription,
+        // seoTitle: row.seoTitle,
+        // seoDescription: row.seoDescription,
         variants: row.variants ? JSON.parse(row.variants) : {},
-        itemType: row.itemType,
-        isAdvanced: row.isAdvanced,
-        trackType: row.trackType,
-        isReturnable: row.isReturnable,
-        leadTime: row.leadTime,
-        reorderLevel: row.reorderLevel,
-        initialStock: row.initialStock,
+        // itemType: row.itemType,
+        // isAdvanced: row.isAdvanced,
+        // trackType: row.trackType,
+        // isReturnable: row.isReturnable,
+        // leadTime: row.leadTime,
+        // reorderLevel: row.reorderLevel,
+        // initialStock: row.initialStock,
         serialNumber: row.serialNumber,
-        batchNumber: row.batchNumber,
-        returnable: row.returnable,
-        expirationDate: row.expirationDate
-          ? new Date(row.expirationDate)
-          : null,
+        // batchNumber: row.batchNumber,
+        // returnable: row.returnable,
+        // expirationDate: row.expirationDate
+        //   ? new Date(row.expirationDate)
+        //   : null,
       });
       const saved = await product.save();
       importedProducts.push(saved);
@@ -964,28 +929,12 @@ exports.importProducts = async (req, res) => {
   }
 };
 
+/*
 exports.getUpcomingExpiryProducts = async (req, res) => {
-  try {
-    const today = new Date();
-    const tenDaysLater = new Date();
-    tenDaysLater.setDate(today.getDate() + 10);
-    // Find products with expirationDate between today and tenDaysLater
-    const products = await Product.find({
-      expirationDate: { $gte: today, $lte: tenDaysLater },
-      isDelete: { $ne: true },
-    })
-      .populate("brand")
-      .populate("category")
-      .populate("subcategory")
-      .populate("hsn")
-      // .populate("supplier")
-      .populate("warehouse")
-      .sort({ expirationDate: 1 });
-    res.status(200).json(products);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  // Deprecated: Expiration date is no longer in schema
+  res.status(410).json({ message: "This feature is deprecated" });
 };
+*/
 
 exports.updateOpeningQuantityBulk = async (req, res) => {
   try {
@@ -1038,69 +987,3 @@ exports.updateOpeningQuantityBulk = async (req, res) => {
   }
 };
 
-// optional
-// const Product = require("../models/productModels");
-
-// // Create Product
-// const createProduct = async (req, res) => {
-//   try {
-//     const product = new Product(req.body);
-//     const saved = await product.save();
-//     res.status(201).json(saved);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// };
-
-// // Get All Products
-// const getAllProducts = async (req, res) => {
-//   try {
-//     const products = await Product.find();
-//     res.status(200).json(products);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
-// // Get Single Product
-// const getProductById = async (req, res) => {
-//   try {
-//     const product = await Product.findById(req.params.id);
-//     if (!product) return res.status(404).json({ message: "Product not found" });
-//     res.status(200).json(product);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
-// // Update Product
-// const updateProduct = async (req, res) => {
-//   try {
-//     const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
-//       new: true,
-//     });
-//     if (!updated) return res.status(404).json({ message: "Product not found" });
-//     res.status(200).json(updated);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// };
-
-// // Delete Product
-// const deleteProduct = async (req, res) => {
-//   try {
-//     const deleted = await Product.findByIdAndDelete(req.params.id);
-//     if (!deleted) return res.status(404).json({ message: "Product not found" });
-//     res.status(200).json({ message: "Product deleted successfully" });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
-// module.exports = {
-//   createProduct,
-//   getAllProducts,
-//   getProductById,
-//   updateProduct,
-//   deleteProduct,
-// };

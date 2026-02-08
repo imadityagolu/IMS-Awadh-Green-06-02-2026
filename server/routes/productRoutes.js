@@ -27,7 +27,7 @@ const path = require("path");
 
 // Product stock API
 router.get("/stock", authMiddleware, getProductStock);
-router.get("/upcoming-expiry", authMiddleware, getUpcomingExpiryProducts);
+
 // Lookup by barcode
 router.get('/barcode/:code', authMiddleware, getProductByBarcode);
 // Generate a unique barcode and optionally attach to a product

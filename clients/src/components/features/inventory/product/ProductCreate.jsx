@@ -71,7 +71,6 @@ const ProductForm = () => {
     supplier: false,
     status: false,
     serialno: false,
-    variants: { size: false, color: false },
     units: false,
     expiry: false,
   });
@@ -97,10 +96,6 @@ const ProductForm = () => {
           supplier: data.supplier || false,
           status: data.status || false,
           serialno: data.serialno || false,
-          variants: {
-            size: data.variants?.size || false,
-            color: data.variants?.color || false
-          },
           units: data.units || false,
           expiry: data.expiry || false,
         });
@@ -197,46 +192,9 @@ const ProductForm = () => {
     }
   }, [addserialpopup, currentVariantIndex]);
 
-  const lotColumns = [
-    { label: "Lot No.", editableValue: "12" },
-    { label: "Lot MRP", editableValue: "₹ 2,367.08/-" },
-    { label: "Fabric Batch No.", editableValue: "MO123" },
-    { label: "Production Date", editableValue: "22/09/2023", opacity: 0.69 },
-    { label: "Design Code", editableValue: "DC-0123" },
-    { label: "Quantity", editableValue: "112" },
-    { label: "Size", editableValue: "S, M, L, XL, XXL" },
-    { label: "Color", editableValue: "Red, Green, Yellow", opacity: 0.83 },
-  ];
-
-  // Lot No. state (array for each column)
-  const [lotData, setLotData] = useState(
-    lotColumns.map((col) => ({
-      ...col,
-      label: col.label,
-      editableValue: col.value,
-    }))
-  );
-
-  const lotFieldKeys = [
-    "lotNo",
-    "lotmrp",
-    "fabricBatchNo",
-    "productionDate",
-    "designCode",
-    "quantity",
-    "size",
-    "color",
-  ];
-
   const [lotDetails, setLotDetails] = useState({
     lotNo: "",
-    lotmrp: "",
-    fabricBatchNo: "",
-    productionDate: "",
-    designCode: "",
     quantity: "",
-    size: "",
-    color: "",
   });
 
   const validationPatterns = {
@@ -246,12 +204,7 @@ const ProductForm = () => {
     description: /^[\w\s.,!?\-]{0,300}$/,
     seoTitle: /^[a-zA-Z0-9\s\-]{2,60}$/,
     seoDescription: /^[a-zA-Z0-9\s\-,.]{2,160}$/,
-    leadTime: /^\d{1,4}$/,
-    reorderLevel: /^\d{1,6}$/,
-    initialStock: /^\d{1,6}$/,
     serialNumber: /^[A-Z0-9\-]{1,50}$/,
-    batchNumber: /^[A-Z0-9\-]{1,50}$/,
-    discountValue: /^\d+(\.\d{1,2})?$/,
     categoryName: /^[A-Za-z\s]{2,50}$/,
     categorySlug: /^[a-z0-9\-]{2,50}$/,
     variantValue: /^[a-zA-Z0-9\s,]{1,100}$/,
@@ -280,24 +233,11 @@ const ProductForm = () => {
     t("variants"),
   ];
 
-  const variantTabs = [
-    t("color"),
-    t("size"),
-    t("expiry"),
-    t("material"),
-    t("model"),
-    t("weight"),
-    t("skinType"),
-    t("packagingType"),
-    t("flavour"),
-  ];
-
   // const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [stepStatus, setStepStatus] = useState(
     Array(steps.length).fill("pending")
   );
-  const [activeTab, setActiveTab] = useState("Color");
   // const [images, setImages] = useState([]); // Removed unused global images
   // const variantImageInputRef = useRef(null); // Removed unused ref
   const objectUrlsRef = useRef([]);
@@ -341,24 +281,6 @@ const ProductForm = () => {
     if (formData.itemType === "Good" && !selectedBrands)
       newErrors.brand = "Brand is required";
     if (formData.isAdvanced) {
-      if (!formData.leadTime) newErrors.leadTime = "Lead Time is required";
-      if (
-        formData.leadTime &&
-        !validationPatterns.leadTime.test(formData.leadTime)
-      )
-        newErrors.leadTime = "Invalid Lead Time";
-      if (!formData.reorderLevel) newErrors.reorderLevel = "Reorder Level is required";
-      if (
-        formData.reorderLevel &&
-        !validationPatterns.reorderLevel.test(formData.reorderLevel)
-      )
-        newErrors.reorderLevel = "Invalid Reorder Level";
-      if (!formData.initialStock) newErrors.initialStock = "Initial Stock is required";
-      if (
-        formData.initialStock &&
-        !validationPatterns.initialStock.test(formData.initialStock)
-      )
-        newErrors.initialStock = "Invalid Initial Stock format";
       if (formData.trackType === "serial" && !formData.serialNumber)
         newErrors.serialNumber = "Serial Number is required";
       if (settings.supplier && !formData.supplier)
@@ -368,13 +290,6 @@ const ProductForm = () => {
         !validationPatterns.serialNumber.test(formData.serialNumber)
       )
         newErrors.serialNumber = "Invalid Serial Number";
-      if (formData.trackType === "batch" && !formData.batchNumber)
-        newErrors.batchNumber = "Batch Number is required";
-      if (
-        formData.batchNumber &&
-        !validationPatterns.batchNumber.test(formData.batchNumber)
-      )
-        newErrors.batchNumber = "Invalid Batch Number";
     }
     // Step 1: Pricing
 
@@ -406,13 +321,6 @@ const ProductForm = () => {
     if (!selectedUnits) newErrors.unit = "Unit is required";
     if (!formData.taxType) newErrors.taxType = "Tax Type is required";
     if (!formData.tax) newErrors.tax = "Tax Rate is required";
-    if (!formData.discountType) newErrors.discountType = "Discount Type is required";
-    if (!formData.discountValue) newErrors.discountValue = "Discount Value must be a positive number with up to 2 decimal places";
-    if (
-      formData.discountValue &&
-      !validationPatterns.discountValue.test(formData.discountValue)
-    )
-      newErrors.discountValue = "Discount Value must be a positive number with up to 2 decimal places";
 
     if (!formData.description) newErrors.description = "Description is required";
     if (
@@ -556,16 +464,10 @@ const ProductForm = () => {
     productName: "",
     itemBarcode: "",   // ✅ ADD
     purchasePrice: "",
-    mrp: "",
     sellingPrice: "",
     tax: "",
-    size: "",
-    color: "",
-    expiry: "",
     units: "",
     openingQuantity: "",
-    discountType: "",  // ✅ ADD
-    discountValue: "", // ✅ ADD
   });
 
   const handleChange = (e) => {
@@ -581,15 +483,12 @@ const ProductForm = () => {
         setFormData((prev) => ({
           ...prev,
           itemType: value,
-          mrp: "",
           wholesalePrice: "",
           retailPrice: "",
           quantity: "",
           unit: "",
           taxType: "",
           tax: "",
-          discountType: "",
-          discountValue: "",
           description: "",
           seoTitle: "",
           seoDescription: "",
@@ -599,14 +498,9 @@ const ProductForm = () => {
           isAdvanced: false,
           trackType: "serial",
           isReturnable: false,
-          leadTime: "",
-          reorderLevel: "",
-          initialStock: "",
           serialNumber: "",
           supplier: "",
-          batchNumber: "",
           returnable: false,
-          expirationDate: "",
         }));
       } else if (value === "Good") {
         // Clear all Service-specific fields (if any in future)
@@ -635,7 +529,6 @@ const ProductForm = () => {
       [
         "productName",
         "quantity",
-        "discountValue",
       ].includes(name)
     ) {
       return t("fieldRequired");
@@ -671,18 +564,6 @@ const ProductForm = () => {
         return validationPatterns.seoDescription.test(value)
           ? ""
           : t("invalidSeoDescriptionFormat");
-      case "leadTime":
-        return validationPatterns.leadTime.test(value)
-          ? ""
-          : t("invalidLeadTimeFormat");
-      case "reorderLevel":
-        return validationPatterns.reorderLevel.test(value)
-          ? ""
-          : t("invalidReorderLevelFormat");
-      case "initialStock":
-        return validationPatterns.initialStock.test(value)
-          ? ""
-          : t("invalidInitialStockFormat");
       case "serialNumber":
         return validationPatterns.serialNumber.test(value)
           ? ""
@@ -899,18 +780,6 @@ const ProductForm = () => {
           newErrors[`variant_${index}_sellingPrice`] = `Selling Price must be at least 1 for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_sellingPrice`);
         }
-        // if (!variant.size && settings.variants.size) {
-        //   newErrors[`variant_${index}_size`] = `Size is required for variant ${index + 1}`;
-        //   emptyFields.push(`variant_${index}_size`);
-        // }
-        // if (!variant.color && settings.variants.color) {
-        //   newErrors[`variant_${index}_color`] = `Color is required for variant ${index + 1}`;
-        //   emptyFields.push(`variant_${index}_color`);
-        // }
-        // if (!variant.expiryDate && settings.expiry) {
-        //   newErrors[`variant_${index}_expiry`] = `Expiry is required for variant ${index + 1}`;
-        //   emptyFields.push(`variant_${index}_expiry`);
-        // }
         if (!variant.unit && settings.units) {
           newErrors[`variant_${index}_unit`] = `Unit is required for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_unit`);
@@ -944,19 +813,7 @@ const ProductForm = () => {
         newErrors.sellingPrice = "Selling Price must be at least 1";
         emptyFields.push("variant_0_sellingPrice");
       }
-      // settings.variants.size/color check? Usually main product uses "size"/"color" fields if enabled.
-      // if (settings.variants.size && !mainVariant.size) {
-      //   newErrors.size = "Size is required";
-      //   emptyFields.push("variant_0_size");
-      // }
-      // if (settings.variants.color && !mainVariant.color) {
-      //   newErrors.color = "Color is required";
-      //   emptyFields.push("variant_0_color");
-      // }
-      // if (settings.expiry && !mainVariant.expiryDate) {
-      //   newErrors.expiry = "Expiry is required";
-      //   emptyFields.push("variant_0_expiry");
-      // }
+
       if (settings.units && !mainVariant.unit) {
         newErrors.units = "Unit is required";
         emptyFields.push("variant_0_unit");
@@ -1002,7 +859,6 @@ const ProductForm = () => {
     // Use first variant if available (Single Product Mode uses variant input fields)
     const mainVariant = variants[0] || {};
 
-    formPayload.append("mrp", mainVariant.mrp || formData.mrp || 0); // Added MRP
     if (settings.brand) formPayload.append("brand", selectedBrands?.value || "");
     if (settings.category) formPayload.append("category", selectedCategory?.value || "");
     if (settings.subcategory) formPayload.append("subCategory", selectedsubCategory?.value || "");
@@ -1019,10 +875,10 @@ const ProductForm = () => {
       formPayload.append("serialNumbers", JSON.stringify(mainVariant.serialNumbers || []));
     }
     if (settings.lotno) {
-       formPayload.append("lotNumber", mainVariant.lotNumber || formData.lotNumber || "");
+      formPayload.append("lotNumber", mainVariant.lotNumber || formData.lotNumber || "");
     }
     if (settings.supplier) formPayload.append("supplier", mainVariant.supplier || formData.supplier || "");
-    
+
     // Append Description
     formPayload.append("description", formData.description || "");
 
@@ -1031,19 +887,8 @@ const ProductForm = () => {
     formPayload.append("purchasePrice", mainVariant.purchasePrice || formData.purchasePrice || 0);
     formPayload.append("sellingPrice", mainVariant.sellingPrice || formData.sellingPrice || 0);
     formPayload.append("tax", mainVariant.tax || formData.tax || 0);
-    formPayload.append("size", mainVariant.size || formData.size || "");
-    formPayload.append("color", mainVariant.color || formData.color || "");
-    if (settings.expiry) formPayload.append("expiryDate", mainVariant.expiryDate || formData.expiry || "");
     if (settings.units) formPayload.append("unit", mainVariant.unit || formData.units || "");
     formPayload.append("openingQuantity", mainVariant.openingQuantity || formData.openingQuantity || 0);
-    formPayload.append("minStockToMaintain", mainVariant.minStockToMaintain || formData.minStockToMaintain || 0);
-
-    // Append discount fields
-    const discountAmt = mainVariant.discountAmount || formData.discountValue;
-    const discountTyp = mainVariant.discountType || formData.discountType || "Fixed";
-
-    formPayload.append("discountType", discountTyp);
-    formPayload.append("discountAmount", discountAmt || 0);
 
     // Append variants data ONLY if active/valid
     // Check if we have actual variants defined (e.g., first one has selectedVariant) OR multiple lots
@@ -1055,15 +900,15 @@ const ProductForm = () => {
     const variantsPayload = validVariants.map(v => {
       const taxVal =
         v.tax === "" || v.tax === null || v.tax === undefined ? 0 : Number(v.tax) || 0;
-      const hasDiscountAmount = !(v.discountAmount === "" || v.discountAmount === null || v.discountAmount === undefined);
-      const discountVal = hasDiscountAmount ? Number(v.discountAmount) || 0 : 0;
-      const discountTypeVal = hasDiscountAmount ? (v.discountType || "Fixed") : "Fixed";
       return {
         ...v,
         tax: taxVal,
-        discountAmount: discountVal,
-        discountType: discountTypeVal,
         imageCount: v.images ? v.images.length : 0,
+        // Ensure these fields are included explicitly if needed, though ...v covers them
+        description: formData.description || "", // Add description to variant if needed by backend
+        lotNumber: v.lotNumber || "",
+        serialNumbers: v.serialNumbers || [],
+        supplier: v.supplier || "",
       };
     });
     formPayload.append("variants", JSON.stringify(variantsPayload));
@@ -1078,20 +923,6 @@ const ProductForm = () => {
     }
 
     allImages.forEach((img) => formPayload.append("images", img));
-
-    formPayload.append(
-      "lotDetails",
-      JSON.stringify({
-        lotNo: lotDetails.lotNo,
-        lotmrp: lotDetails.lotmrp,
-        fabricBatchNo: lotDetails.fabricBatchNo,
-        productionDate: lotDetails.productionDate || null,
-        designCode: lotDetails.designCode,
-        quantity: lotDetails.quantity,
-        size: lotDetails.size,
-        color: lotDetails.color,
-      })
-    );
 
     try {
       await api.post("/api/products/create", formPayload);
@@ -1146,13 +977,9 @@ const ProductForm = () => {
     // variants.forEach((variant, index) => {
     //   const vPrefix = `Variant ${index + 1}`;
     //   if (!isFilled(variant.purchasePrice)) missingFields.push(`${vPrefix} Purchase Price`);
-    //   if (!isFilled(variant.mrp)) missingFields.push(`${vPrefix} MRP`);
     //   if (!isFilled(variant.sellingPrice)) missingFields.push(`${vPrefix} Selling Price`);
     //   if (!isFilled(variant.tax)) missingFields.push(`${vPrefix} Tax`);
-    //   if (!isFilled(variant.size)) missingFields.push(`${vPrefix} Size`);
-    //   if (!isFilled(variant.color)) missingFields.push(`${vPrefix} Color`);
     //   if (!isFilled(variant.openingQuantity)) missingFields.push(`${vPrefix} Opening Quantity`);
-    //   if (!isFilled(variant.discountAmount)) missingFields.push(`${vPrefix} Discount Amount`);
     // });
 
     // if (missingFields.length > 0) {
@@ -2045,105 +1872,6 @@ const ProductForm = () => {
                     </div>
                   </div>}
 
-                  {/* item code / bar code */}
-                  {settings.itembarcode && <div
-                    style={{
-                      width: "400px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "baseline",
-                        gap: "4px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: "var(--Black-Grey, #727681)",
-                          fontSize: "12px",
-                          fontFamily: "Inter",
-                          fontWeight: "400",
-                          lineHeight: "14.40px",
-                        }}
-                      >
-                        Item code / Bar code
-                      </span>
-                      <span
-                        style={{
-                          color: "var(--Danger, #D00003)",
-                          fontSize: "12px",
-                          fontFamily: "Inter",
-                          fontWeight: "400",
-                          lineHeight: "14.40px",
-                        }}
-                      >
-                        *
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "40px",
-                        padding: "0 12px",
-                        background: "white",
-                        borderRadius: "8px",
-                        border: highlightedFields.includes("itemBarcode") ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "8px",
-                        display: "flex",
-                      }}
-                    >
-                      {/* <input
-                          type="text"
-                          name="itemBarcode"
-                          value={formData.itemBarcode || ""}
-                          onChange={handleChange}
-                          placeholder="Generate barcode"
-                          style={{
-                            flex: 1,
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--Black-Black, #0E101A)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                            outline: "none",
-                          }}
-                        /> */}
-                      <span style={{ color: 'black' }}>{formData.itemBarcode || "click to..."}</span>
-                      <button
-                        type="button"
-                        onClick={handleGenerateBarcode}
-                        style={{
-                          padding: "4px 6px",
-                          background: "var(--Blue, #1F7FFF)",
-                          borderRadius: "4px",
-                          border: "none",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "var(--White, white)",
-                            fontSize: "14px",
-                            fontFamily: "Inter",
-                            fontWeight: "400",
-                          }}
-                        >
-                          Generate
-                        </span>
-                      </button>
-                    </div>
-                  </div>}
-
                   {/* hsn code */}
                   {settings.hsn && <div
                     style={{
@@ -2318,7 +2046,7 @@ const ProductForm = () => {
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "45px",
+                        width: "65px",
                       }}
                       className="col-1"
                     >
@@ -2328,7 +2056,7 @@ const ProductForm = () => {
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
-                          gap: '8px',
+                          gap: '6px',
                           height: "100%",
                           cursor: index === 0 ? "not-allowed" : "pointer",
                         }}
@@ -2338,7 +2066,7 @@ const ProductForm = () => {
                           setVariants(variants.filter((_, i) => i !== index));
                         }}
                       >
-                        <BsThreeDotsVertical className="fs-4" /> <RiDeleteBinLine className="text-danger fs-4" />
+                        <span>{index + 1}.</span><BsThreeDotsVertical className="fs-4" /> <RiDeleteBinLine className="text-danger fs-4" />
                       </div>
                     </div>
 
@@ -2396,64 +2124,64 @@ const ProductForm = () => {
                         }}
                       >
                         {settings.lotno && (
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            flex: 1
-                          }}
-                        >
-                          <input
-                            type="text"
-                            placeholder="Enter Lot No."
-                            name="lotNumber"
-                            value={variant.lotNumber || ""}
-                            onChange={(e) => handleVariantChange(index, "lotNumber", e.target.value)}
+                          <div
                             style={{
-                              width: "100%",
-                              border: "none",
-                              background: "transparent",
-                              color: "var(--Black-Black, #0E101A)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
-                              outline: "none",
-                            }}
-                          />
-                        </div>
-                        )}
-                        
-                        {settings.serialno && (
-                        <button
-                          type="button"
-                          style={{
-                            padding: "4px 6px",
-                            background: "var(--Blue, #1F7FFF)",
-                            borderRadius: "4px",
-                            border: "none",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: settings.lotno ? "120px" : "100%",
-                          }}
-                           onClick={() => {
-                             setCurrentVariantIndex(index);
-                             setAddSerialPopup(true);
-                           }}
-                        >
-                          <span
-                            style={{
-                              color: "var(--White, white)",
-                              fontSize: "14px",
-                              fontFamily: "Inter",
-                              fontWeight: "400",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              flex: 1
                             }}
                           >
-                            + Serial No.
-                          </span>
-                        </button>
+                            <input
+                              type="text"
+                              placeholder="Enter Lot No."
+                              name="lotNumber"
+                              value={variant.lotNumber || ""}
+                              onChange={(e) => handleVariantChange(index, "lotNumber", e.target.value)}
+                              style={{
+                                width: "100%",
+                                border: "none",
+                                background: "transparent",
+                                color: "var(--Black-Black, #0E101A)",
+                                fontSize: "14px",
+                                fontFamily: "Inter",
+                                fontWeight: "400",
+                                outline: "none",
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        {settings.serialno && (
+                          <button
+                            type="button"
+                            style={{
+                              padding: "4px 6px",
+                              background: "var(--Blue, #1F7FFF)",
+                              borderRadius: "4px",
+                              border: "none",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: settings.lotno ? "120px" : "100%",
+                            }}
+                            onClick={() => {
+                              setCurrentVariantIndex(index);
+                              setAddSerialPopup(true);
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "var(--White, white)",
+                                fontSize: "14px",
+                                fontFamily: "Inter",
+                                fontWeight: "400",
+                              }}
+                            >
+                              + Serial No.
+                            </span>
+                          </button>
                         )}
                       </div>
                     </div>}
@@ -2783,7 +2511,7 @@ const ProductForm = () => {
                             }}
                           />
                         </div>
-                        
+
                       </div>
 
                       <span
@@ -2984,8 +2712,12 @@ const ProductForm = () => {
                           }}
                         >
                           <option value="">Select GST</option>
+                          <option value="0">0%</option>
+                          <option value="0.25">0.25%</option>
+                          <option value="3">3%</option>
                           <option value="5">5%</option>
                           <option value="18">18%</option>
+                          <option value="40">40%</option>
                         </select>
                       </div>
                     </div>
@@ -3010,19 +2742,19 @@ const ProductForm = () => {
 
                         <div style={{ padding: '16px 8px', }} className="delete-hover">
 
-                        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'20px'}}>
-                          <div
-                            style={{
-                              color: "black",
-                              fontSize: "16px",
-                              fontFamily: "Inter",
-                              fontWeight: "500",
-                              lineHeight: "19.20px",
-                            }}
-                          >
-                            Add Serial No. for {variants[currentVariantIndex]?.serialNumbers?.length || 0} Quantity
-                          </div>
-                          
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                            <div
+                              style={{
+                                color: "black",
+                                fontSize: "16px",
+                                fontFamily: "Inter",
+                                fontWeight: "500",
+                                lineHeight: "19.20px",
+                              }}
+                            >
+                              Add Serial No. for {variants[currentVariantIndex]?.serialNumbers?.length || 0} Quantity
+                            </div>
+
                             {/* add button */}
                             <button
                               type="button"
@@ -3050,7 +2782,7 @@ const ProductForm = () => {
                                 + Add
                               </span>
                             </button>
-                        </div>
+                          </div>
 
                           <div style={{
                             display: "flex",
@@ -3060,117 +2792,145 @@ const ProductForm = () => {
                             flexDirection: 'column'
                           }}>
                             {(variants[currentVariantIndex]?.serialNumbers || []).map((serial, sIndex) => (
-                                <div key={sIndex} style={{
-                                  display: "flex",
-                                  gap: "16px",
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
-                                }}>
+                              <div key={sIndex} style={{
+                                display: "flex",
+                                gap: "16px",
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                              }}>
 
-                                  {/* quantity no */}
+                                {/* quantity no */}
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                    width: "30px",
+                                  }}
+                                  className="col-1"
+                                >
                                   <div
+                                    className=""
                                     style={{
                                       display: "flex",
-                                      flexDirection: "column",
-                                      gap: "4px",
-                                      width: "30px",
+                                      justifyContent: "center",
+                                      alignItems: "center",
+                                      gap: '8px',
+                                      height: "100%",
                                     }}
-                                    className="col-1"
+                                  >
+                                    {sIndex + 1}<BsThreeDotsVertical className="fs-4" />
+                                  </div>
+                                </div>
+
+                                {/* serial no */}
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                    width: "195px",
+                                  }}
+                                  className="col-1"
+                                >
+                                  <div
+                                    style={{
+                                      height: "40px",
+                                      padding: "0 12px",
+                                      background: "white",
+                                      borderRadius: "8px",
+                                      border: "1px var(--White-Stroke, #EAEAEA) solid",
+                                      justifyContent: "flex-start",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      display: "flex",
+                                    }}
                                   >
                                     <div
-                                      className=""
                                       style={{
                                         display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        gap: '8px',
-                                        height: "100%",
-                                      }}
-                                    >
-                                      {sIndex + 1}<BsThreeDotsVertical className="fs-4" />
-                                    </div>
-                                  </div>
-
-                                  {/* serial no */}
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      flexDirection: "column",
-                                      gap: "4px",
-                                      width: "195px",
-                                    }}
-                                    className="col-1"
-                                  >
-                                    <div
-                                      style={{
-                                        height: "40px",
-                                        padding: "0 12px",
-                                        background: "white",
-                                        borderRadius: "8px",
-                                        border: "1px var(--White-Stroke, #EAEAEA) solid",
-                                        justifyContent: "flex-start",
                                         alignItems: "center",
                                         gap: "8px",
-                                        display: "flex",
+                                        width: "100%"
                                       }}
                                     >
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: "8px",
-                                          width: "100%"
+                                      <input
+                                        id={`serial-input-${sIndex}`}
+                                        type="text"
+                                        placeholder="Enter Serial No."
+                                        value={serial}
+                                        onChange={(e) => handleSerialChange(sIndex, e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleAddSerialField();
+                                            setTimeout(() => {
+                                              const nextInput = document.getElementById(`serial-input-${sIndex + 1}`);
+                                              if (nextInput) nextInput.focus();
+                                            }, 100);
+                                          }
                                         }}
-                                      >
-                                        <input
-                                          id={`serial-input-${sIndex}`}
-                                          type="text"
-                                          placeholder="Enter Serial No."
-                                          value={serial}
-                                          onChange={(e) => handleSerialChange(sIndex, e.target.value)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === "Enter") {
-                                              e.preventDefault();
-                                              handleAddSerialField();
-                                              setTimeout(() => {
-                                                const nextInput = document.getElementById(`serial-input-${sIndex + 1}`);
-                                                if (nextInput) nextInput.focus();
-                                              }, 100);
-                                            }
-                                          }}
-                                          style={{
-                                            width: "100%",
-                                            border: "none",
-                                            background: "transparent",
-                                            color: "var(--Black-Black, #0E101A)",
-                                            fontSize: "14px",
-                                            fontFamily: "Inter",
-                                            fontWeight: "400",
-                                            outline: "none",
-                                          }}
-                                        />
-                                      </div>
+                                        style={{
+                                          width: "100%",
+                                          border: "none",
+                                          background: "transparent",
+                                          color: "var(--Black-Black, #0E101A)",
+                                          fontSize: "14px",
+                                          fontFamily: "Inter",
+                                          fontWeight: "400",
+                                          outline: "none",
+                                        }}
+                                      />
                                     </div>
                                   </div>
-
-                                  {/* Remove button */}
-                                  <button
-                                      type="button"
-                                      onClick={() => handleRemoveSerial(sIndex)}
-                                      style={{
-                                          background: "transparent",
-                                          border: "none",
-                                          color: "var(--Danger, #D00003)",
-                                          cursor: "pointer",
-                                          fontSize: "18px"
-                                      }}
-                                  >
-                                      &times;
-                                  </button>
                                 </div>
+
+                                {/* Remove button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSerial(sIndex)}
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    color: "var(--Danger, #D00003)",
+                                    cursor: "pointer",
+                                    fontSize: "18px"
+                                  }}
+                                >
+                                  &times;
+                                </button>
+                              </div>
                             ))}
                           </div>
 
+                          {/* done button */}
+                          <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <button
+                              style={{
+                                padding: "6px 6px",
+                                background: "var(--Blue, #1F7FFF)",
+                                borderRadius: "4px",
+                                border: "none",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: "70px",
+                              }}
+                              onClick={(e) => setAddSerialPopup(false)}
+                            >
+                              <span
+                                style={{
+                                  color: "var(--White, white)",
+                                  fontSize: "14px",
+                                  fontFamily: "Inter",
+                                  fontWeight: "400",
+                                }}
+                              >
+                                Done
+                              </span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>}
@@ -3316,7 +3076,7 @@ const ProductForm = () => {
                           lineHeight: "16.80px",
                         }}
                       >
-                        {`${index + 1} Lot`}
+                        {`${index + 1}. Lot`}
                       </span>
 
                       <div

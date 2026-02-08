@@ -506,9 +506,9 @@ function ShowCustomerInvoice() {
                                   borderBottom: "1px solid #EAEAEA",
                                   fontWeight: "400",
                                 }}
-                                rowSpan="2"
+                                rowSpan="3"
                               >
-                                QTY
+                                Lot No.
                               </th>
                               <th
                                 style={{
@@ -518,7 +518,7 @@ function ShowCustomerInvoice() {
                                 }}
                                 rowSpan="2"
                               >
-                                Serial No.
+                                QTY
                               </th>
                               {printSettings.showRate && (
                                 <th
@@ -596,10 +596,29 @@ function ShowCustomerInvoice() {
                                   <td
                                     style={{
                                       borderRight: "1px solid #EAEAEA",
-                                      padding: "0px 20px",
+                                      padding: "8px 20px",
+                                      verticalAlign: "top",
                                     }}
                                   >
-                                    {item.itemName}
+                                    <div style={{ fontWeight: "500", marginBottom: "4px" }}>
+                                      {item.itemName}
+                                    </div>
+                                    {/* Serial Numbers Below Product Name */}
+                                    {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
+                                      <div
+                                        style={{
+                                          fontSize: "11px",
+                                          color: "#666",
+                                          fontStyle: "italic",
+                                          marginTop: "4px",
+                                          lineHeight: "1.3",
+                                        }}
+                                      >
+                                        <div style={{ fontWeight: "400", marginBottom: "2px" }}>
+                                          {item.selectedSerialNos.join(", ")}
+                                        </div>
+                                      </div>
+                                    )}
                                   </td>
                                   {printSettings.showHSN && (
                                     <td
@@ -611,6 +630,17 @@ function ShowCustomerInvoice() {
                                       {item.hsnCode || "-"}
                                     </td>
                                   )}
+                                  {/* Lot Number Before QTY */}
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      textAlign: "center",
+                                      verticalAlign: "top",
+                                      paddingTop: "8px",
+                                    }}
+                                  >
+                                    {item.lotNumber || "-"}
+                                  </td>
                                   <td
                                     style={{
                                       borderRight: "1px solid #EAEAEA",
@@ -619,14 +649,7 @@ function ShowCustomerInvoice() {
                                   >
                                     {item.qty}
                                   </td>
-                                  <td
-                                    style={{
-                                      borderRight: "1px solid #EAEAEA",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {item.serialno || "-"}
-                                  </td>
+
                                   {printSettings.showRate && (
                                     <td
                                       style={{

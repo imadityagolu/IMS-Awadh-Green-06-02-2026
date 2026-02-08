@@ -9,7 +9,14 @@ const itemSchema = new mongoose.Schema(
     },
     itemName: { type: String, required: true },
     hsnCode: { type: String },
-    serialno: { type: String },
+    serialNumbers: [
+      {
+        type: String,
+        index: true,
+      },
+    ],
+    lotNumber: { type: String }, // Add lot number field
+    selectedSerialNos: [{ type: String }],
     qty: { type: Number, required: true, min: 1 }, // CHANGED min: 0 to min: 1
     unit: { type: String, required: true },
     unitPrice: { type: Number, required: true, min: 0 },
@@ -107,12 +114,12 @@ const invoiceSchema = new mongoose.Schema(
     taxSettings: {
       enableGSTBilling: { type: Boolean, default: true },
       priceIncludeGST: { type: Boolean, default: true },
-      autoRoundOff: { 
-        type: String, 
-        enum: ["0", "1", "5", "10"], 
-        default: "0" 
+      autoRoundOff: {
+        type: String,
+        enum: ["0", "1", "5", "10"],
+        default: "0",
       },
-      defaultGSTRate: { type: String, default: "18" }
+      defaultGSTRate: { type: String, default: "18" },
     },
 
     attachments: [
@@ -184,7 +191,7 @@ invoiceSchema.virtual("dueStatus").get(function () {
   const dueDate = new Date(this.dueDate);
   const diffTime = dueDate - today;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   if (this.status === "paid" || this.status === "cancelled") {
     return "paid";
   } else if (diffDays < 0) {

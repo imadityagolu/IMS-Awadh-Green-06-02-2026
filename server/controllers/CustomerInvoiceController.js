@@ -138,8 +138,38 @@ const parseFormDataNested = (body) => {
         "discountAmt",
         "amount",
       ];
+
       if (numericFields.includes(field)) {
         items[index][field] = parseFloat(body[key]) || 0;
+      } else if (field === "selectedSerialNos") {
+        try {
+          // FIX: Properly parse JSON string
+          const serialNosValue = body[key];
+
+          // If it's already an array (string representation)
+          if (typeof serialNosValue === "string") {
+            // Check if it's JSON array format
+            if (
+              serialNosValue.startsWith("[") &&
+              serialNosValue.endsWith("]")
+            ) {
+              items[index][field] = JSON.parse(serialNosValue);
+            } else {
+              // Handle comma-separated string
+              items[index][field] = serialNosValue
+                .split(",")
+                .map((s) => s.trim())
+                .filter((s) => s);
+            }
+          } else if (Array.isArray(serialNosValue)) {
+            // Already an array
+            items[index][field] = serialNosValue;
+          } else {
+            items[index][field] = [];
+          }
+        } catch {
+          items[index][field] = [];
+        }
       } else {
         items[index][field] = body[key];
       }
@@ -341,12 +371,78 @@ exports.createInvoice = async (req, res) => {
         });
       }
 
+      // Validate serial numbers if provided
+      let selectedSerialNos = item.selectedSerialNos;
+
+      // Convert to array if it's not already
+      if (!Array.isArray(selectedSerialNos)) {
+        if (typeof selectedSerialNos === "string") {
+          // Try to parse JSON or split by comma
+          try {
+            if (
+              selectedSerialNos.startsWith("[") &&
+              selectedSerialNos.endsWith("]")
+            ) {
+              selectedSerialNos = JSON.parse(selectedSerialNos);
+            } else {
+              selectedSerialNos = selectedSerialNos
+                .split(",")
+                .map((s) => s.trim())
+                .filter((s) => s !== "");
+            }
+          } catch {
+            selectedSerialNos = [];
+          }
+        } else if (selectedSerialNos) {
+          // If it's a single value, wrap in array
+          selectedSerialNos = [selectedSerialNos];
+        } else {
+          selectedSerialNos = [];
+        }
+      }
+
+      if (selectedSerialNos.length > 0) {
+        const availableSerials = product.serialNumbers || [];
+
+        // Ensure all serials are strings for comparison
+        const selectedSerialsStr = selectedSerialNos.map((s) =>
+          String(s).trim(),
+        );
+        const availableSerialsStr = availableSerials.map((s) =>
+          String(s).trim(),
+        );
+
+        const unavailableSerials = selectedSerialsStr.filter(
+          (serial) => !availableSerialsStr.includes(serial),
+        );
+
+        if (unavailableSerials.length > 0) {
+          return res.status(400).json({
+            success: false,
+            error: `Serial number(s) not available for ${product.productName}: ${unavailableSerials.join(", ")}`,
+          });
+        }
+      }
+
+      // Check stock availability
+      const currentStock = product.stockQuantity || 0;
+      const requestedQty = parseFloat(item.qty) || 1;
+
+      if (currentStock < requestedQty) {
+        return res.status(400).json({
+          success: false,
+          error: `Insufficient stock for ${product.productName}. Available: ${currentStock}, Requested: ${requestedQty}`,
+        });
+      }
+
       // Use item data from frontend (already calculated)
       const validatedItem = {
         productId: item.productId,
         itemName: item.itemName || product.productName,
         hsnCode: item.hsnCode || product.hsnCode || "",
-        serialno: item.serialno || product.serialno || "",
+        // serialno: item.serialno || selectedSerialNos.join(", "),
+        selectedSerialNos: selectedSerialNos,
+        lotNumber: item.lotNumber || product.lotNumber || "", // Add lot number
         qty: parseFloat(item.qty) || 1,
         unit: item.unit || product.unit || "Piece",
         unitPrice: parseFloat(item.unitPrice) || product.sellingPrice || 0,
@@ -416,50 +512,51 @@ exports.createInvoice = async (req, res) => {
     }
 
     // Add stock validation before creating invoice
-    for (const item of validatedItems) {
-      if (item.productId) {
-        const product = await Product.findById(item.productId);
-        if (product) {
-          // After use stock quantity
-          const currentStock = product.stockQuantity || 0;
-          if (currentStock < item.qty) {
-            return res.status(400).json({
-              success: false,
-              error: `Insufficient stock for ${product.productName}. Available: ${currentStock}, Requested: ${item.qty}`,
-            });
-          }
-          // check if serial numbers are provided and validate them
-          if (item.serialNumbers && item.serialNumbers.length > 0) {
-            const availableSerials = product.serialno
-              ? product.serialno.split(",").map((sn) => sn.trim())
-              : [];
+    // for (const item of validatedItems) {
+    //   if (item.productId) {
+    //     const product = await Product.findById(item.productId);
+    //     if (product) {
+    //       // After use stock quantity
+    //       const currentStock = product.stockQuantity || 0;
+    //       if (currentStock < item.qty) {
+    //         return res.status(400).json({
+    //           success: false,
+    //           error: `Insufficient stock for ${product.productName}. Available: ${currentStock}, Requested: ${item.qty}`,
+    //         });
+    //       }
+    //       // check if serial numbers are provided and validate them
+    //       if (item.selectedSerialNos && item.selectedSerialNos.length > 0) {
+    //         const availableSerials = product.serialNumbers || [];
+    //         const selectedSerialsStr = item.selectedSerialNos.map((s) =>
+    //           String(s).trim(),
+    //         );
+    //         const availableSerialsStr = availableSerials.map((s) =>
+    //           String(s).trim(),
+    //         );
+    //         // Check if all selected serials are available
+    //         const unavailableSerials = item.selectedSerialNos.filter(
+    //           (serial) => !availableSerials.includes(serial),
+    //         );
 
-            // check if all selected serials are available
-
-            // Check if all selected serials are available
-            const unavailableSerials = item.serialNumbers.filter(
-              (serial) => !availableSerials.includes(serial),
-            );
-
-            if (unavailableSerials.length > 0) {
-              return res.status(400).json({
-                success: false,
-                error: `Serial number(s) not available for ${product.productName}: ${unavailableSerials.join(", ")}`,
-              });
-            }
-            // remove used serial numbers from product's avaialble list
-            const remainingSerials = availableSerials.filter(
-              (serial) => !item.serialNumbers.includes(serial),
-            );
-            // update product with remaining serial numbers
-            product.serialno = remainingSerials.join(", ");
-          }
-          //update stock
-          product.stockQuantity = currentStock - item.qty;
-          await product.save();
-        }
-      }
-    }
+    //         if (unavailableSerials.length > 0) {
+    //           return res.status(400).json({
+    //             success: false,
+    //             error: `Serial number(s) not available for ${product.productName}: ${unavailableSerials.join(", ")}`,
+    //           });
+    //         }
+    //         // remove used serial numbers from product's avaialble list
+    //         const remainingSerials = availableSerials.filter(
+    //           (serial) => !item.serialNumbers.includes(serial),
+    //         );
+    //         // update product with remaining serial numbers
+    //         // product.serialno = remainingSerials.join(", ");
+    //       }
+    //       //update stock
+    //       product.stockQuantity = currentStock - item.qty;
+    //       await product.save();
+    //     }
+    //   }
+    // }
     // Create invoice - USING VALUES FROM FRONTEND
     const invoice = new Invoice({
       customerId,
@@ -528,6 +625,31 @@ exports.createInvoice = async (req, res) => {
     // Save invoice - NO SESSION
     await invoice.save();
 
+    // UPDATE PRODUCTS AFTER SUCCESSFUL INVOICE CREATION
+    for (const item of validatedItems) {
+      if (item.productId) {
+        const product = await Product.findById(item.productId);
+        if (product) {
+          // Update stock quantity
+          product.stockQuantity = Math.max(
+            0,
+            (product.stockQuantity || 0) - item.qty,
+          );
+
+          // Remove serial numbers if any
+          if (item.selectedSerialNos && item.selectedSerialNos.length > 0) {
+            const currentSerials = product.serialNumbers || [];
+            const remainingSerials = currentSerials.filter(
+              (serial) => !item.selectedSerialNos.includes(serial),
+            );
+            product.serialNumbers = remainingSerials;
+          }
+
+          await product.save();
+        }
+      }
+    }
+
     // Calculate points earned (1 point per ₹10 spent)
     const POINTS_RATE = 10;
     const pointsEarned =
@@ -555,17 +677,17 @@ exports.createInvoice = async (req, res) => {
     await updateCustomerDueAmount(customerId);
 
     // Update product stock quantities
-    for (const item of validatedItems) {
-      if (item.productId) {
-        await Product.findByIdAndUpdate(
-          item.productId,
-          {
-            $inc: { stockQuantity: -item.qty },
-          },
-          { new: true },
-        );
-      }
-    }
+    // for (const item of validatedItems) {
+    //   if (item.productId) {
+    //     await Product.findByIdAndUpdate(
+    //       item.productId,
+    //       {
+    //         $inc: { stockQuantity: -item.qty },
+    //       },
+    //       { new: true },
+    //     );
+    //   }
+    // }
 
     // Populate and return response
     const populatedInvoice = await Invoice.findById(invoice._id)

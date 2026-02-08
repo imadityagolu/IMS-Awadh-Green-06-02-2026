@@ -849,18 +849,18 @@ function CustomerCreateInvoice() {
         // store all product for searching
         // Store all products for searching
         const fetchedProducts = productsRes.data.products || productsRes.data;
-        console.log("📦 Raw fetched products:", fetchedProducts);
+        // console.log("📦 Raw fetched products:", fetchedProducts);
         // Enhance products with serial number information
         const enhancedProducts = await Promise.all(
           fetchedProducts.map(async (product) => {
-            console.log("🔍 Processing product:", {
-              id: product._id,
-              name: product.productName,
-              serialNumbers: product.serialNumbers,
-              lotNumber: product.lotNumber,
-              hasSerialNumbersArray: Array.isArray(product.serialNumbers),
-              serialnoField: product.serialno
-            });
+            // console.log("🔍 Processing product:", {
+            //   id: product._id,
+            //   name: product.productName,
+            //   serialNumbers: product.serialNumbers,
+            //   lotNumber: product.lotNumber,
+            //   hasSerialNumbersArray: Array.isArray(product.serialNumbers),
+            //   serialnoField: product.serialno
+            // });
             let serialNumbers = [];
             if (product.serialNumbers && Array.isArray(product.serialNumbers)) {
               serialNumbers = product.serialNumbers;
@@ -875,12 +875,12 @@ function CustomerCreateInvoice() {
             };
           })
         );
-        console.log("✅ Enhanced products:", enhancedProducts.map(p => ({
-          name: p.productName,
-          lotNumber: p.lotNumber,
-          serialCount: p.availableSerialNos?.length || 0,
-          serials: p.availableSerialNos
-        })));
+        // console.log("✅ Enhanced products:", enhancedProducts.map(p => ({
+        //   name: p.productName,
+        //   lotNumber: p.lotNumber,
+        //   serialCount: p.availableSerialNos?.length || 0,
+        //   serials: p.availableSerialNos
+        // })));
         setAllProducts(enhancedProducts);
         setFilteredProducts(enhancedProducts);
         setProductOptions(
@@ -1073,13 +1073,13 @@ function CustomerCreateInvoice() {
   };
 
   const handleProductSelect = async (product, rowId) => {
-    console.log("🚀 handleProductSelect called:", {
-      productName: product.productName,
-      serialNumbers: product.serialNumbers,
-      lotNumber: product.lotNumber,
-      availableSerialNos: product.availableSerialNos,
-      productData: product // Log entire product to see structure
-    });
+    // console.log("🚀 handleProductSelect called:", {
+    //   productName: product.productName,
+    //   serialNumbers: product.serialNumbers,
+    //   lotNumber: product.lotNumber,
+    //   availableSerialNos: product.availableSerialNos,
+    //   productData: product // Log entire product to see structure
+    // });
     let serialNumbers = [];
     if (product.availableSerialNos && Array.isArray(product.availableSerialNos)) {
       serialNumbers = product.availableSerialNos;
@@ -1233,7 +1233,7 @@ function CustomerCreateInvoice() {
   };
 
   const updateProduct = (id, field, value) => {
-    console.log(`🔄 updateProduct called: id=${id}, field=${field}, value=`, value);
+    // console.log(`🔄 updateProduct called: id=${id}, field=${field}, value=`, value);
     setProducts((prev) =>
       prev.map((p) => {
         if (p.id !== id) return p;
@@ -1371,10 +1371,10 @@ function CustomerCreateInvoice() {
         // updated.serialno = updated.selectedSerialNos.join(", ");
 
         if (field === "lotNumber") {
-          console.log(`📝 Setting lotNumber for product ${p.name}:`, value);
+          // console.log(`📝 Setting lotNumber for product ${p.name}:`, value);
         }
         if (field === "availableSerialNos") {
-          console.log(`📝 Setting availableSerialNos for product ${p.name}:`, value);
+          // console.log(`📝 Setting availableSerialNos for product ${p.name}:`, value);
         }
         return updated;
       }),
@@ -1788,7 +1788,7 @@ function CustomerCreateInvoice() {
       });
 
       // Debug: Log what's being sent
-      console.log("Sending form data:");
+      // console.log("Sending form data:");
       for (let pair of formData.entries()) {
         // console.log(pair[0] + ": " + pair[1]);
       }

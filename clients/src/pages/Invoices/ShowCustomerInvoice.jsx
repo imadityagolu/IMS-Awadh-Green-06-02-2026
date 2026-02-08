@@ -233,7 +233,7 @@ function ShowCustomerInvoice() {
                 minWidth: "595px",
                 maxWidth: "595px",
                 height: "842px", // A4 height at 72 DPI
-                minHeight: "842px",
+                minHeight: "970px",
                 paddingTop: 10.37,
                 paddingBottom: 20.37,
                 paddingLeft: 30.37,

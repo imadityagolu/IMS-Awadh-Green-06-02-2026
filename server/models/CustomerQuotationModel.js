@@ -9,6 +9,8 @@ const quotationItemSchema = new mongoose.Schema(
     },
     itemName: { type: String, required: true },
     hsnCode: { type: String },
+    lotNumber: { type: String },
+    selectedSerialNos: [{ type: String }],
     qty: { type: Number, required: true, min: 1 },
     unit: { type: String, required: true },
     unitPrice: { type: Number, required: true, min: 0 },
@@ -19,7 +21,7 @@ const quotationItemSchema = new mongoose.Schema(
     discountAmt: { type: Number, default: 0 },
     amount: { type: Number, required: true, min: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const quotationSchema = new mongoose.Schema(
@@ -43,22 +45,22 @@ const quotationSchema = new mongoose.Schema(
       required: true,
     },
     items: [quotationItemSchema],
-    
+
     billingAddress: { type: String, required: true },
     shippingAddress: { type: String },
-    
+
     subtotal: { type: Number, required: true, min: 0 },
     totalTax: { type: Number, default: 0 },
     totalDiscount: { type: Number, default: 0 },
-    
+
     additionalDiscount: {
       pct: { type: Number, default: 0 },
       amt: { type: Number, default: 0 },
     },
-    
-    additionalCharges: { 
-      type: Number, 
-      default: 0 
+
+    additionalCharges: {
+      type: Number,
+      default: 0,
     },
     additionalChargesDetails: {
       shipping: { type: Number, default: 0 },
@@ -67,71 +69,82 @@ const quotationSchema = new mongoose.Schema(
       service: { type: Number, default: 0 },
       other: { type: Number, default: 0 },
     },
-    
+
     shoppingPointsUsed: { type: Number, default: 0 },
     pointValue: { type: Number, default: 10 },
-    
+
     autoRoundOff: { type: Boolean, default: false },
     roundOffValue: { type: Number, default: 0 },
-    
+
     grandTotal: { type: Number, required: true, min: 0 },
-    
+
     // Quotation specific fields
-    validForDays: { 
-      type: Number, 
+    validForDays: {
+      type: Number,
       default: 30,
       min: 1,
-      max: 365 
+      max: 365,
     },
-    
-status: {
-  type: String,
-  enum: ["draft", "sent", "accepted", "rejected", "expired", "converted", "paid", "partial"],
-  default: "draft",
-},
-    
+
+    status: {
+      type: String,
+      enum: [
+        "draft",
+        "sent",
+        "accepted",
+        "rejected",
+        "expired",
+        "converted",
+        "paid",
+        "partial",
+      ],
+      default: "draft",
+    },
+
     convertedToInvoice: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CustomerInvoice",
     },
     convertedAt: { type: Date },
-    
-    attachments: [{
-      url: { type: String },
-      public_id: { type: String },
-      filename: { type: String },
-      uploadedAt: { type: Date, default: Date.now }
-    }],
-    
+
+    attachments: [
+      {
+        url: { type: String },
+        public_id: { type: String },
+        filename: { type: String },
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
+
     notes: { type: String },
     termsAndConditions: { type: String },
-    
-   createdBy: {
-         type: mongoose.Schema.Types.ObjectId,
-         ref: "Users",
-       },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Virtuals
-quotationSchema.virtual("formattedDate").get(function() {
+quotationSchema.virtual("formattedDate").get(function () {
   return this.quotationDate.toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
-    year: "numeric"
+    year: "numeric",
   });
 });
 
-quotationSchema.virtual("formattedExpiryDate").get(function() {
+quotationSchema.virtual("formattedExpiryDate").get(function () {
   return this.expiryDate.toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
-    year: "numeric"
+    year: "numeric",
   });
 });
 
-quotationSchema.virtual("daysRemaining").get(function() {
+quotationSchema.virtual("daysRemaining").get(function () {
   const now = new Date();
   const expiry = new Date(this.expiryDate);
   const diffTime = expiry - now;
@@ -146,66 +159,77 @@ quotationSchema.index({ expiryDate: 1 });
 quotationSchema.index({ status: 1, expiryDate: 1 });
 
 // Pre-save middleware
-quotationSchema.pre("save", function(next) {
+quotationSchema.pre("save", function (next) {
   // Set expiry date if not provided
   if (!this.expiryDate) {
     this.expiryDate = new Date(this.quotationDate);
-    this.expiryDate.setDate(this.expiryDate.getDate() + (this.validForDays || 30));
+    this.expiryDate.setDate(
+      this.expiryDate.getDate() + (this.validForDays || 30),
+    );
   }
-  
+
   // Set validForDays based on dates
   if (this.quotationDate && this.expiryDate) {
     const diffTime = this.expiryDate - this.quotationDate;
     this.validForDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
-  
+
   next();
 });
 
 // Method to calculate totals - SAME AS INVOICE
-quotationSchema.methods.calculateTotals = function() {
+quotationSchema.methods.calculateTotals = function () {
   // Calculate subtotal from items (qty * unitPrice)
   this.subtotal = this.items.reduce((sum, item) => {
-    return sum + (item.qty * item.unitPrice);
+    return sum + item.qty * item.unitPrice;
   }, 0);
-  
+
   // Calculate total tax
   this.totalTax = this.items.reduce((sum, item) => {
     return sum + (item.taxAmount || 0);
   }, 0);
-  
+
   // Calculate items discount
   const itemsDiscount = this.items.reduce((sum, item) => {
     return sum + (item.discountAmt || 0);
   }, 0);
-  
+
   // Calculate additional discount
   let additionalDiscountValue = 0;
   if (this.additionalDiscount) {
     if (this.additionalDiscount.pct > 0) {
-      additionalDiscountValue = (this.subtotal * this.additionalDiscount.pct) / 100;
+      additionalDiscountValue =
+        (this.subtotal * this.additionalDiscount.pct) / 100;
     } else if (this.additionalDiscount.amt > 0) {
       additionalDiscountValue = this.additionalDiscount.amt;
     }
   }
-  
+
   this.totalDiscount = itemsDiscount + additionalDiscountValue;
-  
+
   // Calculate additional charges
   const additionalChargesDetails = this.additionalChargesDetails || {};
-  const { shipping = 0, handling = 0, packing = 0, service = 0, other = 0 } = additionalChargesDetails;
+  const {
+    shipping = 0,
+    handling = 0,
+    packing = 0,
+    service = 0,
+    other = 0,
+  } = additionalChargesDetails;
   this.additionalCharges = shipping + handling + packing + service + other;
-  
+
   // Calculate points redeemed amount
-  const pointsRedeemedAmount = (this.shoppingPointsUsed || 0) * (this.pointValue || 10);
-  
+  const pointsRedeemedAmount =
+    (this.shoppingPointsUsed || 0) * (this.pointValue || 10);
+
   // Calculate grand total
-  let grandTotalBefore = this.subtotal + 
-                         this.totalTax + 
-                         this.additionalCharges - 
-                         this.totalDiscount - 
-                         pointsRedeemedAmount;
-  
+  let grandTotalBefore =
+    this.subtotal +
+    this.totalTax +
+    this.additionalCharges -
+    this.totalDiscount -
+    pointsRedeemedAmount;
+
   // Apply round off if enabled
   if (this.autoRoundOff) {
     this.roundOffValue = Math.round(grandTotalBefore) - grandTotalBefore;
@@ -217,9 +241,9 @@ quotationSchema.methods.calculateTotals = function() {
 };
 
 // Method to convert quotation to invoice
-quotationSchema.methods.convertToInvoice = async function(invoiceNo) {
+quotationSchema.methods.convertToInvoice = async function (invoiceNo) {
   const Invoice = mongoose.model("CustomerInvoice");
-  
+
   const invoiceData = {
     customerId: this.customerId,
     invoiceNo: invoiceNo,
@@ -244,35 +268,37 @@ quotationSchema.methods.convertToInvoice = async function(invoiceNo) {
     termsAndConditions: this.termsAndConditions,
     createdBy: this.createdBy,
   };
-  
+
   const invoice = new Invoice(invoiceData);
   await invoice.save();
-  
+
   // Update quotation status
   this.status = "converted";
   this.convertedToInvoice = invoice._id;
   this.convertedAt = new Date();
   await this.save();
-  
+
   return invoice;
 };
 
 // Static method to check and update expired quotations
-quotationSchema.statics.updateExpiredQuotations = async function() {
+quotationSchema.statics.updateExpiredQuotations = async function () {
   const now = new Date();
-  
+
   const result = await this.updateMany(
     {
       status: { $in: ["draft", "sent"] },
       expiryDate: { $lt: now },
-      status: { $ne: "expired" }
+      status: { $ne: "expired" },
     },
     {
-      $set: { status: "expired" }
-    }
+      $set: { status: "expired" },
+    },
   );
-  
+
   return result;
 };
 
-module.exports = mongoose.models.CustomerQuotation || mongoose.model("CustomerQuotation", quotationSchema);
+module.exports =
+  mongoose.models.CustomerQuotation ||
+  mongoose.model("CustomerQuotation", quotationSchema);

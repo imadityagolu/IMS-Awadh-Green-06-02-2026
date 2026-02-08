@@ -20,6 +20,429 @@ import "react-datepicker/dist/react-datepicker.css";
 import AddCustomers from "../Modal/customerModals/AddCustomerModal";
 import { FiSearch } from "react-icons/fi";
 
+
+const SerialNumberDropdown = ({
+  product,
+  onSelect,
+  onQtyChange,
+  disabled = false,
+  isQuotation = false // Add this prop to distinguish between invoice and quotation
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [tempQty, setTempQty] = useState(product.qty || 1);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  // Calculate dropdown position
+  const updateDropdownPosition = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  };
+
+  const toggleSerialNo = (serialNo) => {
+    const currentSelected = product.selectedSerialNos || [];
+    let newSelected;
+
+    if (currentSelected.includes(serialNo)) {
+      newSelected = currentSelected.filter(sn => sn !== serialNo);
+    } else {
+      newSelected = [...currentSelected, serialNo];
+    }
+
+    onSelect(newSelected);
+
+    const newQty = newSelected.length || 1;
+    if (onQtyChange && newQty !== product.qty) {
+      onQtyChange(newQty);
+    }
+  };
+
+  const handleSelectAll = () => {
+    const allSerials = product.availableSerialNos || [];
+    onSelect(allSerials);
+    if (onQtyChange && allSerials.length !== product.qty) {
+      onQtyChange(allSerials.length || 1);
+    }
+  };
+
+  const handleClearAll = () => {
+    onSelect([]);
+    if (onQtyChange && 1 !== product.qty) {
+      onQtyChange(1);
+    }
+  };
+
+  const handleQtyChange = (newQty) => {
+    const numericQty = parseInt(newQty) || 1;
+    setTempQty(numericQty);
+
+    if (onQtyChange) {
+      onQtyChange(numericQty);
+    }
+
+    const currentSelected = product.selectedSerialNos || [];
+    if (currentSelected.length > numericQty) {
+      const trimmedSelection = currentSelected.slice(0, numericQty);
+      onSelect(trimmedSelection);
+    }
+  };
+
+  const handleToggleDropdown = () => {
+    if (!disabled) {
+      if (!isOpen) {
+        updateDropdownPosition();
+      }
+      setIsOpen(!isOpen);
+    }
+  };
+
+  const availableSerialNos = product.availableSerialNos || product.serialNumbers || [];
+  const selectedSerialNos = product.selectedSerialNos || [];
+
+  const filteredSerials = availableSerialNos.filter(serial =>
+    serial.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const maxAllowed = product.qty || 1;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <div
+        ref={triggerRef}
+        onClick={handleToggleDropdown}
+        style={{
+          width: '100%',
+          border: 'none',
+          outline: 'none',
+          backgroundColor: 'transparent',
+          padding: '8px',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          fontSize: '14px',
+          color: disabled ? '#999' : '#333',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span style={{ fontWeight: '500' }}>
+            {selectedSerialNos.length > 0
+              ? `${selectedSerialNos.length} selected`
+              : 'Select Serial'}
+          </span>
+          {selectedSerialNos.length > 0 && (
+            <span style={{ fontSize: '12px', color: '#666' }}>
+              {selectedSerialNos.slice(0, 2).join(', ')}
+              {selectedSerialNos.length > 2 ? `... (+${selectedSerialNos.length - 2} more)` : ''}
+            </span>
+          )}
+        </div>
+        <FiChevronDown style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+      </div>
+
+      {isOpen && !disabled && (
+        <div
+          ref={dropdownRef}
+          style={{
+            position: 'fixed',
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            backgroundColor: '#fff',
+            border: '1px solid #E5E7EB',
+            borderRadius: '6px',
+            boxShadow: '0 4px 12px rgba(0,0,0,.1)',
+            zIndex: 100000,
+            maxHeight: '400px',
+            overflowY: 'auto',
+            width: '400px',
+          }}
+        >
+          {/* Header */}
+          <div style={{
+            padding: '12px',
+            borderBottom: '1px solid #f0f0f0',
+            backgroundColor: '#f8f9fa'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '12px', color: '#666' }}>
+                  Quantity:
+                </span>
+                <input
+                  type="number"
+                  min="1"
+                  value={tempQty}
+                  onChange={(e) => handleQtyChange(e.target.value)}
+                  style={{
+                    width: '60px',
+                    padding: '4px 8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    outline: 'none'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  disabled={isQuotation} // Disable quantity change for quotations
+                />
+              </div>
+              <span style={{ fontSize: '12px', color: '#666' }}>
+                {selectedSerialNos.length}/{maxAllowed} selected
+                {isQuotation && " (Quotation)"}
+              </span>
+            </div>
+
+            {/* Search Input */}
+            <div style={{ position: 'relative', marginBottom: '8px' }}>
+              <FiSearch style={{
+                position: 'absolute',
+                left: '8px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#999'
+              }} />
+              <input
+                type="text"
+                placeholder="Search serial numbers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '6px 12px 6px 30px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  outline: 'none'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectAll();
+                }}
+                disabled={selectedSerialNos.length >= maxAllowed || availableSerialNos.length === 0}
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  backgroundColor: selectedSerialNos.length >= maxAllowed || availableSerialNos.length === 0 ? '#e0e0e0' : '#e8f4ff',
+                  color: selectedSerialNos.length >= maxAllowed || availableSerialNos.length === 0 ? '#999' : '#1F7FFF',
+                  border: '1px solid #d0e7ff',
+                  borderRadius: '4px',
+                  cursor: selectedSerialNos.length >= maxAllowed || availableSerialNos.length === 0 ? 'not-allowed' : 'pointer',
+                  flex: 1
+                }}
+              >
+                Select All
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearAll();
+                }}
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  backgroundColor: '#fff0f0',
+                  color: '#d8484a',
+                  border: '1px solid #ffd0d0',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  flex: 1
+                }}
+              >
+                Clear All
+              </button>
+            </div>
+
+            {/* Quotation Notice */}
+            {isQuotation && (
+              <div style={{
+                marginTop: '8px',
+                padding: '8px',
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: '4px',
+                fontSize: '11px',
+                color: '#856404'
+              }}>
+                ⓘ For quotation: Serial numbers are reserved but stock is not reduced.
+              </div>
+            )}
+          </div>
+
+          {/* Serial Numbers List */}
+          <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+            {filteredSerials.length === 0 ? (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#666' }}>
+                {searchTerm ? 'No serial numbers found' : 'No serial numbers available'}
+              </div>
+            ) : (
+              filteredSerials.map((serialNo) => (
+                <div
+                  key={serialNo}
+                  style={{
+                    padding: '12px',
+                    cursor: selectedSerialNos.includes(serialNo) || selectedSerialNos.length < maxAllowed ? 'pointer' : 'not-allowed',
+                    borderBottom: '1px solid #f0f0f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    backgroundColor: '#fff',
+                    transition: 'background-color 0.2s',
+                    opacity: selectedSerialNos.includes(serialNo) || selectedSerialNos.length < maxAllowed ? 1 : 0.6,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (selectedSerialNos.includes(serialNo) || selectedSerialNos.length < maxAllowed) {
+                      toggleSerialNo(serialNo);
+                    }
+                  }}
+                  onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    selectedSerialNos.includes(serialNo) || selectedSerialNos.length < maxAllowed
+                      ? '#f8f9fa'
+                      : '#fff')
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = '#fff')
+                  }
+                  title={
+                    selectedSerialNos.includes(serialNo)
+                      ? 'Click to remove'
+                      : selectedSerialNos.length < maxAllowed
+                        ? 'Click to select'
+                        : 'Maximum quantity reached'
+                  }
+                >
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedSerialNos.includes(serialNo)}
+                      onChange={() => { }}
+                      style={{
+                        cursor: selectedSerialNos.includes(serialNo) || selectedSerialNos.length < maxAllowed ? 'pointer' : 'not-allowed',
+                        width: '16px',
+                        height: '16px'
+                      }}
+                    />
+                    {!selectedSerialNos.includes(serialNo) && selectedSerialNos.length >= maxAllowed && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(255,255,255,0.7)',
+                        cursor: 'not-allowed'
+                      }} />
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{
+                      fontWeight: selectedSerialNos.includes(serialNo) ? '600' : '400',
+                      color: selectedSerialNos.includes(serialNo) ? '#1F7FFF' : '#333',
+                      fontSize: '14px',
+                      lineHeight: '1.4',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                      {serialNo}
+                      {isQuotation && selectedSerialNos.includes(serialNo) && (
+                        <span style={{ fontSize: '10px', color: '#666', marginLeft: '8px' }}>
+                          (Reserved)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  {selectedSerialNos.includes(serialNo) && (
+                    <span style={{
+                      fontSize: '12px',
+                      color: isQuotation ? '#ff9800' : '#1F7FFF',
+                      backgroundColor: isQuotation ? '#fff3e0' : '#e8f4ff',
+                      padding: '2px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      {isQuotation ? 'Reserved' : 'Selected'}
+                    </span>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            padding: '12px',
+            borderTop: '1px solid #f0f0f0',
+            backgroundColor: '#f8f9fa',
+            fontSize: '12px',
+            color: '#666'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Product Quantity: {product.qty || 1}</span>
+                <span>Available Serial Nos: {availableSerialNos.length}</span>
+              </div>
+              {isQuotation && (
+                <div style={{
+                  padding: '4px',
+                  backgroundColor: '#e8f5e9',
+                  borderRadius: '4px',
+                  textAlign: 'center',
+                  color: '#2e7d32'
+                }}>
+                  💡 Quotation mode: Serial numbers are reserved for future reference
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 function CustomerCreateQuotation() {
   const viewManageRef = useRef(null); //for handle click outside for calendar
   const hasAddedInitialProduct = useRef(false);
@@ -106,6 +529,51 @@ function CustomerCreateQuotation() {
   const [viewQuotationOptions, setViewQuotationOptions] = useState(false);
   const [viewChargeOptions, setViewChargeOptions] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // for system setting for serial no
+  const [settings, setSettings] = useState({
+    brand: false,
+    category: false,
+    subcategory: false,
+    itembarcode: false,
+    hsn: false,
+    lotno: false,
+    serialno: false,
+    variants: { size: false, color: false },
+    units: false,
+    expiry: false,
+  });
+
+  useEffect(() => {
+    fetchProductSettings();
+  }, []);
+
+  const fetchProductSettings = async () => {
+    try {
+      const response = await api.get('/api/system-settings');
+      if (response.data.success) {
+        const data = response.data.data;
+        setSettings({
+          brand: data.brand || false,
+          category: data.category || false,
+          subcategory: data.subcategory || false,
+          itembarcode: data.itembarcode || false,
+          hsn: data.hsn || false,
+          lotno: data.lotno || false,
+          serialno: data.serialno || false,
+          variants: {
+            size: data.variants?.size || false,
+            color: data.variants?.color || false
+          },
+          units: data.units || false,
+          expiry: data.expiry || false,
+        });
+      }
+    } catch (error) {
+      // console.error("Error fetching system settings:", error);
+      toast.error("Failed to fetch system settings");
+    }
+  };
 
   // Error state
   const [errors, setErrors] = useState({});
@@ -505,6 +973,15 @@ function CustomerCreateQuotation() {
       toast.error("Product not found");
       return;
     }
+    // Fetch serial numbers and lot number from product
+    let serialNumbers = [];
+    if (exactProduct.serialNumbers && Array.isArray(exactProduct.serialNumbers)) {
+      serialNumbers = exactProduct.serialNumbers;
+    } else if (exactProduct.serialno) {
+      serialNumbers = exactProduct.serialno.split(',').map(sn => sn.trim()).filter(sn => sn);
+    }
+
+    const lotNumber = exactProduct.lotNumber || "";
 
     // Update product data with productId
     updateProduct(rowId, "productId", exactProduct._id);
@@ -521,6 +998,9 @@ function CustomerCreateQuotation() {
     updateProduct(rowId, "taxType", exactProduct.tax || "GST 0%");
     updateProduct(rowId, "unit", exactProduct.unit || "Piece");
     updateProduct(rowId, "hsnCode", exactProduct.hsn?.hsnCode || "");
+    updateProduct(rowId, "lotNumber", lotNumber);
+    updateProduct(rowId, "availableSerialNos", serialNumbers);
+    updateProduct(rowId, "selectedSerialNos", []); // Initialize empty
 
     // Clear search term
     setSearchData((prev) => ({
@@ -949,6 +1429,8 @@ function CustomerCreateQuotation() {
         formData.append(`items[${index}][productId]`, p.productId);
         formData.append(`items[${index}][itemName]`, p.itemName || p.name);
         formData.append(`items[${index}][hsnCode]`, p.hsnCode || "");
+        formData.append(`items[${index}][lotNumber]`, p.lotNumber || ""); // Add lot number
+        formData.append(`items[${index}][selectedSerialNos]`, JSON.stringify(p.selectedSerialNos || []));
         formData.append(`items[${index}][qty]`, parseFloat(p.qty));
         formData.append(`items[${index}][unit]`, p.unit);
         formData.append(`items[${index}][unitPrice]`, parseFloat(p.unitPrice));
@@ -1452,12 +1934,12 @@ function CustomerCreateQuotation() {
                                         transition: "background-color 0.2s",
                                       }}
                                       onMouseEnter={(e) =>
-                                        (e.currentTarget.style.backgroundColor =
-                                          "#f8f9fa")
+                                      (e.currentTarget.style.backgroundColor =
+                                        "#f8f9fa")
                                       }
                                       onMouseLeave={(e) =>
-                                        (e.currentTarget.style.backgroundColor =
-                                          "white")
+                                      (e.currentTarget.style.backgroundColor =
+                                        "white")
                                       }
                                     >
                                       <div
@@ -2020,6 +2502,41 @@ function CustomerCreateQuotation() {
                       display: "flex",
                     }}
                   >
+                    {/* Lot No Column */}
+                    <div
+                      style={{
+                        width: 120,
+                        height: 30,
+                        paddingLeft: 12,
+                        paddingRight: 12,
+                        paddingTop: 4,
+                        paddingBottom: 4,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 8,
+                        display: "flex",
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: "#727681",
+                          fontSize: 14,
+                          fontFamily: "Inter",
+                          fontWeight: "500",
+                          lineHeight: "16.80px",
+                          wordWrap: "break-word",
+                        }}
+                      >
+                        Lot No
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: 1,
+                        height: 30,
+                        background: "var(--Black-Disable, #A2A8B8)",
+                      }}
+                    />
                     <div
                       style={{
                         width: 120,
@@ -2045,6 +2562,41 @@ function CustomerCreateQuotation() {
                         }}
                       >
                         Qty
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: 1,
+                        height: 30,
+                        background: "var(--Black-Disable, #A2A8B8)",
+                      }}
+                    />
+                    {/* Serial No Column */}
+                    <div
+                      style={{
+                        width: 200,
+                        height: 30,
+                        paddingLeft: 12,
+                        paddingRight: 12,
+                        paddingTop: 4,
+                        paddingBottom: 4,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 8,
+                        display: "flex",
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: "#727681",
+                          fontSize: 14,
+                          fontFamily: "Inter",
+                          fontWeight: "500",
+                          lineHeight: "16.80px",
+                          wordWrap: "break-word",
+                        }}
+                      >
+                        Serial No
                       </div>
                     </div>
                     <div
@@ -2390,12 +2942,12 @@ function CustomerCreateQuotation() {
                                         transition: "background-color 0.2s",
                                       }}
                                       onMouseEnter={(e) =>
-                                        (e.currentTarget.style.backgroundColor =
-                                          "#f8f9fa")
+                                      (e.currentTarget.style.backgroundColor =
+                                        "#f8f9fa")
                                       }
                                       onMouseLeave={(e) =>
-                                        (e.currentTarget.style.backgroundColor =
-                                          "#fff")
+                                      (e.currentTarget.style.backgroundColor =
+                                        "#fff")
                                       }
                                     >
                                       {/* Product Image */}
@@ -2500,6 +3052,44 @@ function CustomerCreateQuotation() {
                               display: "flex",
                             }}
                           >
+                            {/* Lot No Input */}
+                            <div
+                              style={{
+                                width: 150,
+                                alignSelf: "stretch",
+                                paddingLeft: 12,
+                                paddingRight: 12,
+                                paddingTop: 4,
+                                paddingBottom: 4,
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                display: "flex",
+                                outline: "1px var(--Stroke, #EAEAEA) solid",
+                                borderRadius: 4,
+                              }}
+                            >
+                              <input
+                                type="text"
+                                placeholder="Lot Number"
+                                className="table-input"
+                                style={{
+                                  width: "100%",
+                                  border: "none",
+                                  outline: "none",
+                                }}
+                                value={p.lotNumber || ""}
+                                onChange={(e) =>
+                                  updateProduct(p.id, "lotNumber", e.target.value)
+                                }
+                              />
+                            </div>
+                            <div
+                              style={{
+                                width: 1,
+                                height: 30,
+                                background: "var(--Black-Disable, #A2A8B8)",
+                              }}
+                            />
                             <div
                               style={{
                                 width: 120,
@@ -2567,7 +3157,42 @@ function CustomerCreateQuotation() {
                                 background: "var(--Black-Disable, #A2A8B8)",
                               }}
                             />
-
+                            {settings.serialno && (
+                              <>
+                                <div
+                                  style={{
+                                    width: 200,
+                                    alignSelf: "stretch",
+                                    paddingLeft: 12,
+                                    paddingRight: 12,
+                                    paddingTop: 4,
+                                    paddingBottom: 4,
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    display: "flex",
+                                    outline: "1px var(--Stroke, #EAEAEA) solid",
+                                    borderRadius: 4,
+                                    position: "relative",
+                                    overflow: 'visible'
+                                  }}
+                                >
+                                  <SerialNumberDropdown
+                                    product={p}
+                                    onSelect={(selectedSerialNos) => updateProduct(p.id, "selectedSerialNos", selectedSerialNos)}
+                                    onQtyChange={(newQty) => updateProduct(p.id, "qty", newQty)}
+                                    disabled={!p.productId}
+                                    isQuotation={true} // Add this prop for quotation
+                                  />
+                                </div>
+                                <div
+                                  style={{
+                                    width: 1,
+                                    height: 30,
+                                    background: "var(--Black-Disable, #A2A8B8)",
+                                  }}
+                                />
+                              </>
+                            )}
                             <div
                               style={{
                                 width: 120,
@@ -3481,24 +4106,24 @@ function CustomerCreateQuotation() {
                       {Object.entries(additionalChargesDetails).some(
                         ([_, value]) => value > 0,
                       ) && (
-                        <span
-                          style={{
-                            color: "#3b82f6",
-                            marginLeft: "4px",
-                            fontSize: "11px",
-                          }}
-                        >
-                          (
-                          {Object.entries(additionalChargesDetails)
-                            .filter(([_, value]) => value > 0)
-                            .map(
-                              ([key, _]) =>
-                                key.charAt(0).toUpperCase() + key.slice(1),
+                          <span
+                            style={{
+                              color: "#3b82f6",
+                              marginLeft: "4px",
+                              fontSize: "11px",
+                            }}
+                          >
+                            (
+                            {Object.entries(additionalChargesDetails)
+                              .filter(([_, value]) => value > 0)
+                              .map(
+                                ([key, _]) =>
+                                  key.charAt(0).toUpperCase() + key.slice(1),
+                              )
+                              .join(", ")}
                             )
-                            .join(", ")}
-                          )
-                        </span>
-                      )}
+                          </span>
+                        )}
                       :
                     </span>
                     <span style={{ color: "#9ca3af" }}>
@@ -4278,6 +4903,17 @@ function CustomerCreateQuotation() {
                               >
                                 Name of the Products
                               </th>
+                              {/* Add Lot No column */}
+                              <th
+                                style={{
+                                  borderRight: "1px solid #EAEAEA",
+                                  borderBottom: "1px solid #EAEAEA",
+                                  fontWeight: "400",
+                                }}
+                                rowSpan="2"
+                              >
+                                Lot No.
+                              </th>
                               <th
                                 style={{
                                   borderRight: "1px solid #EAEAEA",
@@ -4297,6 +4933,16 @@ function CustomerCreateQuotation() {
                                 rowSpan="2"
                               >
                                 QTY
+                              </th>
+                              <th
+                                style={{
+                                  borderRight: "1px solid #EAEAEA",
+                                  borderBottom: "1px solid #EAEAEA",
+                                  fontWeight: "400",
+                                }}
+                                rowSpan="2"
+                              >
+                                Serial No.
                               </th>
                               <th
                                 style={{
@@ -4379,6 +5025,14 @@ function CustomerCreateQuotation() {
                                     textAlign: "center",
                                   }}
                                 >
+                                  {item.lotNumber || "-"}
+                                </td>
+                                <td
+                                  style={{
+                                    borderRight: "1px solid #EAEAEA",
+                                    textAlign: "center",
+                                  }}
+                                >
                                   {item.hsnCode || "-"}
                                 </td>
                                 <td
@@ -4388,6 +5042,17 @@ function CustomerCreateQuotation() {
                                   }}
                                 >
                                   {item.qty || ""}
+                                </td>
+                                <td
+                                  style={{
+                                    borderRight: "1px solid #EAEAEA",
+                                    height: "40px",
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  {item.selectedSerialNos?.length > 0
+                                    ? item.selectedSerialNos.join(", ")
+                                    : "-"}
                                 </td>
                                 <td
                                   style={{

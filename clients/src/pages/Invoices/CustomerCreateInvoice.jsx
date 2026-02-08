@@ -52,8 +52,15 @@ const SerialNumberDropdown = ({
 
     if (currentSelected.includes(serialNo)) {
       newSelected = currentSelected.filter(sn => sn !== serialNo);
-    } else {
-      newSelected = [...currentSelected, serialNo];
+    }
+    else {
+      // If not selected, add it (but check max allowed)
+      if (currentSelected.length >= maxAllowed) {
+        // If we've reached max allowed, replace the last one
+        newSelected = [...currentSelected.slice(0, maxAllowed - 1), serialNo];
+      } else {
+        newSelected = [...currentSelected, serialNo];
+      }
     }
 
     onSelect(newSelected);

@@ -2164,6 +2164,36 @@ const ProductEdit = () => {
                   // className="row"
                   >
 
+                    {/* Delete button */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "20px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        className=""
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: '6px',
+                          height: "100%",
+                          cursor: index === 0 ? "not-allowed" : "pointer",
+                        }}
+                        onClick={() => {
+                          if (index === 0) return;
+                          if (variants.length <= 1) return;
+                          setVariants(variants.filter((_, i) => i !== index));
+                        }}
+                      >
+                        <BsThreeDotsVertical className="fs-4" />
+                      </div>
+                    </div>
+
                     {/* lot no / serial no */}
                     {(settings.lotno || settings.serialno) && <div
                       style={{
@@ -2696,8 +2726,12 @@ const ProductEdit = () => {
                           }}
                         >
                           <option value="">Select GST</option>
+                          <option value="0">0%</option>
+                          <option value="0.25">0.25%</option>
+                          <option value="3">3%</option>
                           <option value="5">5%</option>
                           <option value="18">18%</option>
+                          <option value="40">40%</option>
                         </select>
                       </div>
                       <span

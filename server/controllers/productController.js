@@ -185,6 +185,7 @@ exports.getAllProducts = async (req, res) => {
         .populate("subcategory", "name")
         .populate("brand", "brandName")
         .populate("hsn", "hsnCode description")
+        .populate("lotSupplier", "supplierName supplierCode")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -252,6 +253,7 @@ exports.searchProductsByName = async (req, res) => {
       .populate("subcategory")
       .populate("brand")
       .populate("hsn")
+      .populate("lotSupplier")
       .sort({ createdAt: -1 });
 
     // Add hsnCode and availableQty logic for frontend
@@ -308,6 +310,7 @@ exports.getProductStock = async (req, res) => {
       .populate("category")
       .populate("subcategory")
       .populate("hsn")
+      .populate("lotSupplier")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);

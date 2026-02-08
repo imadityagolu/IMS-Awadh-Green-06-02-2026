@@ -11,7 +11,6 @@ import CategoryModal from "../../../../pages/Modal/categoryModals/CategoryModal"
 import { TbChevronUp, TbEye, TbRefresh } from "react-icons/tb";
 import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
-import * as XLSX from "xlsx";
 
 //Full Redesign-------------------------------------------------------------------------------------------------
 import { NavLink } from "react-router-dom";
@@ -37,8 +36,6 @@ const ProductForm = () => {
   const [dropdownSubCat, setDropDownSubCat] = useState(false);
   const dropdownRef = useRef(null);
   const dropdownSubCatRef = useRef(null);
-  const fileRef = useRef(null);
-
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,6 +71,7 @@ const ProductForm = () => {
     supplier: false,
     status: false,
     serialno: false,
+    variants: { size: false, color: false },
     units: false,
     expiry: false,
   });
@@ -99,6 +97,10 @@ const ProductForm = () => {
           supplier: data.supplier || false,
           status: data.status || false,
           serialno: data.serialno || false,
+          variants: {
+            size: data.variants?.size || false,
+            color: data.variants?.color || false
+          },
           units: data.units || false,
           expiry: data.expiry || false,
         });
@@ -128,6 +130,9 @@ const ProductForm = () => {
 
   const [suppliers, setSuppliers] = useState([]);
 
+  const [supplierDropdownOpen, setSupplierDropdownOpen] = useState(null);
+  const [supplierSearch, setSupplierSearch] = useState("");
+
   const fetchSuppliers = async () => {
     try {
       const res = await api.get("/api/suppliers");
@@ -145,183 +150,47 @@ const ProductForm = () => {
   }, []);
 
   const [addserialpopup, setAddSerialPopup] = useState(false);
-  const [currentVariantIndex, setCurrentVariantIndex] = useState(null);
 
-  // const handleAddSerialField = () => {
-  //   if (currentVariantIndex === null) return;
-  //   setVariants((prev) => {
-  //     const updated = [...prev];
-  //     const variant = { ...updated[currentVariantIndex] };
-  //     const serials = variant.serialNumbers ? [...variant.serialNumbers] : [];
-  //     serials.push("");
-  //     variant.serialNumbers = serials;
-  //     variant.openingQuantity = serials.length; // Update quantity
-  //     updated[currentVariantIndex] = variant;
-  //     return updated;
-  //   });
-  // };
-const [serialInput, setSerialInput] = useState("");
+  const lotColumns = [
+    { label: "Lot No.", editableValue: "12" },
+    { label: "Lot MRP", editableValue: "₹ 2,367.08/-" },
+    { label: "Fabric Batch No.", editableValue: "MO123" },
+    { label: "Production Date", editableValue: "22/09/2023", opacity: 0.69 },
+    { label: "Design Code", editableValue: "DC-0123" },
+    { label: "Quantity", editableValue: "112" },
+    { label: "Size", editableValue: "S, M, L, XL, XXL" },
+    { label: "Color", editableValue: "Red, Green, Yellow", opacity: 0.83 },
+  ];
 
-const handleAddSerial = () => {
-  if (!serialInput.trim() || currentVariantIndex === null) return;
+  // Lot No. state (array for each column)
+  const [lotData, setLotData] = useState(
+    lotColumns.map((col) => ({
+      ...col,
+      label: col.label,
+      editableValue: col.value,
+    }))
+  );
 
-  setVariants((prev) => {
-    const updated = [...prev];
-    const variant = { ...updated[currentVariantIndex] };
-
-    const serials = variant.serialNumbers
-      ? [...variant.serialNumbers]
-      : [];
-
-    serials.push(serialInput.trim());
-
-    variant.serialNumbers = serials;
-    variant.openingQuantity = serials.length;
-
-    updated[currentVariantIndex] = variant;
-    return updated;
-  });
-  handleBulkAddSerials(serialInput);
-  setSerialInput(""); // ✅ clear single input
-};
-
-  const handleSerialChange = (sIndex, value) => {
-    setVariants((prev) => {
-      const updated = [...prev];
-      const variant = { ...updated[currentVariantIndex] };
-      const serials = [...(variant.serialNumbers || [])];
-      serials[sIndex] = value;
-      variant.serialNumbers = serials;
-      updated[currentVariantIndex] = variant;
-      return updated;
-    });
-  };
-const handleRemoveSerial = (sIndex) => {
-  setVariants((prev) => {
-    const updated = [...prev];
-    const variant = { ...updated[currentVariantIndex] };
-
-    const serials = [...(variant.serialNumbers || [])];
-    serials.splice(sIndex, 1);
-
-    variant.serialNumbers = serials;
-    variant.openingQuantity = serials.length;
-
-    updated[currentVariantIndex] = variant;
-    return updated;
-  });
-};
-
-//   const handleRemoveSerial = (sIndex) => {
-//   setVariants((prev) => {
-//     const updated = [...prev];
-//     const variant = { ...updated[currentVariantIndex] };
-
-//     const serials = [...(variant.serialNumbers || [])];
-//     serials.splice(sIndex, 1);
-
-//     variant.serialNumbers = serials;
-//     variant.openingQuantity = serials.length;
-
-//     updated[currentVariantIndex] = variant;
-//     return updated;
-//   });
-// };
-
-
-const isValidSerial = (serial) => {
-  const value = serial.trim();
-  if (!value) return false;
-  if (value.length < 3 || value.length > 50) return false;
-  return /^[a-zA-Z0-9-_]+$/.test(value);
-};
-
-
-const handleBulkAddSerials = (input) => {
-  if (!input || currentVariantIndex === null) return;
-
-  const rawSerials = input
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  setVariants((prev) => {
-    const updated = [...prev];
-    const variant = { ...updated[currentVariantIndex] };
-
-    const existing = variant.serialNumbers || [];
-    const merged = [...existing];
-
-    rawSerials.forEach((serial) => {
-      if (isValidSerial(serial) && !merged.includes(serial)) {
-        merged.push(serial);
-      }
-    });
-
-    variant.serialNumbers = merged;
-    variant.openingQuantity = merged.length;
-
-    updated[currentVariantIndex] = variant;
-    return updated;
-  });
-};
-
-
-const handleExcelUpload = (file) => {
-  if (!file || currentVariantIndex === null) return;
-
-  const reader = new FileReader();
-
-  reader.onload = (e) => {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: "array" });
-
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-    const serials = jsonData
-      .map((row) => row.serial || row.Serial || row.SERIAL)
-      .map((s) => String(s).trim())
-      .filter(Boolean);
-
-    handleBulkAddSerials(serials.join("\n"));
-  };
-
-  reader.readAsArrayBuffer(file);
-};
-
-
-const downloadCSVTemplate = () => {
-  const csvContent =
-    "serial\nABC123\nXYZ456\nPQR789\n";
-
-  const blob = new Blob([csvContent], {
-    type: "text/csv;charset=utf-8;",
-  });
-
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", "serial_template.csv");
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-  // useEffect(() => {
-  //   if (addserialpopup && currentVariantIndex !== null) {
-  //     const variant = variants[currentVariantIndex];
-  //     if (!variant.serialNumbers || variant.serialNumbers.length === 0) {
-  //       handleAddSerialField();
-  //     }
-  //   }
-  // }, [addserialpopup, currentVariantIndex]);
+  const lotFieldKeys = [
+    "lotNo",
+    "lotmrp",
+    "fabricBatchNo",
+    "productionDate",
+    "designCode",
+    "quantity",
+    "size",
+    "color",
+  ];
 
   const [lotDetails, setLotDetails] = useState({
     lotNo: "",
+    lotmrp: "",
+    fabricBatchNo: "",
+    productionDate: "",
+    designCode: "",
     quantity: "",
+    size: "",
+    color: "",
   });
 
   const validationPatterns = {
@@ -331,7 +200,12 @@ const downloadCSVTemplate = () => {
     description: /^[\w\s.,!?\-]{0,300}$/,
     seoTitle: /^[a-zA-Z0-9\s\-]{2,60}$/,
     seoDescription: /^[a-zA-Z0-9\s\-,.]{2,160}$/,
+    leadTime: /^\d{1,4}$/,
+    reorderLevel: /^\d{1,6}$/,
+    initialStock: /^\d{1,6}$/,
     serialNumber: /^[A-Z0-9\-]{1,50}$/,
+    batchNumber: /^[A-Z0-9\-]{1,50}$/,
+    discountValue: /^\d+(\.\d{1,2})?$/,
     categoryName: /^[A-Za-z\s]{2,50}$/,
     categorySlug: /^[a-z0-9\-]{2,50}$/,
     variantValue: /^[a-zA-Z0-9\s,]{1,100}$/,
@@ -360,11 +234,24 @@ const downloadCSVTemplate = () => {
     t("variants"),
   ];
 
+  const variantTabs = [
+    t("color"),
+    t("size"),
+    t("expiry"),
+    t("material"),
+    t("model"),
+    t("weight"),
+    t("skinType"),
+    t("packagingType"),
+    t("flavour"),
+  ];
+
   // const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [stepStatus, setStepStatus] = useState(
     Array(steps.length).fill("pending")
   );
+  const [activeTab, setActiveTab] = useState("Color");
   // const [images, setImages] = useState([]); // Removed unused global images
   // const variantImageInputRef = useRef(null); // Removed unused ref
   const objectUrlsRef = useRef([]);
@@ -408,6 +295,24 @@ const downloadCSVTemplate = () => {
     if (formData.itemType === "Good" && !selectedBrands)
       newErrors.brand = "Brand is required";
     if (formData.isAdvanced) {
+      if (!formData.leadTime) newErrors.leadTime = "Lead Time is required";
+      if (
+        formData.leadTime &&
+        !validationPatterns.leadTime.test(formData.leadTime)
+      )
+        newErrors.leadTime = "Invalid Lead Time";
+      if (!formData.reorderLevel) newErrors.reorderLevel = "Reorder Level is required";
+      if (
+        formData.reorderLevel &&
+        !validationPatterns.reorderLevel.test(formData.reorderLevel)
+      )
+        newErrors.reorderLevel = "Invalid Reorder Level";
+      if (!formData.initialStock) newErrors.initialStock = "Initial Stock is required";
+      if (
+        formData.initialStock &&
+        !validationPatterns.initialStock.test(formData.initialStock)
+      )
+        newErrors.initialStock = "Invalid Initial Stock format";
       if (formData.trackType === "serial" && !formData.serialNumber)
         newErrors.serialNumber = "Serial Number is required";
       if (settings.supplier && !formData.supplier)
@@ -417,9 +322,21 @@ const downloadCSVTemplate = () => {
         !validationPatterns.serialNumber.test(formData.serialNumber)
       )
         newErrors.serialNumber = "Invalid Serial Number";
+      if (formData.trackType === "batch" && !formData.batchNumber)
+        newErrors.batchNumber = "Batch Number is required";
+      if (
+        formData.batchNumber &&
+        !validationPatterns.batchNumber.test(formData.batchNumber)
+      )
+        newErrors.batchNumber = "Invalid Batch Number";
     }
     // Step 1: Pricing
-
+    if (!formData.mrp) newErrors.purchasePrice = "Purchase Price is required";
+    if (
+      formData.mrp &&
+      !validationPatterns.price.test(formData.mrp)
+    )
+      newErrors.purchasePrice = "Purchase Price must be a positive number with up to 2 decimal places";
     if (!formData.quantity) newErrors.quantity = "Quantity must be at least 1";
     if (
       formData.quantity &&
@@ -448,13 +365,20 @@ const downloadCSVTemplate = () => {
     if (!selectedUnits) newErrors.unit = "Unit is required";
     if (!formData.taxType) newErrors.taxType = "Tax Type is required";
     if (!formData.tax) newErrors.tax = "Tax Rate is required";
+    if (!formData.discountType) newErrors.discountType = "Discount Type is required";
+    if (!formData.discountValue) newErrors.discountValue = "Discount Value must be a positive number with up to 2 decimal places";
+    if (
+      formData.discountValue &&
+      !validationPatterns.discountValue.test(formData.discountValue)
+    )
+      newErrors.discountValue = "Discount Value must be a positive number with up to 2 decimal places";
 
     if (!formData.description) newErrors.description = "Description is required";
     if (
       formData.description &&
-      (!validationPatterns.description.test(formData.description) || formData.description.length > 20)
+      !validationPatterns.description.test(formData.description)
     )
-      newErrors.description = "Description must be valid and under 20 characters";
+      newErrors.description = "Invalid Description";
     if (
       formData.seoTitle &&
       !validationPatterns.seoTitle.test(formData.seoTitle)
@@ -591,10 +515,17 @@ const downloadCSVTemplate = () => {
     productName: "",
     itemBarcode: "",   // ✅ ADD
     purchasePrice: "",
+    mrp: "",
     sellingPrice: "",
     tax: "",
+    size: "",
+    color: "",
+    expiry: "",
     units: "",
     openingQuantity: "",
+    minStockToMaintain: "",
+    discountType: "",  // ✅ ADD
+    discountValue: "", // ✅ ADD
   });
 
   const handleChange = (e) => {
@@ -610,12 +541,15 @@ const downloadCSVTemplate = () => {
         setFormData((prev) => ({
           ...prev,
           itemType: value,
+          mrp: "",
           wholesalePrice: "",
           retailPrice: "",
           quantity: "",
           unit: "",
           taxType: "",
           tax: "",
+          discountType: "",
+          discountValue: "",
           description: "",
           seoTitle: "",
           seoDescription: "",
@@ -625,9 +559,14 @@ const downloadCSVTemplate = () => {
           isAdvanced: false,
           trackType: "serial",
           isReturnable: false,
+          leadTime: "",
+          reorderLevel: "",
+          initialStock: "",
           serialNumber: "",
           supplier: "",
+          batchNumber: "",
           returnable: false,
+          expirationDate: "",
         }));
       } else if (value === "Good") {
         // Clear all Service-specific fields (if any in future)
@@ -656,6 +595,7 @@ const downloadCSVTemplate = () => {
       [
         "productName",
         "quantity",
+        "discountValue",
       ].includes(name)
     ) {
       return t("fieldRequired");
@@ -691,6 +631,18 @@ const downloadCSVTemplate = () => {
         return validationPatterns.seoDescription.test(value)
           ? ""
           : t("invalidSeoDescriptionFormat");
+      case "leadTime":
+        return validationPatterns.leadTime.test(value)
+          ? ""
+          : t("invalidLeadTimeFormat");
+      case "reorderLevel":
+        return validationPatterns.reorderLevel.test(value)
+          ? ""
+          : t("invalidReorderLevelFormat");
+      case "initialStock":
+        return validationPatterns.initialStock.test(value)
+          ? ""
+          : t("invalidInitialStockFormat");
       case "serialNumber":
         return validationPatterns.serialNumber.test(value)
           ? ""
@@ -893,7 +845,7 @@ const downloadCSVTemplate = () => {
 
     // Determine Mode: Single Product vs Variants
     // If first variant has selectedVariant/Value, treat as Variant Mode.
-    const isVariantMode = (variants.length > 0 && variants[0].selectedVariant && variants[0].selectedValue) || variants.length > 1;
+    const isVariantMode = variants.length > 0 && variants[0].selectedVariant && variants[0].selectedValue;
 
     if (isVariantMode) {
       // Validate Variants
@@ -902,10 +854,25 @@ const downloadCSVTemplate = () => {
           newErrors[`variant_${index}_purchasePrice`] = `Purchase Price must be at least 1 for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_purchasePrice`);
         }
-
+        if (!variant.mrp || Number(variant.mrp) < 1) {
+          newErrors[`variant_${index}_mrp`] = `MRP must be at least 1 for variant ${index + 1}`;
+          emptyFields.push(`variant_${index}_mrp`);
+        }
         if (!variant.sellingPrice || Number(variant.sellingPrice) < 1) {
           newErrors[`variant_${index}_sellingPrice`] = `Selling Price must be at least 1 for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_sellingPrice`);
+        }
+        if (!variant.size && settings.variants.size) {
+          newErrors[`variant_${index}_size`] = `Size is required for variant ${index + 1}`;
+          emptyFields.push(`variant_${index}_size`);
+        }
+        if (!variant.color && settings.variants.color) {
+          newErrors[`variant_${index}_color`] = `Color is required for variant ${index + 1}`;
+          emptyFields.push(`variant_${index}_color`);
+        }
+        if (!variant.expiryDate && settings.expiry) {
+          newErrors[`variant_${index}_expiry`] = `Expiry is required for variant ${index + 1}`;
+          emptyFields.push(`variant_${index}_expiry`);
         }
         if (!variant.unit && settings.units) {
           newErrors[`variant_${index}_unit`] = `Unit is required for variant ${index + 1}`;
@@ -915,17 +882,17 @@ const downloadCSVTemplate = () => {
           newErrors[`variant_${index}_openingQuantity`] = `Opening Quantity must be at least 1 for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_openingQuantity`);
         }
-        if ((!variant.serialNumbers || variant.serialNumbers.length === 0) && settings.serialno) {
+        if (!variant.minStockToMaintain || Number(variant.minStockToMaintain) < 1) {
+          newErrors[`variant_${index}_minStockToMaintain`] = `Minimum stock must be at least 1 for variant ${index + 1}`;
+          emptyFields.push(`variant_${index}_minStockToMaintain`);
+        }
+        if (!variant.serialNumber && settings.serialno) {
           newErrors[`variant_${index}_serialNumber`] = `Serial Number is required for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_serialNumber`);
         }
         if (!variant.supplier && settings.supplier) {
           newErrors[`variant_${index}_supplier`] = `Supplier is required for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_supplier`);
-        }
-        if (!variant.lotNumber && settings.lotno) {
-          newErrors[`variant_${index}_lotNumber`] = `Lot No. is required for variant ${index + 1}`;
-          emptyFields.push(`variant_${index}_lotNumber`);
         }
       });
     } else {
@@ -935,12 +902,27 @@ const downloadCSVTemplate = () => {
         newErrors.purchasePrice = "Purchase Price must be at least 1";
         emptyFields.push("variant_0_purchasePrice");
       }
-
+      if (!mainVariant.mrp || Number(mainVariant.mrp) < 1) {
+        newErrors.mrp = "MRP must be at least 1";
+        emptyFields.push("variant_0_mrp");
+      }
       if (!mainVariant.sellingPrice || Number(mainVariant.sellingPrice) < 1) {
         newErrors.sellingPrice = "Selling Price must be at least 1";
         emptyFields.push("variant_0_sellingPrice");
       }
-
+      // settings.variants.size/color check? Usually main product uses "size"/"color" fields if enabled.
+      if (settings.variants.size && !mainVariant.size) {
+        newErrors.size = "Size is required";
+        emptyFields.push("variant_0_size");
+      }
+      if (settings.variants.color && !mainVariant.color) {
+        newErrors.color = "Color is required";
+        emptyFields.push("variant_0_color");
+      }
+      if (settings.expiry && !mainVariant.expiryDate) {
+        newErrors.expiry = "Expiry is required";
+        emptyFields.push("variant_0_expiry");
+      }
       if (settings.units && !mainVariant.unit) {
         newErrors.units = "Unit is required";
         emptyFields.push("variant_0_unit");
@@ -949,17 +931,17 @@ const downloadCSVTemplate = () => {
         newErrors.openingQuantity = "Opening Quantity must be at least 1";
         emptyFields.push("variant_0_openingQuantity");
       }
-      if (settings.serialno && (!mainVariant.serialNumbers || mainVariant.serialNumbers.length === 0)) {
+      if (!mainVariant.minStockToMaintain || Number(mainVariant.minStockToMaintain) < 1) {
+        newErrors.minStockToMaintain = "Minimum stock must be at least 1";
+        emptyFields.push("variant_0_minStockToMaintain");
+      }
+      if (settings.serialno && !mainVariant.serialNumber) {
         newErrors.serialNumber = "Serial Number is required";
         emptyFields.push("variant_0_serialNumber");
       }
       if (settings.supplier && !mainVariant.supplier) {
         newErrors.supplier = "Supplier is required";
         emptyFields.push("variant_0_supplier");
-      }
-      if (settings.lotno && !mainVariant.lotNumber) {
-        newErrors.lotNumber = "Lot No. is required";
-        emptyFields.push("variant_0_lotNumber");
       }
     }
 
@@ -974,8 +956,7 @@ const downloadCSVTemplate = () => {
     const errors = validateFinalSubmit();
 
     if (errors.length > 0) {
-      toast.error(`Missing fields: ${errors.join(", ")}`);
-      console.log("Validation Failed. Errors:", errors);
+      toast.error("Please fill all the required fields");
       return;
     }
 
@@ -986,6 +967,7 @@ const downloadCSVTemplate = () => {
     // Use first variant if available (Single Product Mode uses variant input fields)
     const mainVariant = variants[0] || {};
 
+    formPayload.append("mrp", mainVariant.mrp || formData.mrp || 0); // Added MRP
     if (settings.brand) formPayload.append("brand", selectedBrands?.value || "");
     if (settings.category) formPayload.append("category", selectedCategory?.value || "");
     if (settings.subcategory) formPayload.append("subCategory", selectedsubCategory?.value || "");
@@ -995,47 +977,47 @@ const downloadCSVTemplate = () => {
 
     // Append itemBarcode
     if (settings.itembarcode) formPayload.append("itemBarcode", formData.itemBarcode || "");
-    if (settings.serialno) {
-      // Send serialNumber as string for backward compatibility if needed, 
-      // but primarily send serialNumbers array
-      formPayload.append("serialNumber", mainVariant.serialNumber || formData.serialNumber || "");
-      formPayload.append("serialNumbers", JSON.stringify(mainVariant.serialNumbers || []));
-    }
-    if (settings.lotno) {
-      formPayload.append("lotNumber", mainVariant.lotNumber || formData.lotNumber || "");
-    }
+    if (settings.serialno) formPayload.append("serialNumber", mainVariant.serialNumber || formData.serialNumber || "");
     if (settings.supplier) formPayload.append("supplier", mainVariant.supplier || formData.supplier || "");
-
-    // Append Description
-    formPayload.append("description", formData.description || "");
 
     // Append Main Product Fields (for single product creation)
 
     formPayload.append("purchasePrice", mainVariant.purchasePrice || formData.purchasePrice || 0);
     formPayload.append("sellingPrice", mainVariant.sellingPrice || formData.sellingPrice || 0);
     formPayload.append("tax", mainVariant.tax || formData.tax || 0);
+    formPayload.append("size", mainVariant.size || formData.size || "");
+    formPayload.append("color", mainVariant.color || formData.color || "");
+    if (settings.expiry) formPayload.append("expiryDate", mainVariant.expiryDate || formData.expiry || "");
     if (settings.units) formPayload.append("unit", mainVariant.unit || formData.units || "");
     formPayload.append("openingQuantity", mainVariant.openingQuantity || formData.openingQuantity || 0);
+    formPayload.append("minStockToMaintain", mainVariant.minStockToMaintain || formData.minStockToMaintain || 0);
+
+    // Append discount fields
+    const discountAmt = mainVariant.discountAmount || formData.discountValue;
+    const discountTyp = mainVariant.discountType || formData.discountType || "Fixed";
+
+    formPayload.append("discountType", discountTyp);
+    formPayload.append("discountAmount", discountAmt || 0);
 
     // Append variants data ONLY if active/valid
-    // Check if we have actual variants defined (e.g., first one has selectedVariant) OR multiple lots
+    // Check if we have actual variants defined (e.g., first one has selectedVariant)
     let validVariants = [];
-    if ((variants.length > 0 && variants[0].selectedVariant && variants[0].selectedValue) || variants.length > 1) {
+    if (variants.length > 0 && variants[0].selectedVariant && variants[0].selectedValue) {
       validVariants = variants;
     }
 
     const variantsPayload = validVariants.map(v => {
       const taxVal =
         v.tax === "" || v.tax === null || v.tax === undefined ? 0 : Number(v.tax) || 0;
+      const hasDiscountAmount = !(v.discountAmount === "" || v.discountAmount === null || v.discountAmount === undefined);
+      const discountVal = hasDiscountAmount ? Number(v.discountAmount) || 0 : 0;
+      const discountTypeVal = hasDiscountAmount ? (v.discountType || "Fixed") : "Fixed";
       return {
         ...v,
         tax: taxVal,
+        discountAmount: discountVal,
+        discountType: discountTypeVal,
         imageCount: v.images ? v.images.length : 0,
-        // Ensure these fields are included explicitly if needed, though ...v covers them
-        description: formData.description || "", // Add description to variant if needed by backend
-        lotNumber: v.lotNumber || "",
-        serialNumbers: v.serialNumbers || [],
-        supplier: v.supplier || "",
       };
     });
     formPayload.append("variants", JSON.stringify(variantsPayload));
@@ -1050,6 +1032,20 @@ const downloadCSVTemplate = () => {
     }
 
     allImages.forEach((img) => formPayload.append("images", img));
+
+    formPayload.append(
+      "lotDetails",
+      JSON.stringify({
+        lotNo: lotDetails.lotNo,
+        lotmrp: lotDetails.lotmrp,
+        fabricBatchNo: lotDetails.fabricBatchNo,
+        productionDate: lotDetails.productionDate || null,
+        designCode: lotDetails.designCode,
+        quantity: lotDetails.quantity,
+        size: lotDetails.size,
+        color: lotDetails.color,
+      })
+    );
 
     try {
       await api.post("/api/products/create", formPayload);
@@ -1104,9 +1100,14 @@ const downloadCSVTemplate = () => {
     // variants.forEach((variant, index) => {
     //   const vPrefix = `Variant ${index + 1}`;
     //   if (!isFilled(variant.purchasePrice)) missingFields.push(`${vPrefix} Purchase Price`);
+    //   if (!isFilled(variant.mrp)) missingFields.push(`${vPrefix} MRP`);
     //   if (!isFilled(variant.sellingPrice)) missingFields.push(`${vPrefix} Selling Price`);
     //   if (!isFilled(variant.tax)) missingFields.push(`${vPrefix} Tax`);
+    //   if (!isFilled(variant.size)) missingFields.push(`${vPrefix} Size`);
+    //   if (!isFilled(variant.color)) missingFields.push(`${vPrefix} Color`);
     //   if (!isFilled(variant.openingQuantity)) missingFields.push(`${vPrefix} Opening Quantity`);
+    //   if (!isFilled(variant.minStockToMaintain)) missingFields.push(`${vPrefix} Min Stock`);
+    //   if (!isFilled(variant.discountAmount)) missingFields.push(`${vPrefix} Discount Amount`);
     // });
 
     // if (missingFields.length > 0) {
@@ -1167,6 +1168,117 @@ const downloadCSVTemplate = () => {
   const handleHSNChange = (selectedOption) => {
     setSelectedHSN(selectedOption);
   };
+
+
+
+  // serialno
+  const [serialInput, setSerialInput] = useState("");
+const [serialList, setSerialList] = useState([]);
+const [currentVariantIndex, setCurrentVariantIndex] = useState(null);
+const fileRef = useRef();
+
+
+/* ---------------- Validation ---------------- */
+const validateSerial = (value) => {
+if (!value.trim()) return "Empty serial";
+if (value.length < 3) return "Too short";
+if (!/^[a-zA-Z0-9-_]+$/.test(value)) return "Invalid characters";
+return null;
+};
+
+
+/* ---------------- Add Serial ---------------- */
+const addSerial = (value) => {
+const serial = value.trim();
+const error = validateSerial(serial);
+if (error) return toast.error(error);
+
+const currentVariant = currentVariantIndex !== null ? variants[currentVariantIndex] : null;
+const quantityLimit = currentVariant?.openingQuantity ? Number(currentVariant.openingQuantity) : null;
+
+if (quantityLimit && serialList.length >= quantityLimit) {
+return toast.error(`Cannot add more than ${quantityLimit} serials (quantity limit)`);
+}
+
+if (serialList.find((s) => s.serial === serial)) {
+return toast.error("Duplicate serial");
+}
+
+setSerialList((prev) => [...prev, { serial, status: "Active" }]);
+};
+
+/* ---------------- Bulk Paste ---------------- */
+const handleBulkPaste = (e) => {
+const data = e.clipboardData.getData("text");
+const values = data.split(/\r?\n|,|;/);
+
+const currentVariant = currentVariantIndex !== null ? variants[currentVariantIndex] : null;
+const quantityLimit = currentVariant?.openingQuantity ? Number(currentVariant.openingQuantity) : null;
+
+let added = 0;
+values.forEach((v) => {
+const val = v.trim();
+if (!val) return;
+
+if (quantityLimit && serialList.length + added >= quantityLimit) {
+return;
+}
+
+if (!serialList.find((s) => s.serial === val)) {
+const err = validateSerial(val);
+if (!err) {
+added++;
+setSerialList((prev) => [...prev, { serial: val, status: "Active" }]);
+}
+}
+});
+
+if (added) toast.success(`${added} serials added`);
+if (quantityLimit && serialList.length + added >= quantityLimit) {
+toast.warning(`Maximum ${quantityLimit} serials allowed for this quantity`);
+}
+};
+
+
+/* ---------------- CSV Upload ---------------- */
+const handleCSVUpload = (e) => {
+const file = e.target.files[0];
+if (!file) return;
+
+
+const reader = new FileReader();
+reader.onload = (ev) => {
+const text = ev.target.result;
+const rows = text.split(/\r?\n|,/);
+
+
+rows.forEach((r) => {
+const v = r.trim();
+if (!v) return;
+if (!serialList.find((s) => s.serial === v)) {
+const err = validateSerial(v);
+if (!err) {
+setSerialList((prev) => [...prev, { serial: v, status: "Active" }]);
+}
+}
+});
+};
+
+
+reader.readAsText(file);
+};
+
+/* ---------------- API Sync ---------------- */
+const syncSerials = async () => {
+if (!onSync) return toast.error("Sync handler not provided");
+try {
+await onSync(serialList);
+toast.success("Serials synced successfully");
+} catch (e) {
+toast.error("Sync failed");
+}
+};
+
 
   return (
     <div className="p-4" style={{ height: "100vh" }}>
@@ -1528,8 +1640,7 @@ const downloadCSVTemplate = () => {
                       <input
                         type="text"
                         name="description"
-                        placeholder="Enter Description (Max 20 chars)"
-                        maxLength={20}
+                        placeholder="Enter Description"
                         value={formData.description}
                         onChange={handleChange}
                         style={{
@@ -1999,6 +2110,105 @@ const downloadCSVTemplate = () => {
                     </div>
                   </div>}
 
+                  {/* item code / bar code */}
+                  {settings.itembarcode && <div
+                    style={{
+                      width: "400px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: "4px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "var(--Black-Grey, #727681)",
+                          fontSize: "12px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          lineHeight: "14.40px",
+                        }}
+                      >
+                        Item code / Bar code
+                      </span>
+                      <span
+                        style={{
+                          color: "var(--Danger, #D00003)",
+                          fontSize: "12px",
+                          fontFamily: "Inter",
+                          fontWeight: "400",
+                          lineHeight: "14.40px",
+                        }}
+                      >
+                        *
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "40px",
+                        padding: "0 12px",
+                        background: "white",
+                        borderRadius: "8px",
+                        border: highlightedFields.includes("itemBarcode") ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "8px",
+                        display: "flex",
+                      }}
+                    >
+                      {/* <input
+                          type="text"
+                          name="itemBarcode"
+                          value={formData.itemBarcode || ""}
+                          onChange={handleChange}
+                          placeholder="Generate barcode"
+                          style={{
+                            flex: 1,
+                            border: "none",
+                            background: "transparent",
+                            color: "var(--Black-Black, #0E101A)",
+                            fontSize: "14px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            outline: "none",
+                          }}
+                        /> */}
+                      <span style={{ color: 'black' }}>{formData.itemBarcode || "click to..."}</span>
+                      <button
+                        type="button"
+                        onClick={handleGenerateBarcode}
+                        style={{
+                          padding: "4px 6px",
+                          background: "var(--Blue, #1F7FFF)",
+                          borderRadius: "4px",
+                          border: "none",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--White, white)",
+                            fontSize: "14px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                          }}
+                        >
+                          Generate
+                        </span>
+                      </button>
+                    </div>
+                  </div>}
+
                   {/* hsn code */}
                   {settings.hsn && <div
                     style={{
@@ -2173,7 +2383,7 @@ const downloadCSVTemplate = () => {
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "65px",
+                        width: "45px",
                       }}
                       className="col-1"
                     >
@@ -2183,7 +2393,7 @@ const downloadCSVTemplate = () => {
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
-                          gap: '6px',
+                          gap: '8px',
                           height: "100%",
                           cursor: index === 0 ? "not-allowed" : "pointer",
                         }}
@@ -2193,17 +2403,17 @@ const downloadCSVTemplate = () => {
                           setVariants(variants.filter((_, i) => i !== index));
                         }}
                       >
-                        <span>{index + 1}.</span><BsThreeDotsVertical className="fs-4" /> <RiDeleteBinLine className="text-danger fs-4" />
+                        <BsThreeDotsVertical className="fs-4" /> <RiDeleteBinLine className="text-danger fs-4" />
                       </div>
                     </div>
 
-                    {/* lot no / serial no */}
-                    {(settings.lotno || settings.serialno) && <div
+                    {/* lot no */}
+                    {settings.lotno && <div
                       style={{
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "275px",
+                        width: "195px",
                       }}
                       className="col-1"
                     >
@@ -2223,7 +2433,7 @@ const downloadCSVTemplate = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          {settings.lotno ? "Lot No." : "Serial No."}
+                          lot No.
                         </span>
                         <span
                           style={{
@@ -2243,78 +2453,43 @@ const downloadCSVTemplate = () => {
                           padding: "0 12px",
                           background: "white",
                           borderRadius: "8px",
-                          border: (highlightedFields.includes(`variant_${index}_lotNumber`) || highlightedFields.includes(`variant_${index}_serialNumber`)) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          border: highlightedFields.includes(`variant_${index}_serialNumber`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
                           justifyContent: "flex-start",
                           alignItems: "center",
                           gap: "8px",
                           display: "flex",
                         }}
                       >
-                        {settings.lotno && (
-                          <div
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <input
+                            type="text"
+                            placeholder="Enter Lot No."
+                            name="serialNumber"
+                            value={variant.serialNumber || ""}
+                            onChange={(e) => handleVariantChange(index, "serialNumber", e.target.value)}
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              flex: 1
-                            }}
-                          >
-                            <input
-                              type="text"
-                              placeholder="Enter Lot No."
-                              name="lotNumber"
-                              value={variant.lotNumber || ""}
-                              onChange={(e) => handleVariantChange(index, "lotNumber", e.target.value)}
-                              style={{
-                                width: "100%",
-                                border: "none",
-                                background: "transparent",
-                                color: "var(--Black-Black, #0E101A)",
-                                fontSize: "14px",
-                                fontFamily: "Inter",
-                                fontWeight: "400",
-                                outline: "none",
-                              }}
-                            />
-                          </div>
-                        )}
-
-                        {settings.serialno && (
-                          <button
-                            type="button"
-                            style={{
-                              padding: "4px 6px",
-                              background: "var(--Blue, #1F7FFF)",
-                              borderRadius: "4px",
+                              width: "100%",
                               border: "none",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              width: settings.lotno ? "120px" : "100%",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              outline: "none",
                             }}
-                            onClick={() => {
-                              setCurrentVariantIndex(index);
-                              setAddSerialPopup(true);
-                            }}
-                          >
-                            <span
-                              style={{
-                                color: "var(--White, white)",
-                                fontSize: "14px",
-                                fontFamily: "Inter",
-                                fontWeight: "400",
-                              }}
-                            >
-                              + Serial No.
-                            </span>
-                          </button>
-                        )}
+                          />
+                        </div>
                       </div>
                     </div>}
 
                     {/* supplier */}
-                    {settings.supplier && <div
+                    {/* {settings.supplier && <div
                       style={{
                         width: "195px",
                         display: "flex",
@@ -2370,7 +2545,6 @@ const downloadCSVTemplate = () => {
                         <select
                           value={variant.supplier || ""}
                           onChange={(e) => {
-                            // Store the supplier _id directly
                             handleVariantChange(index, "supplier", e.target.value);
                           }}
                           disabled={loading}
@@ -2397,7 +2571,98 @@ const downloadCSVTemplate = () => {
                         </select>
 
                       </div>
-                    </div>}
+                    </div>} */}
+                    {/* supplier */}
+                    {settings.supplier && (
+                      <div
+                        style={{
+                          width: "195px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                        }}
+                        className="col-1"
+                      >
+                        {/* Label */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--Black-Grey, #727681)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            Assign Supplier
+                          </span>
+                          <span
+                            style={{
+                              color: "var(--Danger, #D00003)",
+                              fontSize: "12px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              lineHeight: "14.40px",
+                            }}
+                          >
+                            *
+                          </span>
+                        </div>
+
+                        {/* Select Box */}
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "40px",
+                            padding: "0 12px",
+                            background: "white",
+                            borderRadius: "8px",
+                            border: highlightedFields.includes(`variant_${index}_supplier`)
+                              ? "1px var(--White-Stroke, #fa3333ff) solid"
+                              : "1px var(--White-Stroke, #EAEAEA) solid",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <select
+                            value={variant.supplier || ""}
+                            onChange={(e) =>
+                              handleVariantChange(index, "supplier", e.target.value)
+                            }
+                            disabled={loading}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                              outline: "none",
+                              cursor: loading ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            <option value="" disabled>
+                              {loading ? "Loading Suppliers..." : "Select Supplier"}
+                            </option>
+
+                            {suppliers.map((supplier) => (
+                              <option key={supplier._id} value={supplier._id}>
+                                {supplier.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
 
                     {/* unit */}
                     {settings.units && <div
@@ -2482,7 +2747,7 @@ const downloadCSVTemplate = () => {
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "195px",
+                        width: "275px",
                       }}
                       className="col-1"
                     >
@@ -2555,10 +2820,111 @@ const downloadCSVTemplate = () => {
                             }}
                           />
                         </div>
+
+                        <button
+                          type="button"
+                          style={{
+                            padding: "4px 6px",
+                            background: "var(--Blue, #1F7FFF)",
+                            borderRadius: "4px",
+                            border: "none",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--White, white)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                            }}
+                          >
+                            with Tax
+                          </span>
+                        </button>
                       </div>
                     </div>
 
-                    {/* Quantity in lot */}
+                    {/* TAX */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "195px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          Tax
+                        </span>
+                        {/* <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span> */}
+                      </div>
+                      <div
+                        style={{
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: highlightedFields.includes(`variant_${index}_tax`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <select
+                          name="tax"
+                          value={variant.tax || ""}
+                          onChange={(e) => handleVariantChange(index, "tax", e.target.value)}
+                          style={{
+                            width: "100%",
+                            border: "none",
+                            background: "transparent",
+                            color: "var(--Black-Black, #0E101A)",
+                            fontSize: "14px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">Select GST</option>
+                          <option value="5">5%</option>
+                          <option value="18">18%</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Quantity */}
                     <div
                       style={{
                         display: "flex",
@@ -2624,7 +2990,6 @@ const downloadCSVTemplate = () => {
                             placeholder="00"
                             name="openingQuantity"
                             value={variant.openingQuantity || ""}
-                            readOnly={settings.serialno}
                             onChange={(e) => handleVariantChange(index, "openingQuantity", e.target.value)}
                             style={{
                               width: "100%",
@@ -2634,11 +2999,9 @@ const downloadCSVTemplate = () => {
                               fontSize: "14px",
                               fontFamily: "Inter",
                               fontWeight: "400",
-                              cursor: settings.serialno ? "not-allowed" : "text",
                             }}
                           />
                         </div>
-
                       </div>
 
                       <span
@@ -2660,7 +3023,7 @@ const downloadCSVTemplate = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          ₹ {((Number(variant.purchasePrice) || 0) * (Number(variant.openingQuantity) || 0)).toFixed(2)}
+                          ₹ {(variant.sellingPrice - variant.purchasePrice).toFixed(2)}
                         </span>
                       </span>
                     </div>
@@ -2671,7 +3034,7 @@ const downloadCSVTemplate = () => {
                         display: "flex",
                         flexDirection: "column",
                         gap: "4px",
-                        width: "195px",
+                        width: "275px",
                       }}
                       className="col-1"
                     >
@@ -2744,6 +3107,32 @@ const downloadCSVTemplate = () => {
                             }}
                           />
                         </div>
+
+                        <button
+                          type="button"
+                          style={{
+                            padding: "4px 6px",
+                            background: "var(--Blue, #1F7FFF)",
+                            borderRadius: "4px",
+                            border: "none",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "var(--White, white)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                            }}
+                          >
+                            with Tax
+                          </span>
+                        </button>
                       </div>
 
                       <span
@@ -2765,13 +3154,13 @@ const downloadCSVTemplate = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          ₹ {((Number(variant.sellingPrice) || 0) * (Number(variant.openingQuantity) || 0)).toFixed(2)}
+                          ₹ {(variant.sellingPrice - variant.purchasePrice).toFixed(2)}
                         </span>
                       </span>
                     </div>
 
-                    {/* TAX */}
-                    <div
+                    {/* Size */}
+                    {settings.variants.size && <div
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -2796,9 +3185,9 @@ const downloadCSVTemplate = () => {
                             lineHeight: "14.40px",
                           }}
                         >
-                          Tax
+                          Size
                         </span>
-                        {/* <span
+                        <span
                           style={{
                             color: "var(--Danger, #D00003)",
                             fontSize: "12px",
@@ -2808,7 +3197,7 @@ const downloadCSVTemplate = () => {
                           }}
                         >
                           *
-                        </span> */}
+                        </span>
                       </div>
                       <div
                         style={{
@@ -2816,7 +3205,7 @@ const downloadCSVTemplate = () => {
                           padding: "0 12px",
                           background: "white",
                           borderRadius: "8px",
-                          border: highlightedFields.includes(`variant_${index}_tax`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          border: highlightedFields.includes(`variant_${index}_size`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
                           justifyContent: "flex-start",
                           alignItems: "center",
                           gap: "8px",
@@ -2824,9 +3213,9 @@ const downloadCSVTemplate = () => {
                         }}
                       >
                         <select
-                          name="tax"
-                          value={variant.tax || ""}
-                          onChange={(e) => handleVariantChange(index, "tax", e.target.value)}
+                          name="size"
+                          value={variant.size || ""}
+                          onChange={(e) => handleVariantChange(index, "size", e.target.value)}
                           style={{
                             width: "100%",
                             border: "none",
@@ -2838,18 +3227,190 @@ const downloadCSVTemplate = () => {
                             outline: "none",
                           }}
                         >
-                          <option value="">Select GST</option>
-                          <option value="0">0%</option>
-                          <option value="0.25">0.25%</option>
-                          <option value="3">3%</option>
-                          <option value="5">5%</option>
-                          <option value="18">18%</option>
-                          <option value="40">40%</option>
+                          <option value="">Select Size</option>
+                          <option value="XS">Extra Small (XS)</option>
+                          <option value="S">Small (S)</option>
+                          <option value="M">Medium (M)</option>
+                          <option value="L">Large (L)</option>
+                          <option value="XL">Extra Large (XL)</option>
                         </select>
                       </div>
+                    </div>}
+
+                    {/* Color */}
+                    {settings.variants.color && <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "195px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          Color
+                        </span>
+                        <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: highlightedFields.includes(`variant_${index}_color`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <select
+                          name="color"
+                          value={variant.color || ""}
+                          onChange={(e) => handleVariantChange(index, "color", e.target.value)}
+                          style={{
+                            width: "100%",
+                            border: "none",
+                            background: "transparent",
+                            color: "var(--Black-Black, #0E101A)",
+                            fontSize: "14px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">Select Color</option>
+                          <option value="Red">Red</option>
+                          <option value="Yellow">Yellow</option>
+                          <option value="Black">Black</option>
+                          <option value="Green">Green</option>
+                        </select>
+                      </div>
+                    </div>}
+
+                    {/* expiry */}
+                    {settings.expiry && <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        width: "195px",
+                      }}
+                      className="col-1"
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--Black-Grey, #727681)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          Expiry Date
+                        </span>
+                        <span
+                          style={{
+                            color: "var(--Danger, #D00003)",
+                            fontSize: "12px",
+                            fontFamily: "Inter",
+                            fontWeight: "400",
+                            lineHeight: "14.40px",
+                          }}
+                        >
+                          *
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: "40px",
+                          padding: "0 12px",
+                          background: "white",
+                          borderRadius: "8px",
+                          border: highlightedFields.includes(`variant_${index}_expiry`) ? "1px var(--White-Stroke, #fa3333ff) solid" : "1px var(--White-Stroke, #EAEAEA) solid",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          gap: "8px",
+                          display: "flex",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <input
+                            type="date"
+                            placeholder="31/12/2026"
+                            name="expiryDate"
+                            value={variant.expiryDate || ""}
+                            onChange={(e) => handleVariantChange(index, "expiryDate", e.target.value)}
+                            style={{
+                              width: "170px",
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--Black-Black, #0E101A)",
+                              fontSize: "14px",
+                              fontFamily: "Inter",
+                              fontWeight: "400",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>}
+
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <u style={{ color: '#1F7FFF', cursor: 'pointer', fontSize: '14px', fontWeight: '600', }} onClick={() => {
+                        setCurrentVariantIndex(index);
+                        setSerialList([]);
+                        setAddSerialPopup(true);
+                      }}>
+                        Enter Serial No.
+                      </u>
                     </div>
 
-                 {/* add serial no */}
 {addserialpopup && currentVariantIndex !== null && (
   <div
   
@@ -2909,7 +3470,24 @@ const downloadCSVTemplate = () => {
                 gap: "14px",
               }}
             >
-           
+              {/* Title */}
+              {/* <div
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#1F2937",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span>Serial Manager</span>
+                {currentVariantIndex !== null && variants[currentVariantIndex]?.openingQuantity && (
+                  <span style={{ fontSize: "13px", color: "#6B7280", fontWeight: 400 }}>
+                    Max: {variants[currentVariantIndex].openingQuantity} serials
+                  </span>
+                )}
+              </div> */}
 
               {/* Input Row */}
               <div
@@ -2921,25 +3499,15 @@ const downloadCSVTemplate = () => {
               >
                 <input
                   type="text"
-           
-
-             placeholder="Enter serial (comma / new line supported)"
-        value={serialInput}
-        onChange={(e) => setSerialInput(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            handleAddSerial();
-          }
-        }}
-        onPaste={(e) => {
-          const pasted = e.clipboardData.getData("text");
-          if (pasted.includes(",") || pasted.includes("\n")) {
-            e.preventDefault();
-            handleBulkAddSerials(pasted);
-          }
-        }}
-                  // placeholder=" Enter serial no/ Paste Serial"
+                  value={serialInput}
+            onChange={(e) => setSerialInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddSerial();
+              }
+            }}
+                  placeholder=" Enter serial no/ Paste Serial"
                   style={{
                     flex: 1,
                     height: "40px",
@@ -2981,7 +3549,6 @@ const downloadCSVTemplate = () => {
                 }}
               >
                 <button
-                type="button"
                   onClick={() => fileRef.current.click()}
                   style={{
                     background: "none",
@@ -2994,20 +3561,6 @@ const downloadCSVTemplate = () => {
                 >
                   Upload CSV
                 </button>
-    <button
-    type="button"
-    onClick={downloadCSVTemplate}
-    style={{
-      padding: "6px 10px",
-      background: "#EAEAEA",
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-      cursor: "pointer",
-      fontSize: "13px",
-    }}
-  >
-    ⬇ Download CSV Template
-  </button>
 
 
                 {/* <div style={{ marginLeft: "auto", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
@@ -3020,21 +3573,13 @@ const downloadCSVTemplate = () => {
                 </div> */}
               </div>
 
-              {/* CSV / EXCEL Upload */}
-    <input
-  ref={fileRef}
-  type="file"
-  accept=".csv,.xlsx,.xls"
-  style={{ display: "none" }}
-  onChange={(e) => {
-    const file = e.target.files[0];
-    if (file) {
-      handleExcelUpload(file);
-      e.target.value = ""; // same file re-upload fix
-    }
-  }}
-/>
-
+              {/* <input
+                type="file"
+                ref={fileRef}
+                accept=".csv"
+                hidden
+                onChange={handleCSVUpload}
+              /> */}
 
               {/* List */}
               <div
@@ -3087,24 +3632,56 @@ const downloadCSVTemplate = () => {
                         </button>
                       </div>
                     </div>
-        
+              // <div
+              //   key={sIndex}
+              //   style={{
+              //     display: "flex",
+              //     alignItems: "center",
+              //     gap: "12px",
+              //   }}
+              // >
+              //   <div style={{ width: "30px", textAlign: "center" }}>
+              //     {sIndex + 1}
+              //   </div>
+
+              //   <div
+              //     style={{
+              //       flex: 1,
+              //       background: "#fff",
+              //       padding: "8px 12px",
+              //       borderRadius: "8px",
+              //       border: "1px solid #EAEAEA",
+              //     }}
+              //   >
+              //     {serial}
+              //   </div>
+
+              //   <button
+              //     onClick={() => handleRemoveSerial(sIndex)}
+              //     style={{
+              //       background: "transparent",
+              //       border: "none",
+              //       color: "#D00003",
+              //       fontSize: "18px",
+              //       cursor: "pointer",
+              //     }}
+              //   >
+              //     &times;
+              //   </button>
+              // </div>
             )
           )}
            
               </div>
             </div>
           </div>
-                {/* Done */}
-      <div style={{ textAlign: "center", marginTop: "12px" }}>
-        <button onClick={() => setAddSerialPopup(false)}>Done</button>
-      </div>
-
         {/* )} */}
       </div>
     </div>
   </div>
 )}
 
+                  
                   </div>
                 ))}
 
@@ -3129,7 +3706,7 @@ const downloadCSVTemplate = () => {
                       cursor: "pointer",
                       borderRadius: "4px",
                     }}
-                    onClick={() => setVariants([...variants, { lotNumber: "", selectedVariant: "", selectedValue: "", valueDropdown: [] }])}
+                    onClick={() => setVariants([...variants, {}])}
                   >
                     <div
                       style={{
@@ -3246,7 +3823,7 @@ const downloadCSVTemplate = () => {
                           lineHeight: "16.80px",
                         }}
                       >
-                        {`${index + 1}. Lot`}
+                        {`${index + 1} Lot`}
                       </span>
 
                       <div

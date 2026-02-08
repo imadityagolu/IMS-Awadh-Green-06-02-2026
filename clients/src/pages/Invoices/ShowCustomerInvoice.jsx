@@ -604,7 +604,7 @@ function ShowCustomerInvoice() {
                                       {item.itemName}
                                     </div>
                                     {/* Serial Numbers Below Product Name */}
-                                    {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
+                                    {/* {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
                                       <div
                                         style={{
                                           fontSize: "11px",
@@ -618,7 +618,28 @@ function ShowCustomerInvoice() {
                                           {item.selectedSerialNos.join(", ")}
                                         </div>
                                       </div>
-                                    )}
+                                    )} */}
+                                    {/* Serial Numbers Below Product Name */}
+{item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
+  <div
+    style={{
+      fontSize: "11px",
+      color: "#666",
+      fontStyle: "italic",
+      marginTop: "4px",
+      lineHeight: "1.4",
+    }}
+  >
+    <div style={{ fontWeight: "500", marginBottom: "2px" }}>
+      Serial Numbers:
+    </div>
+
+    {item.selectedSerialNos.map((sn, index) => (
+      <div key={index}>• {sn}</div>
+    ))}
+  </div>
+)}
+
                                   </td>
                                   {printSettings.showHSN && (
                                     <td

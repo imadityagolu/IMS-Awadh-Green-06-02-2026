@@ -485,7 +485,7 @@ const Brand = () => {
                 </span>
               </NavLink> */}
           {/* {hasPermission("Brand", "write") && ( */}
-            <a
+          <a
             title="Add Brand Button"
             className="button-hover"
             data-bs-toggle="modal"
@@ -672,7 +672,7 @@ const Brand = () => {
             <table className="table datatable">
               <thead className="thead-light">
                 <tr style={{ textAlign: 'start' }}>
-                  <th className="no-sort">
+                  <th className="no-sort" style={{display:'flex', alignItems:'center'}}>
                     <label className="checkboxs">
                       <input
                         type="checkbox"
@@ -684,8 +684,7 @@ const Brand = () => {
                       />
                       <span className="checkmarks" />
                     </label>
-                  </th>
-                  <th>{t("Brand")}</th>
+                  {t("Brand")}</th>
                   <th>{t("Created Date")}</th>
                   <th>{t("Status")}</th>
                   <th style={{ textAlign: 'center', width: '120px' }}>{t("Action")}</th>
@@ -694,7 +693,7 @@ const Brand = () => {
               <tbody>
                 {paginatedBrands.map((brand) => (
                   <tr key={brand._id}>
-                    <td>
+                    <td style={{display:'flex', alignItems:'center'}}>
                       <label className="checkboxs">
                         <input
                           type="checkbox"
@@ -703,8 +702,6 @@ const Brand = () => {
                         />
                         <span className="checkmarks" />
                       </label>
-                    </td>
-                    <td>
                       <div className="d-flex align-items-center">
                         {brand.image?.[0]?.url ? (
                           <>
@@ -712,7 +709,7 @@ const Brand = () => {
                               src={brand.image?.[0]?.url}
                               alt={brand.brandName}
                               className="me-1"
-                              style={{ objectFit: 'contain', width: '30px', height: '30px', }}
+                              style={{ objectFit: 'cover', width: '32px', height: '32px', borderRadius:'6px' }}
                             />
                           </>
                         ) : (
@@ -767,6 +764,7 @@ const Brand = () => {
               </tbody>
             </table>
           </div>
+
           {/* pagination */}
           <div
             className="d-flex justify-content-end gap-3"
@@ -828,9 +826,8 @@ const Brand = () => {
         </div>
       </div>
 
-      {/* /product list */}
+      {/* Add Brand */}
       <div>
-        {/* Add Brand */}
         <div className="modal" id="add-brand">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
@@ -961,9 +958,9 @@ const Brand = () => {
             </div>
           </div>
         </div>
-        {/* /Add Brand */}
       </div>
 
+      {/* edit Brand */}
       <div className="modal" id="edit-brand">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">

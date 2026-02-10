@@ -249,7 +249,7 @@ const handleSaveSettings = async () => {
       console.log("Sending saveData:", saveData);
 
       // Call the parent save function
-      await onSave(saveData, templateId);
+      await onSave(saveData, template?._id);
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error(`Failed to save settings: ${error.message}`);

@@ -282,7 +282,7 @@ const BarCodePrint = () => {
               padding: "8px 0",
               borderBottom: activeTabs === "barcode" ? "2px solid #0E101A" : "none",
               color: activeTabs === "barcode" ? "#0E101A" : "#727681",
-              fontWeight: "600",
+              fontWeight: activeTabs === "barcode" ? "600" : "400",
               fontSize: "16px",
               cursor: "pointer"
             }}
@@ -294,6 +294,7 @@ const BarCodePrint = () => {
             style={{
               borderBottom: activeTabs === "normal" ? "2px solid #0E101A" : "none",
               padding: "8px 0",
+              fontWeight: activeTabs === "normal" ? "600" : "400",
               fontSize: "16px",
               cursor: "pointer",
               color: activeTabs === "normal" ? "#0E101A" : "#727681",
@@ -306,6 +307,7 @@ const BarCodePrint = () => {
             style={{
               borderBottom: activeTabs === "thermal" ? "2px solid #0E101A" : "none",
               padding: "8px 0",
+              fontWeight: activeTabs === "thermal" ? "600" : "400",
               fontSize: "16px",
               cursor: "pointer",
               color: activeTabs === "thermal" ? "#0E101A" : "#727681",

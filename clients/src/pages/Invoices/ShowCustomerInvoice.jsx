@@ -15,6 +15,70 @@ import CompanyLogo from "../../assets/images/kasperlogo.png";
 import TaxInvoiceLogo from "../../assets/images/taxinvoice.png";
 import Qrcode from "../../assets/images/qrcode.png";
 import numberToWords from "number-to-words";
+
+const convertToIndianWords = (num) => {
+  if (num === 0 || num === null || num === undefined) return 'ZERO';
+
+  const n = Math.floor(Number(num));
+  if (isNaN(n)) return 'ZERO';
+  if (n === 0) return 'ZERO';
+
+  const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
+  const teens = ['TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+  const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+
+  const convertBelow100 = (num) => {
+    if (num < 10) return ones[num];
+    if (num < 20) return teens[num - 10];
+    const ten = Math.floor(num / 10);
+    const one = num % 10;
+    return tens[ten] + (one ? ' ' + ones[one] : '');
+  };
+
+  const convertBelow1000 = (num) => {
+    const hundred = Math.floor(num / 100);
+    const remainder = num % 100;
+    let result = '';
+    if (hundred) result += ones[hundred] + ' HUNDRED';
+    if (hundred && remainder) result += ' ';
+    if (remainder) result += convertBelow100(remainder);
+    return result;
+  };
+
+  let result = '';
+  let tempNum = n;
+
+  // Crores
+  if (tempNum >= 10000000) {
+    const crores = Math.floor(tempNum / 10000000);
+    result += convertBelow1000(crores) + ' CRORE';
+    tempNum %= 10000000;
+  }
+
+  // Lakhs
+  if (tempNum >= 100000) {
+    const lakhs = Math.floor(tempNum / 100000);
+    if (result) result += ' ';
+    result += convertBelow1000(lakhs) + ' LAKH';
+    tempNum %= 100000;
+  }
+
+  // Thousands
+  if (tempNum >= 1000) {
+    const thousands = Math.floor(tempNum / 1000);
+    if (result) result += ' ';
+    result += convertBelow1000(thousands) + ' THOUSAND';
+    tempNum %= 1000;
+  }
+
+  // Hundreds and below
+  if (tempNum > 0) {
+    if (result) result += ' ';
+    result += convertBelow1000(tempNum);
+  }
+
+  return result.trim() || 'ZERO';
+};
 function ShowCustomerInvoice() {
   const { invoiceId } = useParams();
   const navigate = useNavigate();
@@ -178,7 +242,7 @@ function ShowCustomerInvoice() {
   const products = invoiceData.items || [];
   const totalInWords =
     invoiceData.grandTotal != null
-      ? `${numberToWords.toWords(invoiceData.grandTotal).toUpperCase()} RUPEES ONLY`
+      ? `${convertToIndianWords(invoiceData.grandTotal).toUpperCase()} RUPEES ONLY`
       : "";
   return (
     <div className="px-4 py-4" style={{ height: "100vh" }}>
@@ -473,6 +537,8 @@ function ShowCustomerInvoice() {
                                   borderRight: "1px solid #EAEAEA",
                                   borderBottom: "1px solid #EAEAEA",
                                   fontWeight: "400",
+                                  width: "50px",
+                                  color: "black"
                                 }}
                                 rowSpan="2"
                               >
@@ -483,6 +549,8 @@ function ShowCustomerInvoice() {
                                   borderRight: "1px solid #EAEAEA",
                                   borderBottom: "1px solid #EAEAEA",
                                   fontWeight: "400",
+                                  width: "200px",
+                                  color: "black"
                                 }}
                                 rowSpan="2"
                               >
@@ -505,6 +573,8 @@ function ShowCustomerInvoice() {
                                   borderRight: "1px solid #EAEAEA",
                                   borderBottom: "1px solid #EAEAEA",
                                   fontWeight: "400",
+                                  width: "100px",
+                                  color: "black"
                                 }}
                                 rowSpan="3"
                               >
@@ -603,42 +673,25 @@ function ShowCustomerInvoice() {
                                     <div style={{ fontWeight: "500", marginBottom: "4px" }}>
                                       {item.itemName}
                                     </div>
-                                    {/* Serial Numbers Below Product Name */}
-                                    {/* {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
+                                    {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
                                       <div
                                         style={{
                                           fontSize: "11px",
                                           color: "#666",
                                           fontStyle: "italic",
                                           marginTop: "4px",
-                                          lineHeight: "1.3",
+                                          lineHeight: "1.4",
                                         }}
                                       >
-                                        <div style={{ fontWeight: "400", marginBottom: "2px" }}>
-                                          {item.selectedSerialNos.join(", ")}
+                                        <div style={{ fontWeight: "500", marginBottom: "2px" }}>
+                                          Serial Numbers:
                                         </div>
-                                      </div>
-                                    )} */}
-                                    {/* Serial Numbers Below Product Name */}
-{item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
-  <div
-    style={{
-      fontSize: "11px",
-      color: "#666",
-      fontStyle: "italic",
-      marginTop: "4px",
-      lineHeight: "1.4",
-    }}
-  >
-    <div style={{ fontWeight: "500", marginBottom: "2px" }}>
-      Serial Numbers:
-    </div>
 
-    {item.selectedSerialNos.map((sn, index) => (
-      <div key={index}>• {sn}</div>
-    ))}
-  </div>
-)}
+                                        {item.selectedSerialNos.map((sn, index) => (
+                                          <div key={index}>• {sn}</div>
+                                        ))}
+                                      </div>
+                                    )}
 
                                   </td>
                                   {printSettings.showHSN && (
@@ -651,7 +704,7 @@ function ShowCustomerInvoice() {
                                       {item.hsnCode || "-"}
                                     </td>
                                   )}
-                                  {/* Lot Number Before QTY */}
+
                                   <td
                                     style={{
                                       borderRight: "1px solid #EAEAEA",

@@ -95,10 +95,21 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
         companyAddress: companyData.companyaddress || "",
         companyEmail: companyData.companyemail || "",
         companyPhone: companyData.companyphone || "",
-        companyGSTIN: companyData.gstin || ""
+        companyGSTIN: companyData.gstin || "",
+         signatureUrl: prev.signatureUrl || ""
       }));
     }
   }, [template, companyData]);
+
+  // Update signature preview when formData.signatureUrl changes
+useEffect(() => {
+  if (formData.signatureUrl) {
+    setSignaturePreview(formData.signatureUrl);
+    console.log("Signature URL updated:", formData.signatureUrl);
+  } else {
+    setSignaturePreview("");
+  }
+}, [formData.signatureUrl]);
 
   const handleTemplateSelect = (templateId) => {
     setActiveTemplate(templateId);

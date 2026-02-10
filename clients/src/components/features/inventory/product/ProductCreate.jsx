@@ -911,22 +911,22 @@ const downloadCSVTemplate = () => {
           newErrors[`variant_${index}_unit`] = `Unit is required for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_unit`);
         }
-        if (!variant.openingQuantity || Number(variant.openingQuantity) < 1) {
-          newErrors[`variant_${index}_openingQuantity`] = `Opening Quantity must be at least 1 for variant ${index + 1}`;
-          emptyFields.push(`variant_${index}_openingQuantity`);
-        }
-        if ((!variant.serialNumbers || variant.serialNumbers.length === 0) && settings.serialno) {
-          newErrors[`variant_${index}_serialNumber`] = `Serial Number is required for variant ${index + 1}`;
-          emptyFields.push(`variant_${index}_serialNumber`);
-        }
+        // if (!variant.openingQuantity || Number(variant.openingQuantity) < 1) {
+        //   newErrors[`variant_${index}_openingQuantity`] = `Opening Quantity must be at least 1 for variant ${index + 1}`;
+        //   emptyFields.push(`variant_${index}_openingQuantity`);
+        // }
+        // if ((!variant.serialNumbers || variant.serialNumbers.length === 0) && settings.serialno) {
+        //   newErrors[`variant_${index}_serialNumber`] = `Serial Number is required for variant ${index + 1}`;
+        //   emptyFields.push(`variant_${index}_serialNumber`);
+        // }
         if (!variant.supplier && settings.supplier) {
           newErrors[`variant_${index}_supplier`] = `Supplier is required for variant ${index + 1}`;
           emptyFields.push(`variant_${index}_supplier`);
         }
-        if (!variant.lotNumber && settings.lotno) {
-          newErrors[`variant_${index}_lotNumber`] = `Lot No. is required for variant ${index + 1}`;
-          emptyFields.push(`variant_${index}_lotNumber`);
-        }
+        // if (!variant.lotNumber && settings.lotno) {
+        //   newErrors[`variant_${index}_lotNumber`] = `Lot No. is required for variant ${index + 1}`;
+        //   emptyFields.push(`variant_${index}_lotNumber`);
+        // }
       });
     } else {
       // Validate Main Form Fields (Single Product)
@@ -945,22 +945,22 @@ const downloadCSVTemplate = () => {
         newErrors.units = "Unit is required";
         emptyFields.push("variant_0_unit");
       }
-      if (!mainVariant.openingQuantity || Number(mainVariant.openingQuantity) < 1) {
-        newErrors.openingQuantity = "Opening Quantity must be at least 1";
-        emptyFields.push("variant_0_openingQuantity");
-      }
-      if (settings.serialno && (!mainVariant.serialNumbers || mainVariant.serialNumbers.length === 0)) {
-        newErrors.serialNumber = "Serial Number is required";
-        emptyFields.push("variant_0_serialNumber");
-      }
+      // if (!mainVariant.openingQuantity || Number(mainVariant.openingQuantity) < 1) {
+      //   newErrors.openingQuantity = "Opening Quantity must be at least 1";
+      //   emptyFields.push("variant_0_openingQuantity");
+      // }
+      // if (settings.serialno && (!mainVariant.serialNumbers || mainVariant.serialNumbers.length === 0)) {
+      //   newErrors.serialNumber = "Serial Number is required";
+      //   emptyFields.push("variant_0_serialNumber");
+      // }
       if (settings.supplier && !mainVariant.supplier) {
         newErrors.supplier = "Supplier is required";
         emptyFields.push("variant_0_supplier");
       }
-      if (settings.lotno && !mainVariant.lotNumber) {
-        newErrors.lotNumber = "Lot No. is required";
-        emptyFields.push("variant_0_lotNumber");
-      }
+      // if (settings.lotno && !mainVariant.lotNumber) {
+      //   newErrors.lotNumber = "Lot No. is required";
+      //   emptyFields.push("variant_0_lotNumber");
+      // }
     }
 
     setHighlightedFields(emptyFields);
@@ -2624,7 +2624,7 @@ const downloadCSVTemplate = () => {
                             placeholder="00"
                             name="openingQuantity"
                             value={variant.openingQuantity || ""}
-                            readOnly={settings.serialno}
+                            min={0}
                             onChange={(e) => handleVariantChange(index, "openingQuantity", e.target.value)}
                             style={{
                               width: "100%",
@@ -2634,7 +2634,7 @@ const downloadCSVTemplate = () => {
                               fontSize: "14px",
                               fontFamily: "Inter",
                               fontWeight: "400",
-                              cursor: settings.serialno ? "not-allowed" : "text",
+                              cursor: "text",
                             }}
                           />
                         </div>

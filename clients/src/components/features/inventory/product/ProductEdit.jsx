@@ -999,6 +999,30 @@ const ProductEdit = () => {
   const handleVariantChange = (index, fieldOrVariant, maybeValue) => {
     if (typeof maybeValue !== "undefined") {
       if (fieldOrVariant === "quantityInLot" && settings.serialno) return;
+
+      // Sync serial numbers with stockQuantity
+      if (fieldOrVariant === "stockQuantity" && settings.serialno) {
+        const newQty = parseInt(maybeValue) || 0;
+        setVariants((prev) =>
+          prev.map((v, i) => {
+            if (i === index) {
+              const currentSerials = v.serialNumbers ? [...v.serialNumbers] : [];
+              let newSerials = currentSerials;
+              if (newQty > currentSerials.length) {
+                const diff = newQty - currentSerials.length;
+                for (let k = 0; k < diff; k++) newSerials.push("");
+              } else if (newQty < currentSerials.length) {
+                newSerials = newSerials.slice(0, newQty);
+              }
+              return { ...v, [fieldOrVariant]: maybeValue, serialNumbers: newSerials };
+            }
+            return v;
+          })
+        );
+        setIsDirty(true);
+        return;
+      }
+
       setVariants(prev =>
         prev.map((v, i) => (i === index ? { ...v, [fieldOrVariant]: maybeValue } : v))
       );
@@ -2533,11 +2557,10 @@ const ProductEdit = () => {
                             placeholder="00"
                             name="stockQuantity"
                             value={variant.stockQuantity || ""}
+                            min={0}
                             onChange={(e) => {
-                              if (settings.serialno) return;
                               handleVariantChange(index, "stockQuantity", e.target.value);
                             }}
-                            readOnly={settings.serialno}
                             style={{
                               width: "100%",
                               border: "none",
@@ -2546,7 +2569,7 @@ const ProductEdit = () => {
                               fontSize: "14px",
                               fontFamily: "Inter",
                               fontWeight: "400",
-                              cursor: settings.serialno ? "not-allowed" : "text",
+                              cursor: "text",
                             }}
                           />
                         </div>

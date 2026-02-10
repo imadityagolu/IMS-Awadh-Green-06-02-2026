@@ -46,7 +46,7 @@ const productSchema = new mongoose.Schema(
 
     tax: String,
 
-    quantityInLot: { type: Number, default: 1 },
+    quantityInLot: { type: Number, default: 0 },
 
     sellingPrice: { type: Number, required: true, min: 1 },
 

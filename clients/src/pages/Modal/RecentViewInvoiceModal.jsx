@@ -10,11 +10,76 @@ import { format } from "date-fns";
 import { toast } from "react-toastify";
 import numberToWords from "number-to-words";
 import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf'; 
+import jsPDF from 'jspdf';
 import api from '../../pages/config/axiosInstance';
 import CompanyLogo from '../../assets/images/kasperlogo.png'
 import TaxInvoiceLogo from '../../assets/images/taxinvoice.png'
 import Qrcode from '../../assets/images/qrcode.png';
+
+const convertToIndianWords = (num) => {
+    if (num === 0 || num === null || num === undefined) return 'ZERO';
+
+    const n = Math.floor(Number(num));
+    if (isNaN(n)) return 'ZERO';
+    if (n === 0) return 'ZERO';
+
+    const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
+    const teens = ['TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+    const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+
+    const convertBelow100 = (num) => {
+        if (num < 10) return ones[num];
+        if (num < 20) return teens[num - 10];
+        const ten = Math.floor(num / 10);
+        const one = num % 10;
+        return tens[ten] + (one ? ' ' + ones[one] : '');
+    };
+
+    const convertBelow1000 = (num) => {
+        const hundred = Math.floor(num / 100);
+        const remainder = num % 100;
+        let result = '';
+        if (hundred) result += ones[hundred] + ' HUNDRED';
+        if (hundred && remainder) result += ' ';
+        if (remainder) result += convertBelow100(remainder);
+        return result;
+    };
+
+    let result = '';
+    let tempNum = n;
+
+    // Crores
+    if (tempNum >= 10000000) {
+        const crores = Math.floor(tempNum / 10000000);
+        result += convertBelow1000(crores) + ' CRORE';
+        tempNum %= 10000000;
+    }
+
+    // Lakhs
+    if (tempNum >= 100000) {
+        const lakhs = Math.floor(tempNum / 100000);
+        if (result) result += ' ';
+        result += convertBelow1000(lakhs) + ' LAKH';
+        tempNum %= 100000;
+    }
+
+    // Thousands
+    if (tempNum >= 1000) {
+        const thousands = Math.floor(tempNum / 1000);
+        if (result) result += ' ';
+        result += convertBelow1000(thousands) + ' THOUSAND';
+        tempNum %= 1000;
+    }
+
+    // Hundreds and below
+    if (tempNum > 0) {
+        if (result) result += ' ';
+        result += convertBelow1000(tempNum);
+    }
+
+    return result.trim() || 'ZERO';
+};
+
 
 function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type = "purchase", invoiceId }) {
     const [invoice, setInvoice] = useState(invoiceData || null);
@@ -23,6 +88,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
     const [loading, setLoading] = useState(!invoiceData);
     const [isDownloading, setIsDownloading] = useState(false);
     const invoiceRef = useRef(null);
+    const [signatureUrl, setSignatureUrl] = useState("");
 
     // Fetch invoice data if not provided
     useEffect(() => {
@@ -51,6 +117,20 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
             }
         };
         fetchCompanyData();
+    }, []);
+
+    useEffect(() => {
+        const fetchPrintTemplate = async () => {
+            try {
+                const res = await api.get('/api/print-templates?type=normal');
+                if (res.data.data.template?.signatureUrl) {
+                    setSignatureUrl(res.data.data.template.signatureUrl);
+                }
+            } catch (error) {
+                console.error('Error fetching print template:', error);
+            }
+        };
+        fetchPrintTemplate();
     }, []);
 
     // Fetch terms and conditions
@@ -200,7 +280,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
     const invoiceItems = Array.isArray(invoice?.items) ? invoice.items : [];
     const bankDetails = invoice?.bankDetails || {};
     const totalInWords = invoice?.grandTotal != null
-        ? `${numberToWords.toWords(invoice.grandTotal).toUpperCase()} RUPEES ONLY`
+        ? `${convertToIndianWords(invoice.grandTotal).toUpperCase()} RUPEES ONLY`
         : "";
 
     if (loading) return <div>Loading invoice...</div>;
@@ -305,25 +385,54 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                             <table className='' style={{ width: '100%', border: '1px solid #EAEAEA', borderCollapse: 'collapse' }}>
                                 <thead style={{ textAlign: 'center', }}>
                                     <tr>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }} rowSpan='2'>Sr No.</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }} rowSpan='2'>Name of the Products</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }} rowSpan='2'>HSN</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }} rowSpan='2'>QTY</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }} rowSpan='2'>Rate</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }} colSpan="2">Tax</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }} rowSpan='2'>Total</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Sr No.</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Name of the Products</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>HSN</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Lot No.</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>QTY</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Rate</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} colSpan="2">Tax</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Total</th>
                                     </tr>
                                     <tr>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }}>%</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA' }}>₹</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }}>%</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }}>₹</th>
                                     </tr>
                                 </thead>
                                 <tbody style={{ textAlign: "center" }}>
                                     {invoiceItems.map((item, index) => (
                                         <tr key={index}>
                                             <td style={{ borderRight: '1px solid #EAEAEA', height: '30px' }}>{index + 1}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.itemName || item.name || 'N/A'}</td>
+                                            {/* <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.itemName || item.name || 'N/A'}</td> */}
+                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>
+                                                <div style={{ fontWeight: "500", marginBottom: "4px" }}>
+                                                    {item.itemName}
+                                                </div>
+                                                {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
+                                                    <div
+                                                        style={{
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            flexDirection: "column",
+                                                            fontSize: "11px",
+                                                            color: "#666",
+                                                            fontStyle: "italic",
+                                                            marginTop: "4px",
+                                                            lineHeight: "1.4",
+                                                        }}
+                                                    >
+                                                        <div style={{ fontWeight: "500", marginBottom: "2px" }}>
+                                                            Serial Nos:
+                                                        </div>
+
+                                                        {item.selectedSerialNos.map((sn, index) => (
+                                                            <div key={index}>• {sn}</div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </td>
                                             <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.hsnCode || item.hsn || '-'}</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.lotNumber || '-'}</td>
                                             <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.qty || 0}</td>
                                             <td style={{ borderRight: '1px solid #EAEAEA', }}>{formatCurrency(item.unitPrice)}</td>
                                             <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.taxRate || 0}%</td>
@@ -350,7 +459,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                         </div>
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '15px', borderTop: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', }}>
                             <div style={{ borderRight: '', width: '50%', padding: '3px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <u>Total in words</u>
+                                <u style={{ color: "black" }}>Total in words</u>
                                 <div style={{ marginTop: '5px', fontWeight: '600', fontSize: '12px' }}>{totalInWords}</div>
                                 {/* <div
                                     style={{
@@ -382,33 +491,33 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
 
                             <div style={{ width: '50%', padding: '3px', borderLeft: '1px solid #EAEAEA' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '1px 8px' }}>
-                                    <span>Sub-total</span>
+                                    <span style={{ color: "black" }}>Sub-total</span>
                                     <span style={{ color: 'black', }}>{formatCurrency(invoice?.subtotal)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '1px 8px' }}>
-                                    <span>Tax Amount</span>
+                                    <span style={{ color: "black" }}>Tax Amount</span>
                                     <span style={{ color: 'black', }}>{formatCurrency(invoice?.totalTax)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '2px 8px' }}>
-                                    <span>Discount</span>
+                                    <span style={{ color: "black" }}>Discount</span>
                                     <span style={{ color: 'black', }}>{formatCurrency(invoice?.totalDiscount)}</span>
                                 </div>
                                 {type === "sales" && invoice?.shoppingPointsUsed > 0 && (
                                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '2px 8px' }}>
-                                        <span>🪙 Shopping Points</span>
+                                        <span style={{ color: "black" }}>🪙 Shopping Points</span>
                                         <span style={{ color: 'black', }}>{formatCurrency(invoice?.shoppingPointsUsed || 0)}</span>
                                     </div>
                                 )}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '2px 8px' }}>
-                                    <span>Additional Charges</span>
+                                    <span style={{ color: "black" }}>Additional Charges</span>
                                     <span style={{ color: 'black', }}>{formatCurrency(invoice?.additionalCharges)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '1px 8px', }}>
-                                    <span style={{ fontWeight: '700', fontSize: '10px' }}>Total</span>
+                                    <span style={{ color: "black", fontWeight: '700', fontSize: '10px' }}>Total</span>
                                     <span style={{ color: 'black', fontWeight: '600', fontSize: '10px' }}>{formatCurrency(invoice?.grandTotal)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px' }}>
-                                    <span>Due Amount</span>
+                                    <span style={{ color: "black" }}>Due Amount</span>
                                     <span style={{ color: invoice?.dueAmount > 0 ? 'red' : 'black', fontWeight: invoice?.dueAmount > 0 ? '600' : '400' }}>
                                         {formatCurrency(invoice?.dueAmount)}
                                     </span>
@@ -418,15 +527,42 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
 
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #EAEAEA', }}>
                             <div style={{ borderRight: '', width: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <u>Term & Conditions</u>
+                                <u style={{ color: "black" }}>Term & Conditions</u>
                                 <div style={{ marginTop: '5px', fontSize: '10px' }}>{terms?.termsText || 'No terms and conditions set.'}</div>
                             </div>
 
-                            <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
+                            {/* <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
                                 <div style={{ display: 'flex', justifyContent: 'center', borderTop: '1px solid #EAEAEA', padding: '1px 8px', marginTop: '60px' }}>
                                     <span style={{ fontWeight: '500', fontSize: '10px', }}>Signature</span>
                                 </div>
-                            </div>
+                            </div> */}
+                            <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    borderTop: '1px solid #EAEAEA', 
+    padding: '1px 8px', 
+    marginTop: '60px' 
+  }}>
+    {signatureUrl ? (
+      <div style={{ textAlign: 'center' }}>
+        <img 
+          src={signatureUrl} 
+          alt="Signature" 
+          style={{ 
+            width: '100px', 
+            height: '50px', 
+            objectFit: 'contain',
+            marginBottom: '5px'
+          }} 
+        />
+        <span style={{ fontWeight: '500', fontSize: '10px' }}>Authorized Signature</span>
+      </div>
+    ) : (
+      <span style={{ fontWeight: '500', fontSize: '10px' }}>Signature</span>
+    )}
+  </div>
+</div>
                         </div>
                         <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
                             <span style={{ marginTop: '5px', fontSize: '10px' }}>

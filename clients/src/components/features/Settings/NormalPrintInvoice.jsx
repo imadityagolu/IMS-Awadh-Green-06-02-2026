@@ -818,10 +818,10 @@ function NormalPrintInvoice({
                       marginTop: "60px",
                     }}
                   >
-                    {companyData?.signatureUrl ? (
+                    {companyData?.signatureUrl || template?.signatureUrl ? (
                       <div style={{ textAlign: "center" }}>
                         <img
-                          src={companyData.signatureUrl}
+                          src={companyData?.signatureUrl || template?.signatureUrl}
                           alt="Signature"
                           style={{
                             maxWidth: "150px",
@@ -830,14 +830,7 @@ function NormalPrintInvoice({
                             marginBottom: "5px",
                           }}
                           onError={(e) => {
-                            e.target.onerror = null;
                             e.target.style.display = "none";
-                            // Show text signature if image fails to load
-                            e.target.parentElement.innerHTML = `
-              <div style="border-top: 1px solid #000; width: 150px; padding-top: 5px">
-                <div style="font-weight: 500; font-size: 10px">Signature</div>
-              </div>
-            `;
                           }}
                         />
                         <div style={{ fontWeight: "500", fontSize: "10px" }}>

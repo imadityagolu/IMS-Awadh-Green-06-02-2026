@@ -15,69 +15,103 @@ import CompanyLogo from "../../assets/images/kasperlogo.png";
 import TaxInvoiceLogo from "../../assets/images/taxinvoice.png";
 import Qrcode from "../../assets/images/qrcode.png";
 import numberToWords from "number-to-words";
+import { TiArrowDown } from "react-icons/ti";
 
 const convertToIndianWords = (num) => {
-  if (num === 0 || num === null || num === undefined) return 'ZERO';
+  if (num === 0 || num === null || num === undefined) return "ZERO";
 
   const n = Math.floor(Number(num));
-  if (isNaN(n)) return 'ZERO';
-  if (n === 0) return 'ZERO';
+  if (isNaN(n)) return "ZERO";
+  if (n === 0) return "ZERO";
 
-  const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
-  const teens = ['TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
-  const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+  const ones = [
+    "",
+    "ONE",
+    "TWO",
+    "THREE",
+    "FOUR",
+    "FIVE",
+    "SIX",
+    "SEVEN",
+    "EIGHT",
+    "NINE",
+  ];
+  const teens = [
+    "TEN",
+    "ELEVEN",
+    "TWELVE",
+    "THIRTEEN",
+    "FOURTEEN",
+    "FIFTEEN",
+    "SIXTEEN",
+    "SEVENTEEN",
+    "EIGHTEEN",
+    "NINETEEN",
+  ];
+  const tens = [
+    "",
+    "",
+    "TWENTY",
+    "THIRTY",
+    "FORTY",
+    "FIFTY",
+    "SIXTY",
+    "SEVENTY",
+    "EIGHTY",
+    "NINETY",
+  ];
 
   const convertBelow100 = (num) => {
     if (num < 10) return ones[num];
     if (num < 20) return teens[num - 10];
     const ten = Math.floor(num / 10);
     const one = num % 10;
-    return tens[ten] + (one ? ' ' + ones[one] : '');
+    return tens[ten] + (one ? " " + ones[one] : "");
   };
 
   const convertBelow1000 = (num) => {
     const hundred = Math.floor(num / 100);
     const remainder = num % 100;
-    let result = '';
-    if (hundred) result += ones[hundred] + ' HUNDRED';
-    if (hundred && remainder) result += ' ';
+    let result = "";
+    if (hundred) result += ones[hundred] + " HUNDRED";
+    if (hundred && remainder) result += " ";
     if (remainder) result += convertBelow100(remainder);
     return result;
   };
 
-  let result = '';
+  let result = "";
   let tempNum = n;
 
   // Crores
   if (tempNum >= 10000000) {
     const crores = Math.floor(tempNum / 10000000);
-    result += convertBelow1000(crores) + ' CRORE';
+    result += convertBelow1000(crores) + " CRORE";
     tempNum %= 10000000;
   }
 
   // Lakhs
   if (tempNum >= 100000) {
     const lakhs = Math.floor(tempNum / 100000);
-    if (result) result += ' ';
-    result += convertBelow1000(lakhs) + ' LAKH';
+    if (result) result += " ";
+    result += convertBelow1000(lakhs) + " LAKH";
     tempNum %= 100000;
   }
 
   // Thousands
   if (tempNum >= 1000) {
     const thousands = Math.floor(tempNum / 1000);
-    if (result) result += ' ';
-    result += convertBelow1000(thousands) + ' THOUSAND';
+    if (result) result += " ";
+    result += convertBelow1000(thousands) + " THOUSAND";
     tempNum %= 1000;
   }
 
   // Hundreds and below
   if (tempNum > 0) {
-    if (result) result += ' ';
+    if (result) result += " ";
     result += convertBelow1000(tempNum);
   }
 
-  return result.trim() || 'ZERO';
+  return result.trim() || "ZERO";
 };
 function ShowCustomerInvoice() {
   const { invoiceId } = useParams();
@@ -212,8 +246,8 @@ function ShowCustomerInvoice() {
       backgroundColor: "#ffffff",
       useCORS: true,
       windowWidth: element.scrollWidth,
-      width: 595, // Explicit width
-      height: 842,
+      // width: 595, // Explicit width
+      // height: 842,
     });
 
     const imgData = canvas.toDataURL("image/png");
@@ -293,11 +327,11 @@ function ShowCustomerInvoice() {
             <div
               ref={invoiceRef}
               style={{
-                width: "595px",
-                minWidth: "595px",
-                maxWidth: "595px",
-                height: "842px", // A4 height at 72 DPI
-                minHeight: "970px",
+                // width: "595px",
+                // minWidth: "595px",
+                // maxWidth: "595px",
+                // height: "842px", // A4 height at 72 DPI
+                // minHeight: "970px",
                 paddingTop: 10.37,
                 paddingBottom: 20.37,
                 paddingLeft: 30.37,
@@ -381,12 +415,16 @@ function ShowCustomerInvoice() {
                             style={{ width: "100%", objectFit: "contain" }}
                           />
                         </div>
-                        <div style={{ width: "130px" }}>
-                          <img
-                            src={TaxInvoiceLogo}
-                            alt="tax invoice"
-                            style={{ width: "100%", objectFit: "contain" }}
-                          />
+                        <div style={{}}>
+                          <h1
+                            style={{
+                              fontFamily: '"Roboto", sans-serif',
+                              fontSize: "18px",
+                              color: "black",
+                            }}
+                          >
+                            TAX INVOICE
+                          </h1>
                         </div>
                       </div>
                       <div
@@ -404,15 +442,17 @@ function ShowCustomerInvoice() {
                           display: "flex",
                           justifyContent: "space-between",
                           marginTop: "2px",
+                          fontFamily: '"Roboto", sans-serif',
+                          color: "black",
                         }}
                       >
                         <span>
                           INVOICE Date -{" "}
                           {invoiceData.invoiceDate
                             ? format(
-                              new Date(invoiceData.invoiceDate),
-                              "dd MMM yyyy",
-                            )
+                                new Date(invoiceData.invoiceDate),
+                                "dd MMM yyyy",
+                              )
                             : "N/A"}
                         </span>
                         <span style={{ marginRight: "12px" }}>
@@ -436,6 +476,8 @@ function ShowCustomerInvoice() {
                           marginTop: "2px",
                           alignItems: "center",
                           borderBottom: "1px solid #EAEAEA",
+                          fontFamily: '"Roboto", sans-serif',
+                          color: "black",
                         }}
                       >
                         <div
@@ -459,6 +501,8 @@ function ShowCustomerInvoice() {
                           marginTop: "2px",
                           alignItems: "center",
                           borderBottom: "1px solid #EAEAEA",
+                          fontFamily: '"Roboto", sans-serif',
+                          color: "black",
                         }}
                       >
                         <div
@@ -470,54 +514,38 @@ function ShowCustomerInvoice() {
                         >
                           <div>
                             Name :{" "}
-                            <span style={{ color: "black", fontWeight: "600" }}>
+                            <span style={{}}>
                               {companyData?.companyName || "N/A"}
                             </span>
                           </div>
                           <div>
-                            <b>Address:</b>
+                            Address:
                             {companyData?.companyaddress || "N/A"}
                           </div>
-                          <div>
-                            <b>Phone:</b> {companyData?.companyphone || "N/A"}
-                          </div>
-                          <div>
-                            <b>Email:</b> {companyData?.companyemail || "N/A"}
-                          </div>
-                          <div>
-                            <b>GSTIN:</b> {companyData?.gstin || "N/A"}
-                          </div>
+                          <div>Phone: {companyData?.companyphone || "N/A"}</div>
+                          <div>Email: {companyData?.companyemail || "N/A"}</div>
+                          <div>GSTIN: {companyData?.gstin || "N/A"}</div>
                         </div>
                         <div style={{ width: "50%", padding: "3px" }}>
                           <div>
                             Name :{" "}
-                            <span style={{ color: "black", fontWeight: "600" }}>
-                              {customer.name || "N/A"}
-                            </span>
+                            <span style={{}}>{customer.name || "N/A"}</span>
                           </div>
                           <div>
                             Address :{" "}
-                            <span style={{ color: "black", fontWeight: "600" }}>
-                              {customer.address || "N/A"}
-                            </span>
+                            <span style={{}}>{customer.address || "N/A"}</span>
                           </div>
                           <div style={{ marginTop: "8px" }}>
                             Phone :{" "}
-                            <span style={{ color: "black", fontWeight: "600" }}>
-                              {customer.phone || "N/A"}
-                            </span>
+                            <span style={{}}>{customer.phone || "N/A"}</span>
                           </div>
                           <div style={{ marginTop: "0px" }}>
                             Email :{" "}
-                            <span style={{ color: "black", fontWeight: "600" }}>
-                              {customer.email || "N/A"}
-                            </span>
+                            <span style={{}}>{customer.email || "N/A"}</span>
                           </div>
                           <div style={{ marginTop: "0px" }}>
                             GSTIN :{" "}
-                            <span style={{ color: "black", fontWeight: "600" }}>
-                              {customer.gstin || "N/A"}
-                            </span>
+                            <span style={{}}>{customer.gstin || "N/A"}</span>
                           </div>
                         </div>
                       </div>
@@ -530,15 +558,19 @@ function ShowCustomerInvoice() {
                             borderCollapse: "collapse",
                           }}
                         >
-                          <thead style={{ textAlign: "center" }}>
+                          <thead
+                            style={{
+                              textAlign: "center",
+                              fontFamily: '"Roboto", sans-serif',
+                            }}
+                          >
                             <tr>
                               <th
                                 style={{
                                   borderRight: "1px solid #EAEAEA",
                                   borderBottom: "1px solid #EAEAEA",
-                                  fontWeight: "400",
-                                  width: "50px",
-                                  color: "black"
+                                  color: "black",
+                                  fontWeight: "500",
                                 }}
                                 rowSpan="2"
                               >
@@ -548,11 +580,10 @@ function ShowCustomerInvoice() {
                                 style={{
                                   borderRight: "1px solid #EAEAEA",
                                   borderBottom: "1px solid #EAEAEA",
-                                  fontWeight: "400",
-                                  width: "200px",
-                                  color: "black"
+                                  color: "black",
+                                  fontWeight: "500",
                                 }}
-                                rowSpan="2"
+                                rowSpan="3"
                               >
                                 Name of the Products
                               </th>
@@ -561,7 +592,8 @@ function ShowCustomerInvoice() {
                                   style={{
                                     borderRight: "1px solid #EAEAEA",
                                     borderBottom: "1px solid #EAEAEA",
-                                    fontWeight: "400",
+                                    color: "black",
+                                    fontWeight: "500",
                                   }}
                                   rowSpan="2"
                                 >
@@ -572,9 +604,8 @@ function ShowCustomerInvoice() {
                                 style={{
                                   borderRight: "1px solid #EAEAEA",
                                   borderBottom: "1px solid #EAEAEA",
-                                  fontWeight: "400",
-                                  width: "100px",
-                                  color: "black"
+                                  color: "black",
+                                  fontWeight: "500",
                                 }}
                                 rowSpan="3"
                               >
@@ -584,7 +615,8 @@ function ShowCustomerInvoice() {
                                 style={{
                                   borderRight: "1px solid #EAEAEA",
                                   borderBottom: "1px solid #EAEAEA",
-                                  fontWeight: "400",
+                                  color: "black",
+                                  fontWeight: "500",
                                 }}
                                 rowSpan="2"
                               >
@@ -595,7 +627,8 @@ function ShowCustomerInvoice() {
                                   style={{
                                     borderRight: "1px solid #EAEAEA",
                                     borderBottom: "1px solid #EAEAEA",
-                                    fontWeight: "400",
+                                    color: "black",
+                                    fontWeight: "500",
                                   }}
                                   rowSpan="2"
                                 >
@@ -607,7 +640,8 @@ function ShowCustomerInvoice() {
                                   style={{
                                     borderRight: "1px solid #EAEAEA",
                                     borderBottom: "1px solid #EAEAEA",
-                                    fontWeight: "400",
+                                    color: "black",
+                                    fontWeight: "500",
                                   }}
                                   colSpan="2"
                                 >
@@ -618,7 +652,8 @@ function ShowCustomerInvoice() {
                                 style={{
                                   borderRight: "1px solid #EAEAEA",
                                   borderBottom: "1px solid #EAEAEA",
-                                  fontWeight: "400",
+                                  color: "black",
+                                  fontWeight: "500",
                                 }}
                                 rowSpan="2"
                               >
@@ -631,8 +666,8 @@ function ShowCustomerInvoice() {
                                   style={{
                                     borderRight: "1px solid #EAEAEA",
                                     borderBottom: "1px solid #EAEAEA",
-                                    width: "40px",
-                                    fontWeight: "400",
+                                    color: "black",
+                                    fontWeight: "500",
                                   }}
                                 >
                                   %
@@ -641,8 +676,8 @@ function ShowCustomerInvoice() {
                                   style={{
                                     borderRight: "1px solid #EAEAEA",
                                     borderBottom: "1px solid #EAEAEA",
-                                    width: "40px",
-                                    fontWeight: "400",
+                                    color: "black",
+                                    fontWeight: "500",
                                   }}
                                 >
                                   ₹
@@ -650,7 +685,12 @@ function ShowCustomerInvoice() {
                               </tr>
                             )}
                           </thead>
-                          <tbody>
+                          <tbody
+                            style={{
+                              fontFamily: '"Roboto", sans-serif',
+                              color: "black",
+                            }}
+                          >
                             {products.map((item, i) => (
                               <>
                                 <tr key={i}>
@@ -670,29 +710,47 @@ function ShowCustomerInvoice() {
                                       verticalAlign: "top",
                                     }}
                                   >
-                                    <div style={{ fontWeight: "500", marginBottom: "4px" }}>
+                                    <div
+                                      style={{
+                                        fontWeight: "500",
+                                        marginBottom: "4px",
+                                      }}
+                                    >
                                       {item.itemName}
                                     </div>
-                                    {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
-                                      <div
-                                        style={{
-                                          fontSize: "11px",
-                                          color: "#666",
-                                          fontStyle: "italic",
-                                          marginTop: "4px",
-                                          lineHeight: "1.4",
-                                        }}
-                                      >
-                                        <div style={{ fontWeight: "500", marginBottom: "2px" }}>
-                                          Serial Numbers:
+                                    {item.selectedSerialNos &&
+                                      item.selectedSerialNos.length > 0 && (
+                                        <div
+                                          style={{
+                                            fontSize: "11px",
+                                            color: "#666",
+                                            fontStyle: "italic",
+                                            marginTop: "4px",
+                                            lineHeight: "1.4",
+                                          }}
+                                        >
+                                          {/* <div
+                                            style={{
+                                              fontWeight: "500",
+                                              marginBottom: "2px",
+                                              color: "#000000d0",
+                                            }}
+                                          >
+                                            Serial No:{" "}
+                                            <TiArrowDown
+                                              style={{ fontWeight: "400" }}
+                                            />
+                                          </div> */}
+
+                                          <div style={{ color: "black" }}>
+                                            {item.selectedSerialNos.map(
+                                              (sn, index) => (
+                                                <div key={index}>• {sn}</div>
+                                              ),
+                                            )}
+                                          </div>
                                         </div>
-
-                                        {item.selectedSerialNos.map((sn, index) => (
-                                          <div key={index}>• {sn}</div>
-                                        ))}
-                                      </div>
-                                    )}
-
+                                      )}
                                   </td>
                                   {printSettings.showHSN && (
                                     <td
@@ -826,6 +884,7 @@ function ShowCustomerInvoice() {
                           marginTop: "15px",
                           borderTop: "1px solid #EAEAEA",
                           borderBottom: "1px solid #EAEAEA",
+                          fontFamily: '"Roboto", sans-serif',
                         }}
                       >
                         <div
@@ -840,12 +899,21 @@ function ShowCustomerInvoice() {
                         >
                           {printSettings.showTotalsInWords && (
                             <>
-                              <u>Total in words</u>
+                              <u
+                                style={{
+                                  color: "black",
+                                  fontSize: "15px",
+                                  fontWeight: "600",
+                                }}
+                              >
+                                Total in words
+                              </u>
                               <div
                                 style={{
                                   fontSize: "12px",
                                   marginTop: "5px",
-                                  fontWeight: "600",
+                                  fontWeight: "400",
+                                  color: "black",
                                 }}
                               >
                                 {totalInWords}
@@ -861,12 +929,18 @@ function ShowCustomerInvoice() {
                                   left: 31.77,
                                   background: "var(--White-Stroke, #EAEAEA)",
                                   marginTop: "10px",
+                                   fontFamily: '"Roboto", sans-serif',
+                                   
                                 }}
                               />
                               <div
                                 style={{
                                   marginTop: "2px",
                                   textDecoration: "underline",
+                                 
+                                  color: "black",
+                                  fontSize: "15px",
+                                  fontWeight:"600"
                                 }}
                               >
                                 Bank Details
@@ -879,13 +953,13 @@ function ShowCustomerInvoice() {
                                   padding: "0px 5px",
                                 }}
                               >
-                                <div style={{ textAlign: "left" }}>
-                                  <div>
+                                <div style={{ textAlign: "left",color:"black" }}>
+                                  <div style={{color:"black"}}>
                                     Bank :{" "}
                                     <span
                                       style={{
                                         color: "black",
-                                        fontWeight: "600",
+                                        // fontWeight: "00",
                                       }}
                                     >
                                       {banks.length > 0
@@ -898,7 +972,7 @@ function ShowCustomerInvoice() {
                                     <span
                                       style={{
                                         color: "black",
-                                        fontWeight: "600",
+                                        // fontWeight: "600",
                                       }}
                                     >
                                       {banks.length > 0
@@ -911,7 +985,7 @@ function ShowCustomerInvoice() {
                                     <span
                                       style={{
                                         color: "black",
-                                        fontWeight: "600",
+                                        // fontWeight: "600",
                                       }}
                                     >
                                       {banks.length > 0
@@ -924,7 +998,7 @@ function ShowCustomerInvoice() {
                                     <span
                                       style={{
                                         color: "black",
-                                        fontWeight: "600",
+                                        // fontWeight: "600",
                                       }}
                                     >
                                       {banks.length > 0
@@ -937,7 +1011,7 @@ function ShowCustomerInvoice() {
                                     <span
                                       style={{
                                         color: "black",
-                                        fontWeight: "600",
+                                        // fontWeight: "600",
                                       }}
                                     >
                                       {banks.length > 0
@@ -950,7 +1024,7 @@ function ShowCustomerInvoice() {
                                     <span
                                       style={{
                                         color: "black",
-                                        fontWeight: "600",
+                                        // fontWeight: "600",
                                       }}
                                     >
                                       {banks.length > 0
@@ -969,6 +1043,8 @@ function ShowCustomerInvoice() {
                             width: "50%",
                             padding: "3px",
                             borderLeft: "1px solid #EAEAEA",
+                            fontFamily:'"Roboto", sans-serif',
+                            color:"black"
                           }}
                         >
                           <div
@@ -977,9 +1053,10 @@ function ShowCustomerInvoice() {
                               justifyContent: "space-between",
                               borderBottom: "1px solid #EAEAEA",
                               padding: "2px 8px",
+
                             }}
                           >
-                            <span>Sub-total</span>
+                            <span style={{color:"black"}}>Sub-total</span>
                             <span style={{ color: "black" }}>
                               ₹{invoiceData.subtotal?.toFixed(2)}
                             </span>
@@ -1091,8 +1168,10 @@ function ShowCustomerInvoice() {
                               alignItems: "center",
                             }}
                           >
-                            <u>Term & Conditions</u>
-                            {terms?.termsText}
+                            <u style={{ color: "black",
+                                  fontSize: "15px",
+                                  fontWeight:"600"}}>Term & Conditions</u>
+                             <div style={{color:"black"}}>{terms?.termsText}</div>
                           </div>
                         )}
                         <div
@@ -1123,7 +1202,7 @@ function ShowCustomerInvoice() {
                                 style={{ width: "100%" }}
                               />
                             </div>
-                            <div>Pay Using Upi</div>
+                            <div style={{fontFamily:'"Roboto", sans-serif', color:"black"}}>Pay Using Upi</div>
                           </div>
                           {/* qr end */}
                           {/* <div
@@ -1197,7 +1276,8 @@ function ShowCustomerInvoice() {
                                 <div
                                   style={{
                                     fontWeight: "500",
-                                    fontSize: "10px",
+                                    fontSize: "12px",
+                                    color:"black"
                                   }}
                                 >
                                   Signature
@@ -2095,7 +2175,7 @@ function ShowCustomerInvoice() {
                               }}
                             />
                             <table style={{ fontSize: "10px", width: "100%" }}>
-                              <tbody>
+                              <tbody style={{fontFamily:'"Roboto", sans-serif'}}>
                                 <tr>
                                   <td>Subtotal</td>
                                   <td>04</td>
@@ -2989,6 +3069,7 @@ function ShowCustomerInvoice() {
                                 fontWeight: "400",
                                 wordWrap: "break-word",
                                 marginTop: "10px",
+                                fontFamily:'"Roboto", sans-serif'
                               }}
                             >
                               Congratulations! You’ve earned 🪙 50 shopping
@@ -3071,3 +3152,6 @@ function ShowCustomerInvoice() {
 }
 
 export default ShowCustomerInvoice;
+
+
+

@@ -15,6 +15,7 @@ import api from '../../pages/config/axiosInstance';
 import CompanyLogo from '../../assets/images/kasperlogo.png'
 import TaxInvoiceLogo from '../../assets/images/taxinvoice.png'
 import Qrcode from '../../assets/images/qrcode.png';
+import { TiArrowDown } from "react-icons/ti";
 
 const convertToIndianWords = (num) => {
     if (num === 0 || num === null || num === undefined) return 'ZERO';
@@ -320,7 +321,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                             boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.10)',
                             padding: '10px 15px',
                             fontSize: '8px',
-                            fontFamily: 'IBM Plex Mono',
+                          fontFamily:'"Roboto", sans-serif'
                         }}
                     >
                         <div style={{
@@ -331,8 +332,9 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                             <div style={{ width: '100px' }}>
                                 <img src={companyData?.companyLogo || CompanyLogo} alt='company logo' style={{ width: '100%', objectFit: 'contain', }} />
                             </div>
-                            <div style={{ width: '130px' }}>
-                                <img src={TaxInvoiceLogo} alt='tax invoice' style={{ width: '100%', objectFit: 'contain', }} />
+                            <div style={{  }}>
+                                {/* <img src={TaxInvoiceLogo} alt='tax invoice' style={{ width: '100%', objectFit: 'contain', }} /> */}
+                                 <h1 style={{fontFamily:'"Roboto", sans-serif', fontSize:"18px", color:"black"}}>TAX INVOICE</h1>
                             </div>
                         </div>
                         <div
@@ -344,7 +346,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 marginTop: '8px'
                             }}
                         />
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginTop: '2px' ,fontFamily:'"Roboto", sans-serif', color:"black"}}>
                             <span>{companyInfo.documentTitle} Date - {formatDate(invoice?.invoiceDate)}</span>
                             <span style={{ marginRight: '12px' }}>Invoice No. - {invoice?.invoiceNo || 'N/A'}</span>
                         </div>
@@ -357,24 +359,24 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 background: 'var(--White-Stroke, #EAEAEA)',
                             }}
                         />
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '2px', alignItems: 'center', borderBottom: '1px solid #EAEAEA' }}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '2px', alignItems: 'center', borderBottom: '1px solid #EAEAEA',fontFamily:'"Roboto", sans-serif' ,color:"black"}}>
                             <div style={{ borderRight: '1px solid #EAEAEA', width: '50%', textAlign: 'center' }}>
                                 <span>{companyInfo.fromTitle}</span>
                             </div>
-                            <div style={{ width: '50%', textAlign: 'center' }}>
+                            <div style={{ width: '50%', textAlign: 'center',fontFamily:'"Roboto", sans-serif' }}>
                                 <span>{companyInfo.toTitle}</span>
                             </div>
                         </div>
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '2px', alignItems: 'center', borderBottom: '1px solid #EAEAEA' }}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '2px', alignItems: 'center', borderBottom: '1px solid #EAEAEA',fontFamily:'"Roboto", sans-serif' ,color:"black" }}>
                             <div style={{ borderRight: '1px solid #EAEAEA', width: '50%', padding: '3px' }}>
-                                <div>Name : <span style={{ color: 'black', fontWeight: '600' }}>{companyInfo.fromName}</span></div>
+                                <div>Name : <span style={{ }}>{companyInfo.fromName}</span></div>
                                 <div>Address : {companyInfo.fromAddress}</div>
                                 <div style={{ marginTop: '8px' }}>Phone : {companyInfo.fromPhone}</div>
                                 <div>Email : {companyInfo.fromEmail}</div>
                                 <div>GSTIN : {companyInfo.fromGSTIN}</div>
                             </div>
                             <div style={{ width: '50%', padding: '3px' }}>
-                                <div>Name : <span style={{ color: 'black', fontWeight: '600' }}>{companyInfo.toName}</span></div>
+                                <div>Name : <span style={{ }}>{companyInfo.toName}</span></div>
                                 <div>Address : {companyInfo.toAddress} </div>
                                 <div style={{ marginTop: '8px' }}>Phone :  {companyInfo.toPhone}</div>
                                 <div>Email : {companyInfo.toEmail}</div>
@@ -383,29 +385,29 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                         </div>
                         <div className='table-responsive mt-3' >
                             <table className='' style={{ width: '100%', border: '1px solid #EAEAEA', borderCollapse: 'collapse' }}>
-                                <thead style={{ textAlign: 'center', }}>
+                                <thead style={{ textAlign: 'center',fontFamily:'"Roboto", sans-serif' }}>
                                     <tr>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Sr No.</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Name of the Products</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>HSN</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Lot No.</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>QTY</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Rate</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} colSpan="2">Tax</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }} rowSpan='2'>Total</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>Sr No.</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>Name of the Products</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>HSN</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>Lot No.</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>QTY</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" ,fontWeight:"500"}} rowSpan='2'>Rate</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} colSpan="2">Tax</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>Total</th>
                                     </tr>
                                     <tr>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }}>%</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }}>%</th>
                                         <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }}>₹</th>
                                     </tr>
                                 </thead>
-                                <tbody style={{ textAlign: "center" }}>
+                                <tbody style={{ textAlign: "center" ,fontFamily:'"Roboto", sans-serif', color:"black"}}>
                                     {invoiceItems.map((item, index) => (
                                         <tr key={index}>
                                             <td style={{ borderRight: '1px solid #EAEAEA', height: '30px' }}>{index + 1}</td>
                                             {/* <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.itemName || item.name || 'N/A'}</td> */}
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>
-                                                <div style={{ fontWeight: "500", marginBottom: "4px" }}>
+                                            <td style={{ borderRight: '1px solid #EAEAEA' }}>
+                                                <div style={{ fontWeight: "500", marginBottom: "4px",color:"black", fontSize:"10px", textDecoration:"underline" }}>
                                                     {item.itemName}
                                                 </div>
                                                 {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
@@ -414,30 +416,33 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                                             display: "flex",
                                                             alignItems: "center",
                                                             flexDirection: "column",
-                                                            fontSize: "11px",
-                                                            color: "#666",
-                                                            fontStyle: "italic",
+                                                            fontSize: "10px",
+                                                            // color: "#000000c5",
+                                                            fontStyle: '"Roboto", sans-serif',
                                                             marginTop: "4px",
                                                             lineHeight: "1.4",
+                                                          
                                                         }}
                                                     >
-                                                        <div style={{ fontWeight: "500", marginBottom: "2px" }}>
-                                                            Serial Nos:
+                                                        <div style={{ fontWeight: "400", marginBottom: "2px", color:"#000000d0" }}>
+                                                            Serial No:< TiArrowDown style={{fontWeight:"400"}} />
                                                         </div>
 
-                                                        {item.selectedSerialNos.map((sn, index) => (
-                                                            <div key={index}>• {sn}</div>
+                                                        <div style={{ fontWeight:"400", color:"#000000d0",}}>
+                                                             {item.selectedSerialNos.map((sn, index) => (
+                                                            <div key={index} style={{}}>• {sn}</div>
                                                         ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.hsnCode || item.hsn || '-'}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.lotNumber || '-'}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.qty || 0}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{formatCurrency(item.unitPrice)}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.taxRate || 0}%</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{formatCurrency(item.taxAmount)}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', }}>{formatCurrency(item.amount)}</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{item.hsnCode || item.hsn || '-'}</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{item.lotNumber || '-'}</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{item.qty || 0}</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{formatCurrency(item.unitPrice)}</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{item.taxRate || 0}%</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{formatCurrency(item.taxAmount)}</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{formatCurrency(item.amount)}</td>
                                         </tr>
                                     ))}
                                     {/* Fill remaining rows for consistent layout */}
@@ -457,10 +462,10 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 </tbody>
                             </table>
                         </div>
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '15px', borderTop: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', }}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '15px', borderTop: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA',fontFamily:'"Roboto", sans-serif' }}>
                             <div style={{ borderRight: '', width: '50%', padding: '3px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <u style={{ color: "black" }}>Total in words</u>
-                                <div style={{ marginTop: '5px', fontWeight: '600', fontSize: '12px' }}>{totalInWords}</div>
+                                <u style={{ color: "black" ,fontSize:"15px",fontWeight:"600", }}>Total in words</u>
+                                <div style={{ marginTop: '5px', fontWeight: '400', fontSize: '10px',color:"black" }}>{totalInWords}</div>
                                 {/* <div
                                     style={{
                                         width: '100%',
@@ -489,7 +494,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 </div> */}
                             </div>
 
-                            <div style={{ width: '50%', padding: '3px', borderLeft: '1px solid #EAEAEA' }}>
+                            <div style={{ width: '50%', padding: '3px', borderLeft: '1px solid #EAEAEA' ,fontFamily:'"Roboto", sans-serif', fontWeight:"600"}}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '1px 8px' }}>
                                     <span style={{ color: "black" }}>Sub-total</span>
                                     <span style={{ color: 'black', }}>{formatCurrency(invoice?.subtotal)}</span>
@@ -527,8 +532,8 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
 
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #EAEAEA', }}>
                             <div style={{ borderRight: '', width: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <u style={{ color: "black" }}>Term & Conditions</u>
-                                <div style={{ marginTop: '5px', fontSize: '10px' }}>{terms?.termsText || 'No terms and conditions set.'}</div>
+                                <u style={{ color: "black", fontSize:"15px", fontWeight:"600" }}>Term & Conditions</u>
+                                <div style={{ marginTop: '5px', fontSize: '8px', color:"black" }}>{terms?.termsText || 'No terms and conditions set.'}</div>
                             </div>
 
                             {/* <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
@@ -559,7 +564,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
         <span style={{ fontWeight: '500', fontSize: '10px' }}>Authorized Signature</span>
       </div>
     ) : (
-      <span style={{ fontWeight: '500', fontSize: '10px' }}>Signature</span>
+      <span style={{ fontWeight: '500', fontSize: '10px', color:"black" }}>Signature</span>
     )}
   </div>
 </div>

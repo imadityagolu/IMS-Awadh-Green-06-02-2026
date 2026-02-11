@@ -297,14 +297,18 @@ const AddCustomerModal = ({ onClose }) => {
               {/* GSTIN with Verify */}
               <div className="col-md-6 mb-3">
                 <label className="form-label supplierlabel">GSTIN (optional)</label>
+                <div className="d-flex justify-content-between align-items-center  form-control supplierinput shadow-none">
                 <input
                   type="text"
                   name="gstin"
                   value={form.gstin}
                   onChange={handleChange}
-                  className="form-control supplierinput shadow-none"
+                
                   placeholder="Enter GSTIN"
+                  style={{border:"none"}}
                 />
+                  <span style={{padding: '6px 6px', background: 'rgb(31, 127, 255)', color: 'white' ,borderRadius: '4px',fontSize:'14px',height:"25px" ,display:"flex", justifyContent:"center", alignItems:"center" }}>Verified</span>
+                </div>
                 {errors.gstin && <small className="text-danger">{errors.gstin}</small>}
               </div>
             </div>

@@ -254,7 +254,7 @@ function ShowCustomerInvoice() {
 
     const pdf = new jsPDF("p", "mm", "a4");
     const pdfWidth = 210;
-    const pdfHeight = 297;
+    const pdfHeight = 290;
 
     pdf.addImage(
       imgData,
@@ -572,7 +572,7 @@ function ShowCustomerInvoice() {
                                   color: "black",
                                   fontWeight: "500",
                                 }}
-                                rowSpan="2"
+                                rowSpan="3"
                               >
                                 Sr No.
                               </th>
@@ -742,7 +742,7 @@ function ShowCustomerInvoice() {
                                             />
                                           </div> */}
 
-                                          <div style={{ color: "black" }}>
+                                          <div style={{ color: "black", }}>
                                             {item.selectedSerialNos.map(
                                               (sn, index) => (
                                                 <div key={index}>• {sn}</div>

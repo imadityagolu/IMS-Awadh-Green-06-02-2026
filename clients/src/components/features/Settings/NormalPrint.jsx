@@ -49,17 +49,17 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
         companyGSTIN: companyData?.gstin || "",
 
         // Field visibility - IMPORTANT: Check each field individually
-       showHSN: template.fieldVisibility?.showHSN ?? false,
-      showRate: template.fieldVisibility?.showRate ?? false,
-      showTax: template.fieldVisibility?.showTax ?? false,
-      showTotalsInWords: template.fieldVisibility?.showTotalsInWords ?? false,
-      showBankDetails: template.fieldVisibility?.showBankDetails ?? false,
-      showTermsConditions: template.fieldVisibility?.showTermsConditions ?? false,
+        showHSN: template.fieldVisibility?.showHSN ?? false,
+        showRate: template.fieldVisibility?.showRate ?? false,
+        showTax: template.fieldVisibility?.showTax ?? false,
+        showTotalsInWords: template.fieldVisibility?.showTotalsInWords ?? false,
+        showBankDetails: template.fieldVisibility?.showBankDetails ?? false,
+        showTermsConditions: template.fieldVisibility?.showTermsConditions ?? false,
         // Template selection
         selectedTemplate: template.selectedTemplate || "template1",
         signatureUrl: template.signatureUrl || ""
       };
-      
+
       // console.log("Setting formData to:", newFormData);
       setFormData(newFormData);
       setActiveTemplate(template.selectedTemplate || "template1");
@@ -96,20 +96,20 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
         companyEmail: companyData.companyemail || "",
         companyPhone: companyData.companyphone || "",
         companyGSTIN: companyData.gstin || "",
-         signatureUrl: prev.signatureUrl || ""
+        signatureUrl: prev.signatureUrl || ""
       }));
     }
   }, [template, companyData]);
 
   // Update signature preview when formData.signatureUrl changes
-useEffect(() => {
-  if (formData.signatureUrl) {
-    setSignaturePreview(formData.signatureUrl);
-    console.log("Signature URL updated:", formData.signatureUrl);
-  } else {
-    setSignaturePreview("");
-  }
-}, [formData.signatureUrl]);
+  useEffect(() => {
+    if (formData.signatureUrl) {
+      setSignaturePreview(formData.signatureUrl);
+      console.log("Signature URL updated:", formData.signatureUrl);
+    } else {
+      setSignaturePreview("");
+    }
+  }, [formData.signatureUrl]);
 
   const handleTemplateSelect = (templateId) => {
     setActiveTemplate(templateId);
@@ -231,36 +231,35 @@ useEffect(() => {
   };
 
 
-const handleSaveSettings = async () => {
-  try {
-    // console.log("Saving with formData:", formData);
-    
-    // Prepare data for saving - IMPORTANT: Use the exact field names from your schema
-    const saveData = {
-      templateType: 'normal',
-      selectedTemplate: formData.selectedTemplate,
-      fieldVisibility: {
-        showHSN: Boolean(formData.showHSN),
-        showRate: Boolean(formData.showRate),
-        showTax: Boolean(formData.showTax),
-        showTotalsInWords: Boolean(formData.showTotalsInWords),
-        showBankDetails: Boolean(formData.showBankDetails),
-        showTermsConditions: Boolean(formData.showTermsConditions),
-        // Include all required fields from schema
-        showDate: true, // Add default value for required field
-        showTime: true, // Add default value for required field
-      },
-      signatureUrl: formData.signatureUrl,
-      templateName: `Normal Template - ${formData.selectedTemplate}`,
-      // Don't send companyData here - that should be handled separately
-    };
+  const handleSaveSettings = async () => {
+    try {
+      // console.log("Saving with formData:", formData);
 
-    // console.log("Sending saveData:", saveData);
-
-      console.log("Sending saveData:", saveData);
+      // Prepare data for saving - IMPORTANT: Use the exact field names from your schema
+      const saveData = {
+        templateType: 'normal',
+        selectedTemplate: formData.selectedTemplate,
+        fieldVisibility: {
+          showHSN: Boolean(formData.showHSN),
+          showRate: Boolean(formData.showRate),
+          showTax: Boolean(formData.showTax),
+          showTotalsInWords: Boolean(formData.showTotalsInWords),
+          showBankDetails: Boolean(formData.showBankDetails),
+          showTermsConditions: Boolean(formData.showTermsConditions),
+          // Include all required fields from schema
+          showDate: true, // Add default value for required field
+          showTime: true, // Add default value for required field
+        },
+        signatureUrl: formData.signatureUrl,
+        templateName: `Normal Template - ${formData.selectedTemplate}`,
+        // Don't send companyData here - that should be handled separately
+      };
+      
+    // Simple: always pass the current template._id if it exists
+    const templateId = template?._id;
 
       // Call the parent save function
-      await onSave(saveData, template?._id);
+      await onSave(saveData, templateId);
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error(`Failed to save settings: ${error.message}`);

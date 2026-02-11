@@ -424,9 +424,9 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                                           
                                                         }}
                                                     >
-                                                        <div style={{ fontWeight: "400", marginBottom: "2px", color:"#000000d0" }}>
+                                                        {/* <div style={{ fontWeight: "400", marginBottom: "2px", color:"#000000d0" }}>
                                                             Serial No:< TiArrowDown style={{fontWeight:"400"}} />
-                                                        </div>
+                                                        </div> */}
 
                                                         <div style={{ fontWeight:"400", color:"#000000d0",}}>
                                                              {item.selectedSerialNos.map((sn, index) => (

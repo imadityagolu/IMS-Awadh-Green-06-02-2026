@@ -10,15 +10,28 @@ exports.getPrintTemplate = async (req, res) => {
   try {
     const { type = "normal" } = req.query;
     const { includeData = "true" } = req.query;
+    const userCompanyId = req.user.companyId;
+        let template;
 
-    // Get active template
-    let template = await PrintTemplate.findOne({
-      templateType: type,
-      isActive: true,
-    });
-
+    // FIRST: Try to find company-specific template
+    if (userCompanyId) {
+      template = await PrintTemplate.findOne({
+        templateType: type,
+        companyId: userCompanyId,
+        isActive: true,
+      });
+    }
+        // SECOND: If no company-specific template found, get default template
     if (!template) {
-      // Create default template if none exists
+      template = await PrintTemplate.findOne({
+        templateType: type,
+        isDefault: true,
+        isActive: true,
+      });
+    }
+
+    // THIRD: Create default template if none exists
+    if (!template) {
       template = await createDefaultTemplate(type);
     }
 
@@ -32,7 +45,9 @@ exports.getPrintTemplate = async (req, res) => {
     // If requested, fetch all related data
     if (includeData === "true") {
       // Fetch company data
-      const company = await CompanySetting.findOne();
+    const company = userCompanyId 
+        ? await CompanySetting.findById(userCompanyId)
+        : await CompanySetting.findOne();
 
       // Fetch sample products for preview
       const sampleProducts = await Product.find({ isDelete: false })
@@ -66,12 +81,16 @@ exports.updatePrintTemplate = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
     const userCompanyId = req.user.companyId;
+    const companyId = userCompanyId || updateData.companyId;
+
+    console.log("Update request:", { id, companyId, selectedTemplate: updateData.selectedTemplate });
 
     let template;
 
     if (id && id !== "undefined") {
+      // If ID is provided, find and update that specific template
       template = await PrintTemplate.findById(id);
-
+      
       if (!template) {
         return res.status(404).json({
           success: false,
@@ -79,51 +98,63 @@ exports.updatePrintTemplate = async (req, res) => {
         });
       }
     } else {
-      const { templateType = "normal" } = updateData;
+      // Try to find existing template for this company with the same selectedTemplate
       template = await PrintTemplate.findOne({
-        templateType: templateType,
-        companyId: userCompanyId,
-        isDefault: false,
+        companyId: companyId,
+        templateType: updateData.templateType || "normal",
+        selectedTemplate: updateData.selectedTemplate || "template1"
       });
-      //  if  no existing template found
+
+      console.log("Found template for company:", template ? template._id : "none");
+
       if (!template) {
-        // Try to find default template
-        template = await PrintTemplate.findOne({
-          templateType: templateType,
+        // If no template found, find the DEFAULT template to copy
+        const defaultTemplate = await PrintTemplate.findOne({
+          templateType: updateData.templateType || "normal",
+          selectedTemplate: updateData.selectedTemplate || "template1",
           isDefault: true
         });
-            if (template) {
-          // Create a copy of default template for this company
+
+        console.log("Found default template:", defaultTemplate ? defaultTemplate._id : "none");
+
+        if (defaultTemplate) {
+          // Create a COPY of default template for this company
           template = new PrintTemplate({
-            ...template.toObject(), // Copy all properties
-            _id: undefined, // Remove the ID to create new
-            isDefault: false,
-            companyId: userCompanyId,
-            templateName: updateData.templateName || `Custom ${templateType} Template`
+            templateType: defaultTemplate.templateType,
+            selectedTemplate: defaultTemplate.selectedTemplate,
+            layoutConfig: defaultTemplate.layoutConfig,
+            fieldVisibility: updateData.fieldVisibility || defaultTemplate.fieldVisibility,
+            templateName: updateData.templateName || `Custom ${defaultTemplate.templateType} Template`,
+            signatureUrl: updateData.signatureUrl || "",
+            companyId: companyId,
+            isDefault: false, // IMPORTANT: This is NOT a default template
+            isActive: true
           });
         } else {
           // Create completely new template
           template = new PrintTemplate({
-            templateType,
-            companyId: userCompanyId,
-            templateName: updateData.templateName || `Custom ${templateType} Template`,
+            templateType: updateData.templateType || "normal",
+            companyId: companyId,
+            templateName: updateData.templateName || `Custom ${updateData.templateType || "normal"} Template`,
             selectedTemplate: updateData.selectedTemplate || "template1",
             fieldVisibility: updateData.fieldVisibility || {},
-            signatureUrl: updateData.signatureUrl || ""
+            signatureUrl: updateData.signatureUrl || "",
+            layoutConfig: updateData.layoutConfig || {},
+            isDefault: false,
+            isActive: true
           });
         }
       }
     }
 
-    // Only update template-specific fields
+    // Update template fields - but NEVER update isDefault to true for company templates
     const templateFields = [
       "templateName",
       "selectedTemplate",
       "layoutConfig",
       "fieldVisibility",
       "isActive",
-      "isDefault",
-      "signatureUrl", // Add this line
+      "signatureUrl",
     ];
 
     templateFields.forEach((field) => {
@@ -132,12 +163,15 @@ exports.updatePrintTemplate = async (req, res) => {
       }
     });
 
-    // Update company reference if provided
-    if (updateData.companyId) {
-      template.companyId = updateData.companyId;
+    // Ensure isDefault is false for company templates
+    if (companyId) {
+      template.companyId = companyId;
+      template.isDefault = false; // Company templates are never default
     }
 
     await template.save();
+
+    console.log("Template saved:", template._id, "isDefault:", template.isDefault);
 
     res.status(200).json({
       success: true,

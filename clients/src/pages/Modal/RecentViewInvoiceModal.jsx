@@ -537,32 +537,32 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 </div>
                             </div> */}
                             <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'center', 
-    borderTop: '1px solid #EAEAEA', 
-    padding: '1px 8px', 
-    marginTop: '60px' 
-  }}>
-    {signatureUrl ? (
-      <div style={{ textAlign: 'center' }}>
-        <img 
-          src={signatureUrl} 
-          alt="Signature" 
-          style={{ 
-            width: '100px', 
-            height: '50px', 
-            objectFit: 'contain',
-            marginBottom: '5px'
-          }} 
-        />
-        <span style={{ fontWeight: '500', fontSize: '10px' }}>Authorized Signature</span>
-      </div>
-    ) : (
-      <span style={{ fontWeight: '500', fontSize: '10px' }}>Signature</span>
-    )}
-  </div>
-</div>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    borderTop: '1px solid #EAEAEA',
+                                    padding: '1px 8px',
+                                    marginTop: '60px'
+                                }}>
+                                    {signatureUrl ? (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <img
+                                                src={signatureUrl}
+                                                alt="Signature"
+                                                style={{
+                                                    width: '100px',
+                                                    height: '50px',
+                                                    objectFit: 'contain',
+                                                    marginBottom: '5px'
+                                                }}
+                                            />
+                                            <span style={{ fontWeight: '500', fontSize: '10px' }}>Authorized Signature</span>
+                                        </div>
+                                    ) : (
+                                        <span style={{ fontWeight: '500', fontSize: '10px' }}>Signature</span>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                         <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
                             <span style={{ marginTop: '5px', fontSize: '10px' }}>

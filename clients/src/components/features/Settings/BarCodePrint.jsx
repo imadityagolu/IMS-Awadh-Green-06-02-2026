@@ -63,7 +63,7 @@ const BarCodePrint = () => {
       if (response.data.success) {
         const { template, company, sampleProducts, sampleCustomer } = response.data.data;
 
-        if (type === 'normal') {
+        if (type === 'normal' && !normalTemplate) {
           setNormalTemplate(template);
         } else {
           setThermalTemplate(template);
@@ -80,6 +80,57 @@ const BarCodePrint = () => {
     }
   };
 
+  // Add this function after other fetch functions
+  const fetchAllTemplatesForCompany = async () => {
+    try {
+      if (!companyData || !companyData._id) {
+        console.log('Company data not available yet');
+        return;
+      }
+
+      console.log('Fetching templates for company:', companyData._id);
+
+      // Fetch normal templates
+      const normalResponse = await api.get('/api/print-templates/all', {
+        params: { type: 'normal' }
+      });
+
+      // Fetch thermal templates  
+      const thermalResponse = await api.get('/api/print-templates/all', {
+        params: { type: 'thermal' }
+      });
+
+      // Find templates for current company
+      if (normalResponse.data.success && normalResponse.data.data.length > 0) {
+        // Find template for current company and template1
+        const companyTemplates = normalResponse.data.data.filter(t =>
+          t.companyId === companyData._id
+        );
+
+        if (companyTemplates.length > 0) {
+          // Find template1
+          const template1 = companyTemplates.find(t =>
+            t.selectedTemplate === 'template1'
+          );
+          setNormalTemplate(template1 || companyTemplates[0]);
+        }
+      }
+
+      if (thermalResponse.data.success && thermalResponse.data.data.length > 0) {
+        const companyTemplates = thermalResponse.data.data.filter(t =>
+          t.companyId === companyData._id
+        );
+        if (companyTemplates.length > 0) {
+          const template1 = companyTemplates.find(t =>
+            t.selectedTemplate === 'template1'
+          );
+          setThermalTemplate(template1 || companyTemplates[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching all templates:', error);
+    }
+  };
   // Fetch all settings on component mount
   useEffect(() => {
     const fetchAllSettings = async () => {
@@ -102,6 +153,11 @@ const BarCodePrint = () => {
 
     fetchAllSettings();
   }, []);
+  useEffect(() => {
+    if (companyData && companyData._id) {
+      fetchAllTemplatesForCompany();
+    }
+  }, [companyData]);
 
   // Add this function after your other fetch functions:
   const fetchNotesTermsSettings = async () => {
@@ -188,21 +244,13 @@ const BarCodePrint = () => {
         fieldVisibility: templateData.fieldVisibility || {},
         layoutConfig: templateData.layoutConfig || {},
         templateName: templateData.templateName || `${type === 'normal' ? 'Normal' : 'Thermal'} Template`,
-        isDefault: templateData.isDefault || false,
         signatureUrl: templateData.signatureUrl || '', // ADD THIS LINE
         companyId: companyData?._id
       };
 
-      // If there's company data in templateData, update it
-      if (templateData.companyData) {
-        // You might want to update company settings separately
-        // or include it in the template save
-        console.log('Company data to update:', templateData.companyData);
-      }
-
       // Use template._id if it exists (for update), otherwise create new
-      const url = templateData._id
-        ? `/api/print-templates/${templateData._id}`
+      const url = templateId
+        ? `/api/print-templates/${templateId}`
         : '/api/print-templates';
 
       const response = await api.put(url, saveData);
@@ -215,6 +263,9 @@ const BarCodePrint = () => {
           setNormalTemplate(response.data.data);
         } else {
           setThermalTemplate(response.data.data);
+        }
+        if (companyData) {
+          fetchAllTemplatesForCompany();
         }
       }
     } catch (error) {
@@ -707,7 +758,7 @@ const BarCodePrint = () => {
             companyData={companyData}
             products={sampleProducts}
             customer={sampleCustomer}
-            onSave={(updatedTemplate) => handleSavePrintTemplate('normal', updatedTemplate)}
+            onSave={(updatedTemplate, templateId) => handleSavePrintTemplate('normal', updatedTemplate, templateId)}
             isSaving={isSaving}
             notesTermsSettings={notesTermsSettings}
           />
@@ -719,7 +770,7 @@ const BarCodePrint = () => {
             companyData={companyData}
             products={sampleProducts}
             customer={sampleCustomer}
-            onSave={(updatedTemplate) => handleSavePrintTemplate('thermal', updatedTemplate)}
+            onSave={(updatedTemplate, templateId) => handleSavePrintTemplate('thermal', updatedTemplate, templateId)}
             isSaving={isSaving}
             notesTermsSettings={notesTermsSettings}
           />

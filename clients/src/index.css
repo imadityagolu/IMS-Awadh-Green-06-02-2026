@@ -102,3 +102,87 @@ input::placeholder{
 .custom-select option:not(:first-child) {
   color: black;
 }
+
+/* css of invoice qutotion
+/* invoicePrint.css */
+
+/* --- TABLE BASE --- */
+.invoice-table {
+  width: 100%;
+  border: 1px solid #eaeaea;
+  border-collapse: collapse;
+  table-layout: fixed;            /* 🔥 prevents zig-zag columns */
+}
+
+.invoice-table th,
+.invoice-table td {
+  border-right: 1px solid #eaeaea;
+  border-bottom: 1px solid #eaeaea;
+  padding: 8px 10px;
+  vertical-align: top;
+  font-family: "Roboto", sans-serif;
+  color: #000;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+/* header */
+.invoice-table thead th {
+  text-align: center;
+  font-weight: 600;
+  white-space: nowrap;            /* keep headings stable */
+}
+
+/* --- COLUMN WIDTHS (adjust as you want) --- */
+.invoice-col-sr     { width: 6%;  text-align: center; white-space: nowrap; }
+.invoice-col-name   { width: 34%; text-align: left; }  /* product name wraps nicely */
+.invoice-col-hsn    { width: 10%; text-align: center; white-space: nowrap; }
+.invoice-col-lot    { width: 10%; text-align: center; white-space: nowrap; }
+.invoice-col-qty    { width: 8%;  text-align: center; white-space: nowrap; }
+.invoice-col-rate   { width: 10%; text-align: right;  white-space: nowrap; }
+.invoice-col-taxp   { width: 6%;  text-align: right;  white-space: nowrap; }
+.invoice-col-taxrs  { width: 8%;  text-align: right;  white-space: nowrap; }
+.invoice-col-total  { width: 10%; text-align: right;  white-space: nowrap; }
+
+/* --- WRAP CONTROL --- */
+/* Product name: wrap by words (not random letters) */
+.invoice-col-name {
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* Serial list: wrap cleanly, avoid ugly breaks */
+.invoice-serials {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.3;
+  word-break: normal;
+  overflow-wrap: anywhere; /* if a serial has no spaces, it will still wrap */
+}
+
+/* prevent rows from splitting across pages */
+.invoice-table tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* --- PRINT RULES --- */
+@media print {
+  /* print colors accurately */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* avoid scaling issues */
+  html, body { margin: 0; padding: 0; }
+
+  /* keep invoice width stable on A4 */
+  .invoice-page {
+    width: 210mm;
+    min-height: 297mm;
+  }
+
+  /* prevent container from shrinking table */
+  .table-responsive {
+    overflow: visible !important;
+  }
+}

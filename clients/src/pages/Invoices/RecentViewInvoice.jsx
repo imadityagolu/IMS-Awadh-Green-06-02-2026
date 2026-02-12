@@ -579,34 +579,34 @@ Thank you for your business!`;
           >
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               {/* <Link to={breadcrumb.backLink}> */}
-                <span
-                onClick={handleBack}
-                  style={{
-                    backgroundColor: "white",
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    border: "1px solid #FCFCFC",
-                    cursor:"pointer"
-                  }}
-                >
-                  <img src={total_orders_icon} alt="total_orders_icon" />
-                </span>
-              {/* </Link> */}
-              <Link style={{textDecoration:"none"}} to="/dashboard">
               <span
+                onClick={handleBack}
                 style={{
-                  color: "#727681",
-                  fontWeight: 400,
-                  fontSize: "14px",
-                  fontFamily: '"Inter", sans-serif',
+                  backgroundColor: "white",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  border: "1px solid #FCFCFC",
+                  cursor: "pointer"
                 }}
               >
-                Dashboard
+                <img src={total_orders_icon} alt="total_orders_icon" />
               </span>
+              {/* </Link> */}
+              <Link style={{ textDecoration: "none" }} to="/dashboard">
+                <span
+                  style={{
+                    color: "#727681",
+                    fontWeight: 400,
+                    fontSize: "14px",
+                    fontFamily: '"Inter", sans-serif',
+                  }}
+                >
+                  Dashboard
+                </span>
               </Link>
               <span
                 style={{
@@ -618,17 +618,17 @@ Thank you for your business!`;
               >
                 /
               </span>
-              <Link style={{textDecoration:"none"}} to="/online-orders">
-              <span
-                style={{
-                  color: "#727681",
-                  fontWeight: 400,
-                  fontSize: "14px",
-                  fontFamily: '"Inter", sans-serif',
-                }}
-              >
-                {breadcrumb.backText}
-              </span>
+              <Link style={{ textDecoration: "none" }} to="/online-orders">
+                <span
+                  style={{
+                    color: "#727681",
+                    fontWeight: 400,
+                    fontSize: "14px",
+                    fontFamily: '"Inter", sans-serif',
+                  }}
+                >
+                  {breadcrumb.backText}
+                </span>
               </Link>
               <span
                 style={{
@@ -799,15 +799,15 @@ Thank you for your business!`;
           </div>
 
           {/* Main Content: Invoice Card + Notes */}
-          <div style={{ display: "flex", gap: "20px", alignItems:"flex-start" }}>
+          <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
             {/* LEFT — Original Invoice */}
             <div
               className="recent-view-invoice"
               style={{
                 border: "1px solid #EAEAEA",
                 position: "relative",
-                width:"540px",
-                height:"70vh",
+                width: "540px",
+                height: "70vh",
                 cursor: zoom ? "zoom-in" : "default",
               }}
               onMouseEnter={() => setZoom(true)}
@@ -839,10 +839,10 @@ Thank you for your business!`;
                 border: "1px solid #EAEAEA",
                 background: "#fff",
                 position: "relative",
-                width:"1200px",
-                height:"72vh",
-                overflowY:"scroll",
-                overflowX:"auto",
+                width: "1200px",
+                height: "72vh",
+                overflowY: "scroll",
+                overflowX: "auto",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",

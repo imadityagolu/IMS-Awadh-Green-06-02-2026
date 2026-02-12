@@ -442,6 +442,7 @@ exports.createInvoice = async (req, res) => {
         hsnCode: item.hsnCode || product.hsnCode || "",
         // serialno: item.serialno || selectedSerialNos.join(", "),
         selectedSerialNos: selectedSerialNos,
+        description:item.description || product.description || "",
         lotNumber: item.lotNumber || product.lotNumber || "", // Add lot number
         qty: parseFloat(item.qty) || 1,
         unit: item.unit || product.unit || "Piece",

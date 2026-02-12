@@ -129,6 +129,7 @@ function ShowCustomerInvoice() {
   const [normalTemplate, setNormalTemplate] = useState(null);
   const [printSettings, setPrintSettings] = useState({
     showHSN: true,
+    showDescription:true,
     showRate: true,
     showTax: true,
     showTotalsInWords: true,
@@ -206,6 +207,7 @@ function ShowCustomerInvoice() {
           // ✅ Set ALL print settings from template
           setPrintSettings({
             showHSN: template.fieldVisibility?.showHSN !== false,
+            showDescription: template.fieldVisibility?.showDescription !== false,
             showRate: template.fieldVisibility?.showRate !== false,
             showTax: template.fieldVisibility?.showTax !== false,
             showTotalsInWords: template.fieldVisibility?.showTotalsInWords !== false,
@@ -221,6 +223,7 @@ function ShowCustomerInvoice() {
       // Set defaults on error
       setPrintSettings({
         showHSN: true,
+        showDescription:true,
         showRate: true,
         showTax: true,
         showTotalsInWords: true,
@@ -719,11 +722,20 @@ function ShowCustomerInvoice() {
                                     <div
                                       style={{
                                         fontWeight: "500",
-                                        marginBottom: "4px",
+                                        marginBottom: "2px",
                                       }}
                                     >
                                       {item.itemName}
                                     </div>
+                                    {printSettings.showDescription && item.description && (
+                                      <div
+                                        style={{
+                                          fontWeight: "500",
+                                        }}
+                                      >
+                                        {item.description}
+                                      </div>
+                                    )}
                                     {item.selectedSerialNos &&
                                       item.selectedSerialNos.length > 0 && (
                                         <div

@@ -463,6 +463,7 @@ function CustomerCreateInvoice() {
     subcategory: false,
     itembarcode: false,
     hsn: false,
+    description: false,
     lotno: false,
     serialno: false,
     variants: { size: false, color: false },
@@ -485,6 +486,7 @@ function CustomerCreateInvoice() {
           subcategory: data.subcategory || false,
           itembarcode: data.itembarcode || false,
           hsn: data.hsn || false,
+          description: data.description || false,
           lotno: data.lotno || false,
           serialno: data.serialno || false,
           variants: {
@@ -1073,13 +1075,6 @@ function CustomerCreateInvoice() {
   };
 
   const handleProductSelect = async (product, rowId) => {
-    // console.log("🚀 handleProductSelect called:", {
-    //   productName: product.productName,
-    //   serialNumbers: product.serialNumbers,
-    //   lotNumber: product.lotNumber,
-    //   availableSerialNos: product.availableSerialNos,
-    //   productData: product // Log entire product to see structure
-    // });
     let serialNumbers = [];
     if (product.availableSerialNos && Array.isArray(product.availableSerialNos)) {
       serialNumbers = product.availableSerialNos;
@@ -1160,6 +1155,7 @@ function CustomerCreateInvoice() {
     updateProduct(rowId, "taxType", product.tax || "GST 0%");
     updateProduct(rowId, "unit", product.unit || "Piece");
     updateProduct(rowId, "hsnCode", product.hsn?.hsnCode || "");
+    updateProduct(rowId, "description", product.description || "");
     updateProduct(rowId, "lotNumber", lotNumber);
     updateProduct(rowId, "availableSerialNos", serialNumbers); // Set available serial numbers
     updateProduct(rowId, "selectedSerialNos", []); // Initialize empty selected serial numbers
@@ -1233,12 +1229,15 @@ function CustomerCreateInvoice() {
   };
 
   const updateProduct = (id, field, value) => {
-    // console.log(`🔄 updateProduct called: id=${id}, field=${field}, value=`, value);
     setProducts((prev) =>
       prev.map((p) => {
         if (p.id !== id) return p;
 
         let updated = { ...p };
+
+        if (field === "description") {
+          updated.description = value;
+        }
 
         // Handle quantity specially to enforce minimum of 1
         if (field === "qty") {
@@ -3130,10 +3129,51 @@ function CustomerCreateInvoice() {
                         display: "flex",
                       }}
                     >
+                      <div
+                        style={{
+                          width: 1,
+                          height: 30,
+                          background: "var(--Black-Disable, #A2A8B8)",
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: 120,
+                          height: 30,
+                          paddingLeft: 12,
+                          paddingRight: 12,
+                          paddingTop: 4,
+                          paddingBottom: 4,
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 8,
+                          display: "flex",
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: "#727681",
+                            fontSize: 14,
+                            fontFamily: "Inter",
+                            fontWeight: "500",
+                            lineHeight: "16.80px",
+                            wordWrap: "break-word",
+                          }}
+                        >
+                          Description
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          width: 1,
+                          height: 30,
+                          background: "var(--Black-Disable, #A2A8B8)",
+                        }}
+                      />
                       {/* for lot no start */}
                       <div
                         style={{
-                          width: 200,
+                          width: 120,
                           height: 30,
                           paddingLeft: 12,
                           paddingRight: 12,
@@ -3741,6 +3781,20 @@ function CustomerCreateInvoice() {
                                               HSN: {product.hsn.hsnCode}
                                             </div>
                                           )}
+                                          {product.description && (
+                                            <div
+                                              style={{
+                                                color: "#6b7280",
+                                                fontSize: "10px",
+                                                marginBottom: "2px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "end",
+                                              }}
+                                            >
+                                              Description: {product.description}
+                                            </div>
+                                          )}
                                           {/* Lot Number (if available) */}
                                           {product.lotNumber && (
                                             <div
@@ -3786,7 +3840,13 @@ function CustomerCreateInvoice() {
                               )}
                             </div>
                             {/* dd */}
-
+                            <div
+                              style={{
+                                width: 1,
+                                height: 30,
+                                background: "var(--Black-Disable, #A2A8B8)",
+                              }}
+                            />
                             <div
                               style={{
                                 height: 40,
@@ -3796,11 +3856,53 @@ function CustomerCreateInvoice() {
                                 display: "flex",
                               }}
                             >
+                              {/* desc start */}
+                              {settings.description && (
+                                <>
+                                  <div
+                                    style={{
+                                      width: 120,
+                                      alignSelf: "stretch",
+                                      paddingLeft: 12,
+                                      paddingRight: 12,
+                                      paddingTop: 4,
+                                      paddingBottom: 4,
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      display: "flex",
+                                      outline: "1px var(--Stroke, #EAEAEA) solid",
+                                      borderRadius: 4,
+                                    }}
+                                  >
+                                    <input
+                                      type="text"
+                                      placeholder="Description"
+                                      className="table-input"
+                                      style={{
+                                        width: "100%",
+                                        border: "none",
+                                        outline: "none",
+                                      }}
+                                      value={p.description || ""}
+                                      onChange={(e) =>
+                                        updateProduct(p.id, "description", e.target.value)}
+                                    />
+                                  </div>
+                                  <div
+                                    style={{
+                                      width: 1,
+                                      height: 30,
+                                      background: "var(--Black-Disable, #A2A8B8)",
+                                    }}
+                                  />
+                                </>
+                              )}
+                              {/* desc end */}
                               {settings.lotno && (
                                 <>
                                   <div
                                     style={{
-                                      width: 150,
+                                      width: 120,
                                       alignSelf: "stretch",
                                       paddingLeft: 12,
                                       paddingRight: 12,

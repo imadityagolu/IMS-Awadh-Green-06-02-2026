@@ -3074,7 +3074,6 @@ function ShowCustomerInvoice() {
                                 justifyContent: "center",
                                 color: "var(--Black-Black, #0E101A)",
                                 fontSize: 8,
-                                fontFamily: "Poppins",
                                 fontStyle: "italic",
                                 fontWeight: "400",
                                 wordWrap: "break-word",

@@ -90,6 +90,7 @@ function ShowCustomerInvoiceQuotation() {
   const [normalTemplate, setNormalTemplate] = useState(null);
   const [printSettings, setPrintSettings] = useState({
     showHSN: true,
+    showDescription:true,
     showRate: true,
     showTax: true,
     showTotalsInWords: true,
@@ -100,33 +101,53 @@ function ShowCustomerInvoiceQuotation() {
     showSerialNumbers: true,
   });
   // fetch print template setting
-  const fetchPrintTemplate = async () => {
+   const fetchPrintTemplate = async () => {
     try {
-      const res = await api.get("/api/print-templates?type=normal");
-      if (res.data.success && res.data.data.template) {
-        const template = res.data.data.template;
-        setNormalTemplate(template);
-        // Apply the field visibility settings
-        if (template.fieldVisibility) {
+      const res = await api.get('/api/print-templates', {
+        params: {
+          type: 'normal',
+          includeData: false
+        }
+      });
+
+      if (res.data.success && res.data.data) {
+        const templateData = res.data.data;
+        const template = templateData.template;
+
+        if (template) {
+          // ✅ Store the entire template, not just signature
+          setTemplate(template);
+
+          // ✅ Set ALL print settings from template
           setPrintSettings({
-            showHSN: template.fieldVisibility.showHSN !== false,
-            showRate: template.fieldVisibility.showRate !== false,
-            showTax: template.fieldVisibility.showTax !== false,
-            showTotalsInWords:
-              template.fieldVisibility.showTotalsInWords !== false,
-            showBankDetails: template.fieldVisibility.showBankDetails !== false,
-            showTermsConditions:
-              template.fieldVisibility.showTermsConditions !== false,
+            showHSN: template.fieldVisibility?.showHSN !== false,
+            showDescription: template.fieldVisibility?.showDescription !== false,
+            showRate: template.fieldVisibility?.showRate !== false,
+            showTax: template.fieldVisibility?.showTax !== false,
+            showTotalsInWords: template.fieldVisibility?.showTotalsInWords !== false,
+            showBankDetails: template.fieldVisibility?.showBankDetails !== false,
+            showTermsConditions: template.fieldVisibility?.showTermsConditions !== false,
             signatureUrl: template.signatureUrl || "",
-            showLotNumber: template.fieldVisibility.showLotNumber !== false,
-            showSerialNumbers: template.fieldVisibility.showSerialNumbers !== false,
           });
+
         }
       }
     } catch (error) {
       console.error("Error fetching print template", error);
+      // Set defaults on error
+      setPrintSettings({
+        showHSN: true,
+        showDescription:true,
+        showRate: true,
+        showTax: true,
+        showTotalsInWords: true,
+        showBankDetails: true,
+        showTermsConditions: true,
+        signatureUrl: "",
+      });
     }
   };
+
   useEffect(() => {
     fetchCompanyData();
     fetchSettings();
@@ -188,6 +209,7 @@ function ShowCustomerInvoiceQuotation() {
       console.error('Error fetching tempate settings:', error);
     }
   }
+ 
 
 
   useEffect(() => {
@@ -460,12 +482,22 @@ function ShowCustomerInvoiceQuotation() {
     </thead>
 
     <tbody>
-      {products.map((item, i) => (
-        <tr key={i}>
+                            {products.map((item, i) => (
+         <React.Fragment key={i}>
+        <tr>
           <td className="invoice-col-sr">{i + 1}</td>
 
           <td className="invoice-col-name">
-            <div style={{ fontWeight: 600 }}>{item.itemName}</div>
+                                    <div style={{ fontWeight: 600 }}>{item.itemName}</div>
+                                    {printSettings.showDescription && item.description && (
+                                      <div
+                                        style={{
+                                          fontWeight: "500",
+                                        }}
+                                      >
+                                        {item.description}
+                                      </div>
+                                    )}
 
             {printSettings.showSerialNumbers &&
               item.selectedSerialNos?.length > 0 && (
@@ -505,8 +537,74 @@ function ShowCustomerInvoiceQuotation() {
           <td className="invoice-col-total">
             ₹{Number(item.amount || 0).toFixed(2)}
           </td>
-        </tr>
-      ))}
+                                </tr>
+                                <tr>
+       <td
+              style={{
+                borderRight: "1px solid #EAEAEA",
+                height: "20px",
+                textAlign: "center",
+              }}
+            ></td>
+            <td
+              style={{
+                borderRight: "1px solid #EAEAEA",
+                padding: "0px 20px",
+              }}
+            ></td>
+            {printSettings.showHSN && (
+              <td
+                style={{
+                  borderRight: "1px solid #EAEAEA",
+                  textAlign: "center",
+                }}
+              ></td>
+            )}
+            <td
+              style={{
+                borderRight: "1px solid #EAEAEA",
+                textAlign: "center",
+              }}
+            ></td>
+            <td
+              style={{
+                borderRight: "1px solid #EAEAEA",
+                textAlign: "center",
+              }}
+            ></td>
+            {printSettings.showRate && (
+              <td
+                style={{
+                  borderRight: "1px solid #EAEAEA",
+                  textAlign: "center",
+                }}
+              ></td>
+            )}
+            {printSettings.showTax && (
+              <>
+                <td
+                  style={{
+                    borderRight: "1px solid #EAEAEA",
+                    textAlign: "center",
+                  }}
+                ></td>
+                <td
+                  style={{
+                    borderRight: "1px solid #EAEAEA",
+                    textAlign: "center",
+                  }}
+                ></td>
+              </>
+            )}
+            <td
+              style={{
+                borderRight: "1px solid #EAEAEA",
+                textAlign: "center",
+              }}
+            ></td>
+          </tr>
+        </React.Fragment>
+            ))}
     </tbody>
   </table>
 </div>

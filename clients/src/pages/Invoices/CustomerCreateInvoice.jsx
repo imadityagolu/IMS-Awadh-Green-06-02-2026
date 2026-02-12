@@ -3989,12 +3989,13 @@ function CustomerCreateInvoice() {
                                         border: "none",
                                         outline: "none",
                                       }}
-                                      value={p.qty}
+                                      value={p.qty === 0 || p.qty === "" ? "" : p.qty}
                                       onChange={(e) => {
                                         const rawValue = e.target.value;
                                         if (rawValue === "") {
                                           updateProduct(p.id, "qty", "");
-                                        } else {
+                                          return;
+                                        }
                                           const numValue = parseFloat(rawValue);
                                           if (!isNaN(numValue)) {
                                             updateProduct(
@@ -4003,7 +4004,9 @@ function CustomerCreateInvoice() {
                                               Math.max(1, numValue),
                                             );
                                           }
-                                        }
+                                      }}
+                                      onClick={(e) => {
+                                        e.target.select();
                                       }}
                                       onBlur={(e) => {
                                         if (
@@ -6212,11 +6215,19 @@ function CustomerCreateInvoice() {
                                       borderRight: "1px solid #EAEAEA",
                                       height: "40px",
                                       textAlign: "center",
+                                      verticalAlign: "top",
+                                      padding: "8px 4px"
                                     }}
                                   >
-                                    {item.selectedSerialNos?.length > 0
-                                      ? item.selectedSerialNos.join(", ")
-                                      : (item.serialno || "-")}
+                                    {item.selectedSerialNos?.length > 0 ? (
+                                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                        {item.selectedSerialNos.map((sn, index) => (
+                                          <div key={index}>{sn}</div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      item.serialno || ""
+                                    )}
                                   </td>
                                   <td
                                     style={{

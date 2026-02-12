@@ -194,6 +194,7 @@ exports.createQuotation = async (req, res) => {
         hsnCode: item.hsnCode || product.hsnCode || "",
         lotNumber: item.lotNumber || product.lotNumber || "", // Add lot number
         selectedSerialNos: item.selectedSerialNos || [], // Add serial numbers
+        description:item.description || product.description || "",
         qty: parseFloat(item.qty) || 1,
         unit: item.unit || product.unit || "Piece",
         unitPrice: parseFloat(item.unitPrice) || product.sellingPrice || 0,

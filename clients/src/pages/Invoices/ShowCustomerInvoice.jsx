@@ -184,52 +184,58 @@ function ShowCustomerInvoice() {
     }
   };
 
-  const fetchSignature = async () => {
-    try {
-      // Fetch normal print template specifically
-      const res = await api.get("/api/print-templates?type=normal");
-      if (res.data.success && res.data.data.template) {
-        setTemplate(res.data.data.template);
-        // console.log("Template settings loaded:", res.data.data.template);
-      }
-    } catch (error) {
-      console.error("Error fetching template settings:", error);
-    }
-  };
 
-  // fetch print template setting
+  // In ShowCustomerInvoice.js - REPLACE the fetchPrintTemplate function:
   const fetchPrintTemplate = async () => {
     try {
-      const res = await api.get("/api/print-templates?type=normal");
-      if (res.data.success && res.data.data.template) {
-        const template = res.data.data.template;
-        setNormalTemplate(template);
-        // Apply the field visiblity settings
-        if (template.fieldVisibility) {
+      const res = await api.get('/api/print-templates', {
+        params: {
+          type: 'normal',
+          includeData: false
+        }
+      });
+
+      if (res.data.success && res.data.data) {
+        const templateData = res.data.data;
+        const template = templateData.template;
+
+        if (template) {
+          // ✅ Store the entire template, not just signature
+          setTemplate(template);
+
+          // ✅ Set ALL print settings from template
           setPrintSettings({
-            showHSN: template.fieldVisibility.showHSN !== false,
-            showRate: template.fieldVisibility.showRate !== false,
-            showTax: template.fieldVisibility.showTax !== false,
-            showTotalsInWords:
-              template.fieldVisibility.showTotalsInWords !== false,
-            showBankDetails: template.fieldVisibility.showBankDetails !== false,
-            showTermsConditions:
-              template.fieldVisibility.showTermsConditions !== false,
+            showHSN: template.fieldVisibility?.showHSN !== false,
+            showRate: template.fieldVisibility?.showRate !== false,
+            showTax: template.fieldVisibility?.showTax !== false,
+            showTotalsInWords: template.fieldVisibility?.showTotalsInWords !== false,
+            showBankDetails: template.fieldVisibility?.showBankDetails !== false,
+            showTermsConditions: template.fieldVisibility?.showTermsConditions !== false,
             signatureUrl: template.signatureUrl || "",
           });
+
         }
       }
     } catch (error) {
       console.error("Error fetching print template", error);
+      // Set defaults on error
+      setPrintSettings({
+        showHSN: true,
+        showRate: true,
+        showTax: true,
+        showTotalsInWords: true,
+        showBankDetails: true,
+        showTermsConditions: true,
+        signatureUrl: "",
+      });
     }
   };
 
   useEffect(() => {
     fetchCompanyData();
     fetchSettings();
-    fetchSignature();
     fetchBanks();
-    fetchPrintTemplate();
+    fetchPrintTemplate(); // ✅ KEEP ONLY THIS ONE
   }, []);
 
   const handleDownloadPDF = async () => {
@@ -450,9 +456,9 @@ function ShowCustomerInvoice() {
                           INVOICE Date -{" "}
                           {invoiceData.invoiceDate
                             ? format(
-                                new Date(invoiceData.invoiceDate),
-                                "dd MMM yyyy",
-                              )
+                              new Date(invoiceData.invoiceDate),
+                              "dd MMM yyyy",
+                            )
                             : "N/A"}
                         </span>
                         <span style={{ marginRight: "12px" }}>
@@ -929,18 +935,18 @@ function ShowCustomerInvoice() {
                                   left: 31.77,
                                   background: "var(--White-Stroke, #EAEAEA)",
                                   marginTop: "10px",
-                                   fontFamily: '"Roboto", sans-serif',
-                                   
+                                  fontFamily: '"Roboto", sans-serif',
+
                                 }}
                               />
                               <div
                                 style={{
                                   marginTop: "2px",
                                   textDecoration: "underline",
-                                 
+
                                   color: "black",
                                   fontSize: "15px",
-                                  fontWeight:"600"
+                                  fontWeight: "600"
                                 }}
                               >
                                 Bank Details
@@ -953,8 +959,8 @@ function ShowCustomerInvoice() {
                                   padding: "0px 5px",
                                 }}
                               >
-                                <div style={{ textAlign: "left",color:"black" }}>
-                                  <div style={{color:"black"}}>
+                                <div style={{ textAlign: "left", color: "black" }}>
+                                  <div style={{ color: "black" }}>
                                     Bank :{" "}
                                     <span
                                       style={{
@@ -1043,8 +1049,8 @@ function ShowCustomerInvoice() {
                             width: "50%",
                             padding: "3px",
                             borderLeft: "1px solid #EAEAEA",
-                            fontFamily:'"Roboto", sans-serif',
-                            color:"black"
+                            fontFamily: '"Roboto", sans-serif',
+                            color: "black"
                           }}
                         >
                           <div
@@ -1056,7 +1062,7 @@ function ShowCustomerInvoice() {
 
                             }}
                           >
-                            <span style={{color:"black"}}>Sub-total</span>
+                            <span style={{ color: "black" }}>Sub-total</span>
                             <span style={{ color: "black" }}>
                               ₹{invoiceData.subtotal?.toFixed(2)}
                             </span>
@@ -1168,10 +1174,13 @@ function ShowCustomerInvoice() {
                               alignItems: "center",
                             }}
                           >
-                            <u style={{ color: "black",
-                                  fontSize: "15px",
-                                  fontWeight:"600"}}>Term & Conditions</u>
-                             <div style={{color:"black"}}>{terms?.termsText}</div>
+                            <u style={{
+                              color: "black",
+                              fontSize: "15px",
+                              fontWeight: "600",
+                              marginBottom: "20px"
+                            }}>Term & Conditions</u>
+                            <div style={{ color: "black" }}>{terms?.termsText}</div>
                           </div>
                         )}
                         <div
@@ -1187,6 +1196,7 @@ function ShowCustomerInvoice() {
                               flexDirection: "column",
                               justifyContent: "center",
                               alignItems: "center",
+                              marginTop: "10px"
                             }}
                           >
                             <div
@@ -1202,7 +1212,7 @@ function ShowCustomerInvoice() {
                                 style={{ width: "100%" }}
                               />
                             </div>
-                            <div style={{fontFamily:'"Roboto", sans-serif', color:"black"}}>Pay Using Upi</div>
+                            <div style={{ fontFamily: '"Roboto", sans-serif', color: "black" }}>Pay Using Upi</div>
                           </div>
                           {/* qr end */}
                           {/* <div
@@ -1277,7 +1287,7 @@ function ShowCustomerInvoice() {
                                   style={{
                                     fontWeight: "500",
                                     fontSize: "12px",
-                                    color:"black"
+                                    color: "black"
                                   }}
                                 >
                                   Signature
@@ -2175,7 +2185,7 @@ function ShowCustomerInvoice() {
                               }}
                             />
                             <table style={{ fontSize: "10px", width: "100%" }}>
-                              <tbody style={{fontFamily:'"Roboto", sans-serif'}}>
+                              <tbody style={{ fontFamily: '"Roboto", sans-serif' }}>
                                 <tr>
                                   <td>Subtotal</td>
                                   <td>04</td>
@@ -3069,7 +3079,7 @@ function ShowCustomerInvoice() {
                                 fontWeight: "400",
                                 wordWrap: "break-word",
                                 marginTop: "10px",
-                                fontFamily:'"Roboto", sans-serif'
+                                fontFamily: '"Roboto", sans-serif'
                               }}
                             >
                               Congratulations! You’ve earned 🪙 50 shopping

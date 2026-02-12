@@ -1,3 +1,4 @@
+// In printTemplateRoutes.js - FIX the route:
 const express = require("express");
 const router = express.Router();
 const {
@@ -24,7 +25,7 @@ router.get("/all", getAllTemplates);
 router.put("/:id", updatePrintTemplate);
 router.put("/", updatePrintTemplate);
 
-// Upload signature
+// Upload signature - FIX: upload.single is a function, not an array
 router.post("/upload-signature", upload.single("signature"), uploadSignature);
 
 // Delete signature

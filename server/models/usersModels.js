@@ -18,6 +18,11 @@ const usersSchema = new mongoose.Schema(
       url: { type: String },
       public_id: { type: String },
     },
+    companyId: {  
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "companysetting",
+    required: false // or true, depending on your business logic
+  },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: String },
     resetPasswordOTP: { type: String },

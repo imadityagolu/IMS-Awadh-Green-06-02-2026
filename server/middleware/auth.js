@@ -14,10 +14,11 @@ exports.authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await User.findById(decoded.id).select(
-      "_id firstName lastName email role",
-    )
-    .populate("role", "roleName");
+    const user = await User.findById(decoded.id)
+      .select("_id name email role companyId")
+      .populate("role", "roleName")
+      .populate("companyId", "_id companyName");
+
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }

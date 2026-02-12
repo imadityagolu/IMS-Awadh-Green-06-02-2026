@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const BarCodePrint = () => {
-  const [activeTabs, setActiveTabs] = useState("barcode");
+  const [activeTabs, setActiveTabs] = useState("normal");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [notesTermsSettings, setNotesTermsSettings] = useState({});
@@ -53,17 +53,22 @@ const BarCodePrint = () => {
       toast.error('Failed to load barcode settings');
     }
   };
-
-  // Fetch print template settings
-  // Fetch print template settings
+  // In BarCodePrint.js - UPDATE fetchTemplateSettings:
   const fetchTemplateSettings = async (type) => {
     try {
-      const response = await api.get(`/api/print-templates?type=${type}&includeData=true`);
+      // Get company-specific template, not default
+      const response = await api.get('/api/print-templates', {
+        params: {
+          type,
+          includeData: true,
+          // Don't specify companyId in params, let backend get it from req.user
+        }
+      });
 
       if (response.data.success) {
         const { template, company, sampleProducts, sampleCustomer } = response.data.data;
 
-        if (type === 'normal' && !normalTemplate) {
+        if (type === 'normal') {
           setNormalTemplate(template);
         } else {
           setThermalTemplate(template);
@@ -80,39 +85,39 @@ const BarCodePrint = () => {
     }
   };
 
-  // Add this function after other fetch functions
   const fetchAllTemplatesForCompany = async () => {
     try {
       if (!companyData || !companyData._id) {
-        console.log('Company data not available yet');
+        // console.log('Company data not available yet');
         return;
       }
 
-      console.log('Fetching templates for company:', companyData._id);
+      // console.log('Fetching templates for company:', companyData._id);
 
-      // Fetch normal templates
+      // Fetch normal templates for this specific company ONLY
       const normalResponse = await api.get('/api/print-templates/all', {
-        params: { type: 'normal' }
+        params: {
+          type: 'normal',
+          companyId: companyData._id // Add this param
+        }
       });
 
-      // Fetch thermal templates  
+      // Fetch thermal templates for this specific company ONLY
       const thermalResponse = await api.get('/api/print-templates/all', {
-        params: { type: 'thermal' }
+        params: {
+          type: 'thermal',
+          companyId: companyData._id // Add this param
+        }
       });
 
       // Find templates for current company
       if (normalResponse.data.success && normalResponse.data.data.length > 0) {
-        // Find template for current company and template1
         const companyTemplates = normalResponse.data.data.filter(t =>
           t.companyId === companyData._id
         );
 
         if (companyTemplates.length > 0) {
-          // Find template1
-          const template1 = companyTemplates.find(t =>
-            t.selectedTemplate === 'template1'
-          );
-          setNormalTemplate(template1 || companyTemplates[0]);
+          setNormalTemplate(companyTemplates[0]);
         }
       }
 
@@ -120,11 +125,9 @@ const BarCodePrint = () => {
         const companyTemplates = thermalResponse.data.data.filter(t =>
           t.companyId === companyData._id
         );
+
         if (companyTemplates.length > 0) {
-          const template1 = companyTemplates.find(t =>
-            t.selectedTemplate === 'template1'
-          );
-          setThermalTemplate(template1 || companyTemplates[0]);
+          setThermalTemplate(companyTemplates[0]);
         }
       }
     } catch (error) {
@@ -153,11 +156,6 @@ const BarCodePrint = () => {
 
     fetchAllSettings();
   }, []);
-  useEffect(() => {
-    if (companyData && companyData._id) {
-      fetchAllTemplatesForCompany();
-    }
-  }, [companyData]);
 
   // Add this function after your other fetch functions:
   const fetchNotesTermsSettings = async () => {
@@ -233,48 +231,61 @@ const BarCodePrint = () => {
 
   // Save print template settings
 
-  const handleSavePrintTemplate = async (type, templateData, templateId) => {
-    try {
-      setIsSaving(true);
+  // In BarCodePrint.js - UPDATE handleSavePrintTemplate:
+// In BarCodePrint.js - UPDATE handleSavePrintTemplate:
+const handleSavePrintTemplate = async (type, templateData, templateId) => {
+  try {
+    setIsSaving(true);
 
-      // Prepare the data in the format your backend expects
-      const saveData = {
-        templateType: type,
-        selectedTemplate: templateData.selectedTemplate || 'template1',
-        fieldVisibility: templateData.fieldVisibility || {},
-        layoutConfig: templateData.layoutConfig || {},
-        templateName: templateData.templateName || `${type === 'normal' ? 'Normal' : 'Thermal'} Template`,
-        signatureUrl: templateData.signatureUrl || '', // ADD THIS LINE
-        companyId: companyData?._id
-      };
-
-      // Use template._id if it exists (for update), otherwise create new
-      const url = templateId
-        ? `/api/print-templates/${templateId}`
-        : '/api/print-templates';
-
-      const response = await api.put(url, saveData);
-
-      if (response.data.success) {
-        toast.success(`${type === 'normal' ? 'Normal' : 'Thermal'} print template saved`);
-
-        // Update the template in state
-        if (type === 'normal') {
-          setNormalTemplate(response.data.data);
-        } else {
-          setThermalTemplate(response.data.data);
+    // ✅ CRITICAL - Make sure signatureUrl is included
+    const saveData = {
+      templateType: type,
+      selectedTemplate: templateData.selectedTemplate || 'template1',
+      fieldVisibility: templateData.fieldVisibility || {},
+      layoutConfig: {
+        headerPosition: templateData.layoutConfig?.headerPosition || "center",
+        footerPosition: templateData.layoutConfig?.footerPosition || "center",
+        fontSize: templateData.layoutConfig?.fontSize || 12,
+        margin: {
+          top: templateData.layoutConfig?.margin?.top || 10,
+          bottom: templateData.layoutConfig?.margin?.bottom || 10,
+          left: templateData.layoutConfig?.margin?.left || 10,
+          right: templateData.layoutConfig?.margin?.right || 10,
         }
-        if (companyData) {
-          fetchAllTemplatesForCompany();
-        }
+      },
+      templateName: templateData.templateName || `${type === 'normal' ? 'Normal' : 'Thermal'} Template`,
+      // ✅ THIS IS CRITICAL - Pass the signature URL
+      signatureUrl: templateData.signatureUrl || '',
+      companyId: companyData?._id
+    };
+
+    // console.log(`Saving ${type} template with signature:`, saveData.signatureUrl);
+
+    const url = templateId && templateId !== 'undefined'
+      ? `/api/print-templates/${templateId}`
+      : '/api/print-templates';
+
+    const response = await api.put(url, saveData);
+
+    if (response.data.success) {
+      // console.log(`${type} template saved successfully:`, response.data.data);
+      
+      toast.success(`${type === 'normal' ? 'Normal' : 'Thermal'} print template saved`);
+
+      // Update the state with the saved template
+      if (type === 'normal') {
+        setNormalTemplate(response.data.data);
+      } else {
+        setThermalTemplate(response.data.data);
       }
-    } catch (error) {
-      console.error(`Error saving ${type} template:`, error);
-      toast.error(`Failed to save ${type} template`);
-    } finally {
-      setIsSaving(false);
     }
-  };
+  } catch (error) {
+    console.error(`Error saving ${type} template:`, error);
+    toast.error(`Failed to save ${type} template: ${error.message}`);
+  } finally {
+    setIsSaving(false);
+  }
+};
   // Reset barcode settings to defaults
   const handleResetToDefaults = async () => {
     if (window.confirm('Are you sure you want to reset all barcode settings to defaults?')) {

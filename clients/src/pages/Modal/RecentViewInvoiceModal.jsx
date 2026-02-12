@@ -90,6 +90,15 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
     const [isDownloading, setIsDownloading] = useState(false);
     const invoiceRef = useRef(null);
     const [signatureUrl, setSignatureUrl] = useState("");
+    const [printSettings, setPrintSettings] = useState({
+        showHSN: true,
+        showRate: true,
+        showTax: true,
+        showTotalsInWords: true,
+        showBankDetails: true,
+        showTermsConditions: true,
+        signatureUrl: "",
+    });
 
     // Fetch invoice data if not provided
     useEffect(() => {
@@ -120,17 +129,51 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
         fetchCompanyData();
     }, []);
 
+    // In RecentViewInvoiceModal.js - REPLACE the fetchPrintTemplate useEffect:
     useEffect(() => {
         const fetchPrintTemplate = async () => {
             try {
-                const res = await api.get('/api/print-templates?type=normal');
-                if (res.data.data.template?.signatureUrl) {
-                    setSignatureUrl(res.data.data.template.signatureUrl);
+                // Fetch the normal print template with all settings
+                const res = await api.get('/api/print-templates', {
+                    params: {
+                        type: 'normal',
+                        includeData: false
+                    }
+                });
+
+                if (res.data.success && res.data.data) {
+                    const templateData = res.data.data;
+                    const template = templateData.template;
+
+                    if (template) {
+                        // ✅ Store ALL print settings
+                        setPrintSettings({
+                            showHSN: template.fieldVisibility?.showHSN !== false,
+                            showRate: template.fieldVisibility?.showRate !== false,
+                            showTax: template.fieldVisibility?.showTax !== false,
+                            showTotalsInWords: template.fieldVisibility?.showTotalsInWords !== false,
+                            showBankDetails: template.fieldVisibility?.showBankDetails !== false,
+                            showTermsConditions: template.fieldVisibility?.showTermsConditions !== false,
+                            signatureUrl: template.signatureUrl || "",
+                        });
+
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching print template:', error);
+                // Set defaults on error
+                setPrintSettings({
+                    showHSN: true,
+                    showRate: true,
+                    showTax: true,
+                    showTotalsInWords: true,
+                    showBankDetails: true,
+                    showTermsConditions: true,
+                    signatureUrl: "",
+                });
             }
         };
+
         fetchPrintTemplate();
     }, []);
 
@@ -321,7 +364,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                             boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.10)',
                             padding: '10px 15px',
                             fontSize: '8px',
-                          fontFamily:'"Roboto", sans-serif'
+                            fontFamily: '"Roboto", sans-serif'
                         }}
                     >
                         <div style={{
@@ -332,9 +375,9 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                             <div style={{ width: '100px' }}>
                                 <img src={companyData?.companyLogo || CompanyLogo} alt='company logo' style={{ width: '100%', objectFit: 'contain', }} />
                             </div>
-                            <div style={{  }}>
+                            <div style={{}}>
                                 {/* <img src={TaxInvoiceLogo} alt='tax invoice' style={{ width: '100%', objectFit: 'contain', }} /> */}
-                                 <h1 style={{fontFamily:'"Roboto", sans-serif', fontSize:"18px", color:"black"}}>TAX INVOICE</h1>
+                                <h1 style={{ fontFamily: '"Roboto", sans-serif', fontSize: "18px", color: "black" }}>TAX INVOICE</h1>
                             </div>
                         </div>
                         <div
@@ -346,7 +389,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 marginTop: '8px'
                             }}
                         />
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginTop: '2px' ,fontFamily:'"Roboto", sans-serif', color:"black"}}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginTop: '2px', fontFamily: '"Roboto", sans-serif', color: "black" }}>
                             <span>{companyInfo.documentTitle} Date - {formatDate(invoice?.invoiceDate)}</span>
                             <span style={{ marginRight: '12px' }}>Invoice No. - {invoice?.invoiceNo || 'N/A'}</span>
                         </div>
@@ -359,24 +402,24 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 background: 'var(--White-Stroke, #EAEAEA)',
                             }}
                         />
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '2px', alignItems: 'center', borderBottom: '1px solid #EAEAEA',fontFamily:'"Roboto", sans-serif' ,color:"black"}}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '2px', alignItems: 'center', borderBottom: '1px solid #EAEAEA', fontFamily: '"Roboto", sans-serif', color: "black" }}>
                             <div style={{ borderRight: '1px solid #EAEAEA', width: '50%', textAlign: 'center' }}>
                                 <span>{companyInfo.fromTitle}</span>
                             </div>
-                            <div style={{ width: '50%', textAlign: 'center',fontFamily:'"Roboto", sans-serif' }}>
+                            <div style={{ width: '50%', textAlign: 'center', fontFamily: '"Roboto", sans-serif' }}>
                                 <span>{companyInfo.toTitle}</span>
                             </div>
                         </div>
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '2px', alignItems: 'center', borderBottom: '1px solid #EAEAEA',fontFamily:'"Roboto", sans-serif' ,color:"black" }}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '2px', alignItems: 'center', borderBottom: '1px solid #EAEAEA', fontFamily: '"Roboto", sans-serif', color: "black" }}>
                             <div style={{ borderRight: '1px solid #EAEAEA', width: '50%', padding: '3px' }}>
-                                <div>Name : <span style={{ }}>{companyInfo.fromName}</span></div>
+                                <div>Name : <span style={{}}>{companyInfo.fromName}</span></div>
                                 <div>Address : {companyInfo.fromAddress}</div>
                                 <div style={{ marginTop: '8px' }}>Phone : {companyInfo.fromPhone}</div>
                                 <div>Email : {companyInfo.fromEmail}</div>
                                 <div>GSTIN : {companyInfo.fromGSTIN}</div>
                             </div>
                             <div style={{ width: '50%', padding: '3px' }}>
-                                <div>Name : <span style={{ }}>{companyInfo.toName}</span></div>
+                                <div>Name : <span style={{}}>{companyInfo.toName}</span></div>
                                 <div>Address : {companyInfo.toAddress} </div>
                                 <div style={{ marginTop: '8px' }}>Phone :  {companyInfo.toPhone}</div>
                                 <div>Email : {companyInfo.toEmail}</div>
@@ -385,31 +428,47 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                         </div>
                         <div className='table-responsive mt-3' >
                             <table className='' style={{ width: '100%', border: '1px solid #EAEAEA', borderCollapse: 'collapse' }}>
-                                <thead style={{ textAlign: 'center',fontFamily:'"Roboto", sans-serif' }}>
+                                <thead style={{ textAlign: 'center', fontFamily: '"Roboto", sans-serif' }}>
                                     <tr>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>Sr No.</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>Name of the Products</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>HSN</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>Lot No.</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>QTY</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" ,fontWeight:"500"}} rowSpan='2'>Rate</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} colSpan="2">Tax</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }} rowSpan='2'>Total</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }} rowSpan='2'>Sr No.</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }} rowSpan='2'>Name of the Products</th>
+                                        {printSettings.showHSN && (
+                                            <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }} rowSpan='2'>HSN</th>)}
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }} rowSpan='2'>Lot No.</th>
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }} rowSpan='2'>QTY</th>
+                                        {printSettings.showRate && (
+                                            <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }} rowSpan='2'>Rate</th>)}
+                                        {printSettings.showTax && (
+                                            <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }} colSpan="2">Tax</th>)}
+                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }} rowSpan='2'>Total</th>
                                     </tr>
-                                    <tr>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black",fontWeight:"500" }}>%</th>
-                                        <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }}>₹</th>
-                                    </tr>
+                                    {printSettings.showTax && (
+                                        <tr>
+                                            <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black", fontWeight: "500" }}>%</th>
+                                            <th style={{ borderRight: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', color: "black" }}>₹</th>
+                                        </tr>
+                                    )}
                                 </thead>
-                                <tbody style={{ textAlign: "center" ,fontFamily:'"Roboto", sans-serif', color:"black"}}>
+                                <tbody style={{ textAlign: "center", fontFamily: '"Roboto", sans-serif', color: "black" }}>
                                     {invoiceItems.map((item, index) => (
                                         <tr key={index}>
                                             <td style={{ borderRight: '1px solid #EAEAEA', height: '30px' }}>{index + 1}</td>
                                             {/* <td style={{ borderRight: '1px solid #EAEAEA', }}>{item.itemName || item.name || 'N/A'}</td> */}
                                             <td style={{ borderRight: '1px solid #EAEAEA' }}>
-                                                <div style={{ fontWeight: "500", marginBottom: "4px",color:"black", fontSize:"10px", textDecoration:"underline" }}>
+                                                <div style={{ fontWeight: "500", marginBottom: "4px", color: "black", fontSize: "10px", textDecoration: "underline" }}>
                                                     {item.itemName}
                                                 </div>
+                                                {item.description && (
+                                                    <div style={{
+                                                        fontSize: "11px",
+                                                        color: "black",
+                                                        marginTop: "2px",
+                                                        fontStyle: "italic",
+                                                        lineHeight: "1.4"
+                                                    }}>
+                                                        {item.description}
+                                                    </div>
+                                                )}
                                                 {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
                                                     <div
                                                         style={{
@@ -421,28 +480,32 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                                             fontStyle: '"Roboto", sans-serif',
                                                             marginTop: "4px",
                                                             lineHeight: "1.4",
-                                                          
+
                                                         }}
                                                     >
                                                         {/* <div style={{ fontWeight: "400", marginBottom: "2px", color:"#000000d0" }}>
                                                             Serial No:< TiArrowDown style={{fontWeight:"400"}} />
                                                         </div> */}
 
-                                                        <div style={{ fontWeight:"400", color:"#000000d0",}}>
-                                                             {item.selectedSerialNos.map((sn, index) => (
-                                                            <div key={index} style={{}}>• {sn}</div>
-                                                        ))}
+                                                        <div style={{ fontWeight: "400", color: "#000000d0", }}>
+                                                            {item.selectedSerialNos.map((sn, index) => (
+                                                                <div key={index} style={{}}>• {sn}</div>
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 )}
                                             </td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{item.hsnCode || item.hsn || '-'}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{item.lotNumber || '-'}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{item.qty || 0}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{formatCurrency(item.unitPrice)}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{item.taxRate || 0}%</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{formatCurrency(item.taxAmount)}</td>
-                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize:"10px" }}>{formatCurrency(item.amount)}</td>
+                                            {printSettings.showHSN && (
+                                                <td style={{ borderRight: '1px solid #EAEAEA', fontSize: "10px" }}>{item.hsnCode || item.hsn || '-'}</td>)}
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize: "10px" }}>{item.lotNumber || '-'}</td>
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize: "10px" }}>{item.qty || 0}</td>
+                                            {printSettings.showRate && (
+                                                <td style={{ borderRight: '1px solid #EAEAEA', fontSize: "10px" }}>{formatCurrency(item.unitPrice)}</td>)}
+                                            {printSettings.showTax && (
+                                                <>
+                                                    <td style={{ borderRight: '1px solid #EAEAEA', fontSize: "10px" }}>{item.taxRate || 0}%</td>
+                                                    <td style={{ borderRight: '1px solid #EAEAEA', fontSize: "10px" }}>{formatCurrency(item.taxAmount)}</td></>)}
+                                            <td style={{ borderRight: '1px solid #EAEAEA', fontSize: "10px" }}>{formatCurrency(item.amount)}</td>
                                         </tr>
                                     ))}
                                     {/* Fill remaining rows for consistent layout */}
@@ -462,39 +525,16 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 </tbody>
                             </table>
                         </div>
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '15px', borderTop: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA',fontFamily:'"Roboto", sans-serif' }}>
-                            <div style={{ borderRight: '', width: '50%', padding: '3px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <u style={{ color: "black" ,fontSize:"15px",fontWeight:"600", }}>Total in words</u>
-                                <div style={{ marginTop: '5px', fontWeight: '400', fontSize: '10px',color:"black" }}>{totalInWords}</div>
-                                {/* <div
-                                    style={{
-                                        width: '100%',
-                                        height: 0.76,
-                                        left: 31.77,
-                                        background: 'var(--White-Stroke, #EAEAEA)',
-                                        marginTop: '10px'
-                                    }}
-                                /> */}
-                                {/* <div style={{ marginTop: '2px', textDecoration: 'underline' }}>Bank Details</div>
-                                <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: '0px 5px' }}>
-                                    <div style={{ textAlign: 'left' }}>
-                                        <div>Bank : <span style={{ color: 'black', fontWeight: '600' }}>{bankDetails?.bankName || 'N/A'}</span></div>
-                                        <div>Branch : <span style={{ color: 'black', fontWeight: '600' }}>{bankDetails?.branch || 'N/A'}</span></div>
-                                        <div>Account Holder : <span style={{ color: 'black', fontWeight: '600' }}>{bankDetails?.accountHolderName || 'N/A'}</span></div>
-                                        <div>Account No.: <span style={{ color: 'black', fontWeight: '600' }}>{bankDetails?.accountNumber || 'N/A'}</span></div>
-                                        <div>IFSC : <span style={{ color: 'black', fontWeight: '600' }}>{bankDetails?.ifsc || 'N/A'}</span></div>
-                                        <div>UPI : <span style={{ color: 'black', fontWeight: '600' }}>{bankDetails?.upiId || 'N/A'}</span></div>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                                        <div style={{ width: '45px', objectFit: 'contain' }}>
-                                            <img src={bankDetails?.qrCode || Qrcode} alt='QR Code' style={{ width: '100%' }} />
-                                        </div>
-                                        <div>Pay Using UPI</div>
-                                    </div>
-                                </div> */}
-                            </div>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', marginTop: '15px', borderTop: '1px solid #EAEAEA', borderBottom: '1px solid #EAEAEA', fontFamily: '"Roboto", sans-serif' }}>
+                            {printSettings.showTotalsInWords && (
+                                <div style={{ borderRight: '', width: '50%', padding: '3px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <u style={{ color: "black", fontSize: "15px", fontWeight: "600", }}>Total in words</u>
+                                    <div style={{ marginTop: '5px', fontWeight: '400', fontSize: '10px', color: "black" }}>{totalInWords}</div>
+                                </div>
+                            )}
 
-                            <div style={{ width: '50%', padding: '3px', borderLeft: '1px solid #EAEAEA' ,fontFamily:'"Roboto", sans-serif', fontWeight:"600"}}>
+
+                            <div style={{ width: '50%', padding: '3px', borderLeft: '1px solid #EAEAEA', fontFamily: '"Roboto", sans-serif', fontWeight: "600" }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '1px 8px' }}>
                                     <span style={{ color: "black" }}>Sub-total</span>
                                     <span style={{ color: 'black', }}>{formatCurrency(invoice?.subtotal)}</span>
@@ -532,42 +572,44 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
 
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', borderBottom: '1px solid #EAEAEA', }}>
                             <div style={{ borderRight: '', width: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <u style={{ color: "black", fontSize:"15px", fontWeight:"600" }}>Term & Conditions</u>
-                                <div style={{ marginTop: '5px', fontSize: '8px', color:"black" }}>{terms?.termsText || 'No terms and conditions set.'}</div>
+                                <u style={{ color: "black", fontSize: "15px", fontWeight: "600" }}>Term & Conditions</u>
+                                <div style={{ marginTop: '5px', fontSize: '8px', color: "black" }}>{terms?.termsText || 'No terms and conditions set.'}</div>
                             </div>
-
-                            {/* <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
-                                <div style={{ display: 'flex', justifyContent: 'center', borderTop: '1px solid #EAEAEA', padding: '1px 8px', marginTop: '60px' }}>
-                                    <span style={{ fontWeight: '500', fontSize: '10px', }}>Signature</span>
-                                </div>
-                            </div> */}
                             <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'center', 
-    borderTop: '1px solid #EAEAEA', 
-    padding: '1px 8px', 
-    marginTop: '60px' 
-  }}>
-    {signatureUrl ? (
-      <div style={{ textAlign: 'center' }}>
-        <img 
-          src={signatureUrl} 
-          alt="Signature" 
-          style={{ 
-            width: '100px', 
-            height: '50px', 
-            objectFit: 'contain',
-            marginBottom: '5px'
-          }} 
-        />
-        <span style={{ fontWeight: '500', fontSize: '10px' }}>Authorized Signature</span>
-      </div>
-    ) : (
-      <span style={{ fontWeight: '500', fontSize: '10px', color:"black" }}>Signature</span>
-    )}
-  </div>
-</div>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    borderTop: '1px solid #EAEAEA',
+                                    padding: '1px 8px',
+                                    marginTop: '60px'
+                                }}>
+                                    {printSettings.signatureUrl ? (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <img
+                                                src={printSettings.signatureUrl}
+                                                alt="Signature"
+                                                style={{
+                                                    width: '100px',
+                                                    height: '50px',
+                                                    objectFit: 'contain',
+                                                    marginBottom: '5px'
+                                                }}
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentElement.innerHTML += '<span style="font-weight: 500; font-size: 10px;">Authorized Signature</span>';
+                                                }}
+                                            />
+                                            <span style={{ fontWeight: '500', fontSize: '10px', display: 'block' }}>Authorized Signature</span>
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ borderTop: '1px solid #000', width: '150px', paddingTop: '5px', marginBottom: '5px' }}></div>
+                                            <span style={{ fontWeight: '500', fontSize: '10px', color: "black" }}>Authorized Signature</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                         <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
                             <span style={{ marginTop: '5px', fontSize: '10px' }}>

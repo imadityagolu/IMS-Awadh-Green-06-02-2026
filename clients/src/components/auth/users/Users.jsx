@@ -970,6 +970,7 @@ const Users = () => {
                   setSelectedUser(user);
                   setShowDeleteModal(true);
                 }}
+                onClick={(e) => e.stopPropagation()}
                 onRowClick={handleUserROwClick}
                 openMenuIndex={openMenuIndex}
                 setOpenMenuIndex={setOpenMenuIndex}

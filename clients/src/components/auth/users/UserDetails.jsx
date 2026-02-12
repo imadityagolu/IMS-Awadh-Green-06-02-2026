@@ -44,8 +44,7 @@ const UserDetails = ({ data, onEdit }) => {
              fontSize: "22px",
             fontWeight: 500,
             color:"#0E101A",
-            fontFamily:"Inter, 'sans-serif",
-            fontWeight:500,
+            fontFamily:'"Inter", sans-serif',
             lineHeight:"120%",
               marginBottom: "20px",
             }}
@@ -95,7 +94,6 @@ const UserDetails = ({ data, onEdit }) => {
             fontWeight: 500,
             color:"#0E101A",
             fontFamily:"Inter, 'sans-serif",
-            fontWeight:500,
             lineHeight:"120%"
               }}
             >
@@ -130,7 +128,6 @@ const UserDetails = ({ data, onEdit }) => {
             fontWeight: 500,
             color:"#0E101A",
             fontFamily:"Inter, 'sans-serif",
-            fontWeight:500,
             lineHeight:"120%"}}>
               Phone no. -
               <span style={{ color: "#727681" }}>{data?.phone || "---"}</span>
@@ -141,7 +138,7 @@ const UserDetails = ({ data, onEdit }) => {
             fontWeight: 500,
             color:"#0E101A",
             fontFamily:"Inter, 'sans-serif",
-            fontWeight:500,
+           
             lineHeight:"120%"}}
             >
               Email Id -
@@ -158,7 +155,7 @@ const UserDetails = ({ data, onEdit }) => {
             fontWeight: 500,
             color:"#0E101A",
             fontFamily:"Inter, 'sans-serif",
-            fontWeight:500,
+          
             lineHeight:"120%"
 
           }}

@@ -1,11 +1,13 @@
 const User = require("../models/usersModels");
 const Role = require("../models/roleModels");
+const CompanySetting = require("../models/settings/companysettingmodal");
 const cloudinary = require("../utils/cloudinary/cloudinary");
 const bcrypt = require("bcryptjs");
 const { createAuditLog } = require("../utils/auditLogger");
 
 // CREATE USER
 exports.createUser = async (req, res) => {
+  const company = await CompanySetting.findOne();
   // console.log("Incoming User Data:", req.body);
   try {
     const {
@@ -62,12 +64,12 @@ exports.createUser = async (req, res) => {
       email: email.toLowerCase(),
       phone,
       password: hashedPassword,
-      plainPassword:password,
+      plainPassword: password,
       passwordChangedAt: new Date(),
       profileImage,
       role,
       status: "Active",
-      // Removed: country, state, city, postalcode, address (not in new UI)
+       companyId: company?._id, // ← Associate user with company
     });
 
     await newUser.save();
@@ -96,7 +98,7 @@ exports.getAllUsers = async (req, res) => {
     const users = await User.find()
       .populate("role")
       .select(
-        "name plainPassword username email phone profileImage role status lastLogin createdAt"
+        "name plainPassword username email phone profileImage role status lastLogin createdAt",
       )
       .sort({ createdAt: -1 });
 
@@ -104,8 +106,8 @@ exports.getAllUsers = async (req, res) => {
     const formattedUsers = users.map((user) => ({
       _id: user._id,
       name: user.name,
-      password:user.password,
-      plainPassword:user.plainPassword,
+      password: user.password,
+      plainPassword: user.plainPassword,
       email: user.email,
       phone: user.phone,
       username: user.username,
@@ -161,7 +163,7 @@ exports.userData = async (req, res) => {
   try {
     const user = await User.findById(
       { _id: id },
-      "name plainPassword username email role phone profileImage status lastLogin createdAt updatedAt"
+      "name plainPassword username email role phone profileImage status lastLogin createdAt updatedAt",
     ).populate("role");
 
     if (user) {
@@ -425,7 +427,7 @@ exports.bulkDeleteUsers = async (req, res) => {
           await cloudinary.uploader.destroy(user.profileImage.public_id);
         } catch (error) {
           console.warn(
-            `Cloudinary delete failed for user ${user._id}: ${error.message}`
+            `Cloudinary delete failed for user ${user._id}: ${error.message}`,
           );
         }
       }

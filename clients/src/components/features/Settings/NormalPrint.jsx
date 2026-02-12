@@ -34,11 +34,9 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
   });
 
 
-
-  // Initialize form data from props
+  // In NormalPrint.js - UPDATE the initialization useEffect:
   useEffect(() => {
-    //  console.log("Template received in NormalPrint:", template);
-    // console.log("Template fieldVisibility:", template?.fieldVisibility);
+
     if (template) {
       const newFormData = {
         // Company data
@@ -48,29 +46,31 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
         companyPhone: companyData?.companyphone || "",
         companyGSTIN: companyData?.gstin || "",
 
-        // Field visibility - IMPORTANT: Check each field individually
-        showHSN: template.fieldVisibility?.showHSN ?? false,
-        showRate: template.fieldVisibility?.showRate ?? false,
-        showTax: template.fieldVisibility?.showTax ?? false,
-        showTotalsInWords: template.fieldVisibility?.showTotalsInWords ?? false,
-        showBankDetails: template.fieldVisibility?.showBankDetails ?? false,
-        showTermsConditions: template.fieldVisibility?.showTermsConditions ?? false,
+        // Field visibility
+        showHSN: template.fieldVisibility?.showHSN === true,
+        showRate: template.fieldVisibility?.showRate === true,
+        showTax: template.fieldVisibility?.showTax === true,
+        showTotalsInWords: template.fieldVisibility?.showTotalsInWords === true,
+        showBankDetails: template.fieldVisibility?.showBankDetails === true,
+        showTermsConditions: template.fieldVisibility?.showTermsConditions === true,
+
         // Template selection
         selectedTemplate: template.selectedTemplate || "template1",
+        // ✅ CRITICAL - Always get signatureUrl from template
         signatureUrl: template.signatureUrl || ""
       };
 
-      // console.log("Setting formData to:", newFormData);
       setFormData(newFormData);
       setActiveTemplate(template.selectedTemplate || "template1");
 
-      // Set signature preview if exists
+      // ✅ Set signature preview if exists
       if (template.signatureUrl) {
         setSignaturePreview(template.signatureUrl);
+      } else {
+        setSignaturePreview("");
       }
     } else if (companyData) {
       // Initialize from company data if no template
-      // console.log("No template found, using default settings");
       setFormData(prev => ({
         ...prev,
         companyLogo: companyData?.companyLogo || "",
@@ -78,26 +78,17 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
         companyEmail: companyData?.companyemail || "",
         companyPhone: companyData?.companyphone || "",
         companyGSTIN: companyData?.gstin || "",
-        ...template.fieldVisibility,
-        selectedTemplate: template.selectedTemplate || "template1",
-        signatureUrl: template.signatureUrl || ""
+        showHSN: true,
+        showRate: true,
+        showTax: true,
+        showTotalsInWords: true,
+        showBankDetails: true,
+        showTermsConditions: true,
+        selectedTemplate: "template1",
+        signatureUrl: ""
       }));
-      setActiveTemplate(template.selectedTemplate || "template1");
-      // Set signature preview if exists
-      if (template.signatureUrl) {
-        setSignaturePreview(template.signatureUrl);
-      }
-    } else if (companyData) {
-      // Initialize from company data if no template
-      setFormData(prev => ({
-        ...prev,
-        companyLogo: companyData?.companyLogo || "",
-        companyAddress: companyData.companyaddress || "",
-        companyEmail: companyData.companyemail || "",
-        companyPhone: companyData.companyphone || "",
-        companyGSTIN: companyData.gstin || "",
-        signatureUrl: prev.signatureUrl || ""
-      }));
+      setActiveTemplate("template1");
+      setSignaturePreview("");
     }
   }, [template, companyData]);
 
@@ -105,7 +96,6 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
   useEffect(() => {
     if (formData.signatureUrl) {
       setSignaturePreview(formData.signatureUrl);
-      console.log("Signature URL updated:", formData.signatureUrl);
     } else {
       setSignaturePreview("");
     }
@@ -166,8 +156,7 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
     // Upload to server
     await uploadSignatureToServer(file);
   };
-
-  // Update the uploadSignatureToServer function in NormalPrint.js
+  // In NormalPrint.js - UPDATE uploadSignatureToServer:
   const uploadSignatureToServer = async (file) => {
     try {
       setIsUploading(true);
@@ -175,7 +164,6 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
       const formData = new FormData();
       formData.append('signature', file);
 
-      // Use the print template endpoint
       const response = await api.post('/api/print-templates/upload-signature', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -184,11 +172,17 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
 
       if (response.data.success) {
         const signatureUrl = response.data.data.url;
+
+        // Update formData with new signature URL
         setFormData(prev => ({
           ...prev,
           signatureUrl: signatureUrl
         }));
+
         toast.success('Signature uploaded successfully');
+
+        // ✅ AUTO-SAVE after upload
+        await handleSaveSettings();
       }
     } catch (error) {
       console.error('Error uploading signature:', error);
@@ -214,28 +208,36 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
     }
   };
 
-  // Update the removeSignature function
-  const removeSignature = () => {
-    // If you have public_id, you can delete from Cloudinary
-    // if (formData.signaturePublicId) {
-    //   deleteSignatureFromServer(formData.signaturePublicId);
-    // }
-
+ // In NormalPrint.js - UPDATE removeSignature:
+const removeSignature = async () => {
+  try {
+    // Clear local state
     setSignatureImage(null);
     setSignaturePreview("");
+    
+    // Update formData
     setFormData(prev => ({
       ...prev,
       signatureUrl: "",
-      signaturePublicId: "" // if you're storing public_id
     }));
-  };
 
+    toast.success('Signature removed');
+    
+    // ✅ AUTO-SAVE after removal
+    await handleSaveSettings();
+    
+  } catch (error) {
+    console.error('Error removing signature:', error);
+    toast.error('Failed to remove signature');
+  }
+};
 
+  // In NormalPrint.js - UPDATE handleSaveSettings:
+  // In NormalPrint.js - UPDATE handleSaveSettings:
   const handleSaveSettings = async () => {
     try {
-      // console.log("Saving with formData:", formData);
 
-      // Prepare data for saving - IMPORTANT: Use the exact field names from your schema
+      // Prepare data for saving - MAKE SURE signatureUrl is included
       const saveData = {
         templateType: 'normal',
         selectedTemplate: formData.selectedTemplate,
@@ -246,20 +248,54 @@ const NormalPrint = ({ template, companyData, products, customer, onSave, isSavi
           showTotalsInWords: Boolean(formData.showTotalsInWords),
           showBankDetails: Boolean(formData.showBankDetails),
           showTermsConditions: Boolean(formData.showTermsConditions),
-          // Include all required fields from schema
-          showDate: true, // Add default value for required field
-          showTime: true, // Add default value for required field
+          showDate: true,
+          showTime: true,
         },
-        signatureUrl: formData.signatureUrl,
+        // ✅ CRITICAL - Include signatureUrl from formData
+        signatureUrl: formData.signatureUrl || "",
         templateName: `Normal Template - ${formData.selectedTemplate}`,
-        // Don't send companyData here - that should be handled separately
+        layoutConfig: {
+          headerPosition: "center",
+          footerPosition: "center",
+          fontSize: 12,
+          margin: {
+            top: 10,
+            bottom: 10,
+            left: 10,
+            right: 10
+          }
+        }
       };
-      
-    // Simple: always pass the current template._id if it exists
-    const templateId = template?._id;
+
+      // Get template ID if it exists
+      const templateId = template?._id;
 
       // Call the parent save function
       await onSave(saveData, templateId);
+
+      toast.success("Settings saved successfully!");
+
+      // ✅ IMPORTANT: After saving, wait a bit and refresh the template
+      // This ensures we get the latest data from server
+      setTimeout(async () => {
+        try {
+          // Refresh the template data from server
+          const response = await api.get('/api/print-templates', {
+            params: { type: 'normal', includeData: true }
+          });
+
+          if (response.data.success) {
+            const { template: refreshedTemplate } = response.data.data;
+            if (refreshedTemplate) {
+              // Update the template prop via parent
+              onSave(refreshedTemplate, refreshedTemplate._id);
+            }
+          }
+        } catch (error) {
+          console.error('Error refreshing template:', error);
+        }
+      }, 500);
+
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error(`Failed to save settings: ${error.message}`);

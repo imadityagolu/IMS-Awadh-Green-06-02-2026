@@ -287,7 +287,7 @@ const UserTable = ({
               <button
                 onClick={(e) => {
                   const rect =
-                    e.currentTarget.getBoundingClientRect();
+                    e.currentTarget.getBoundingClientRect(); e.stopPropagation();
                   setOpenMenuIndex(openMenuIndex === index ? null : index)
 
                   const dropdownHeight = 260; // your menu height

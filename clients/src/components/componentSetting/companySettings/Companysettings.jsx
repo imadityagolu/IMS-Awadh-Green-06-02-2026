@@ -143,7 +143,7 @@ const Companysettings = () => {
       const res = await api.get(`/api/companyprofile/get`, {
         
       });
-      console.log("Fetched company profile data:", res.data);
+      // console.log("Fetched company profile data:", res.data);
       const profile = res.data.data;
       if (profile) {
         setFormData({
@@ -218,7 +218,7 @@ const Companysettings = () => {
     try {
       const res = await api.post(`/api/companyprofile/send`, form, {
       });
-      console.log("Form Data", formData);
+      // console.log("Form Data", formData);
       // localStorage.setItem("companyinfo", JSON.stringify(formData));
       if (res.status === 200 || res.status === 201) {
         toast.success(
@@ -270,7 +270,7 @@ const Companysettings = () => {
         })
         if (res.status === 200) {
           setCompanyImages(res.data.data)
-          console.log("res.data from cmpy details", res.data.data)
+          // console.log("res.data from cmpy details", res.data.data)
         }
       } catch (error) {
         toast.error("Unable to find company details", {

@@ -464,6 +464,7 @@ function CustomerCreateQuotation() {
   const [companyData, setCompanyData] = useState(null);
   const [banks, setBanks] = useState([]);
   const [terms, setTerms] = useState(null);
+  const [template, setTemplate] = useState(null);
 
   // check if we're in "create from navbar" mode (no customerId)
   const isFromNavbar = !customerId;
@@ -537,6 +538,7 @@ function CustomerCreateQuotation() {
     subcategory: false,
     itembarcode: false,
     hsn: false,
+    description: false,
     lotno: false,
     serialno: false,
     variants: { size: false, color: false },
@@ -559,6 +561,7 @@ function CustomerCreateQuotation() {
           subcategory: data.subcategory || false,
           itembarcode: data.itembarcode || false,
           hsn: data.hsn || false,
+          description: data.description || false,
           lotno: data.lotno || false,
           serialno: data.serialno || false,
           variants: {
@@ -989,6 +992,7 @@ function CustomerCreateQuotation() {
     // Update with product details
     updateProduct(rowId, "itemName", exactProduct.productName);
     updateProduct(rowId, "name", exactProduct.productName);
+    updateProduct(rowId, "description", exactProduct.description || "");
     updateProduct(rowId, "unitPrice", exactProduct.sellingPrice || 0);
     updateProduct(
       rowId,
@@ -998,6 +1002,7 @@ function CustomerCreateQuotation() {
     updateProduct(rowId, "taxType", exactProduct.tax || "GST 0%");
     updateProduct(rowId, "unit", exactProduct.unit || "Piece");
     updateProduct(rowId, "hsnCode", exactProduct.hsn?.hsnCode || "");
+    updateProduct(rowId, "description", product.description || "");
     updateProduct(rowId, "lotNumber", lotNumber);
     updateProduct(rowId, "availableSerialNos", serialNumbers);
     updateProduct(rowId, "selectedSerialNos", []); // Initialize empty
@@ -1068,6 +1073,9 @@ function CustomerCreateQuotation() {
 
         let updated = { ...p };
 
+        if (field === "description") {
+          updated.description = value;
+        }
         // Handle quantity specially to enforce minimum of 1
         if (field === "qty") {
           const numValue = parseFloat(value);
@@ -2502,6 +2510,47 @@ function CustomerCreateQuotation() {
                       display: "flex",
                     }}
                   >
+                    <div
+                      style={{
+                        width: 1,
+                        height: 30,
+                        background: "var(--Black-Disable, #A2A8B8)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        width: 120,
+                        height: 30,
+                        paddingLeft: 12,
+                        paddingRight: 12,
+                        paddingTop: 4,
+                        paddingBottom: 4,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 8,
+                        display: "flex",
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: "#727681",
+                          fontSize: 14,
+                          fontFamily: "Inter",
+                          fontWeight: "500",
+                          lineHeight: "16.80px",
+                          wordWrap: "break-word",
+                        }}
+                      >
+                        Description
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: 1,
+                        height: 30,
+                        background: "var(--Black-Disable, #A2A8B8)",
+                      }}
+                    />
                     {/* Lot No Column */}
                     <div
                       style={{
@@ -2819,7 +2868,9 @@ function CustomerCreateQuotation() {
                           justifyContent: "flex-start",
                           alignItems: "flex-start",
                           display: "inline-flex",
+                          position: "relative",
                         }}
+                        className="product-row"
                       >
                         <div
                           style={{
@@ -3007,6 +3058,20 @@ function CustomerCreateQuotation() {
                                         >
                                           {product.productName}
                                         </div>
+                                        {product.description && (
+                                          <div
+                                            style={{
+                                              color: "#6b7280",
+                                              fontSize: "10px",
+                                              marginBottom: "2px",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: "end",
+                                            }}
+                                          >
+                                            Description: {product.description}
+                                          </div>
+                                        )}
                                         {/* HSN Code (optional) */}
                                         {product.hsn?.hsnCode && (
                                           <div
@@ -3020,6 +3085,21 @@ function CustomerCreateQuotation() {
                                             }}
                                           >
                                             HSN: {product.hsn.hsnCode}
+                                          </div>
+                                        )}
+                                        {product.serialNumbers && product.serialNumbers.length > 0 && (
+                                          <div
+                                            style={{
+                                              color: "#10b981",
+                                              fontSize: "10px",
+                                              marginBottom: "2px",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "4px",
+                                            }}
+                                          >
+                                            <span>🔢</span>
+                                            {product.serialNumbers.length} Serial No(s) available
                                           </div>
                                         )}
                                         {/* Price */}
@@ -3042,6 +3122,13 @@ function CustomerCreateQuotation() {
                               </div>
                             )}
                           </div>
+                          <div
+                            style={{
+                              width: 1,
+                              height: 30,
+                              background: "var(--Black-Disable, #A2A8B8)",
+                            }}
+                          />
 
                           <div
                             style={{
@@ -3052,10 +3139,52 @@ function CustomerCreateQuotation() {
                               display: "flex",
                             }}
                           >
+                            {/* Add this after the Items column or before Lot No */}
+                            {settings.description && (
+                              <>
+                                <div
+                                  style={{
+                                    width: 120,
+                                    alignSelf: "stretch",
+                                    paddingLeft: 12,
+                                    paddingRight: 12,
+                                    paddingTop: 4,
+                                    paddingBottom: 4,
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    display: "flex",
+                                    outline: "1px var(--Stroke, #EAEAEA) solid",
+                                    borderRadius: 4,
+                                  }}
+                                >
+                                  <input
+                                    type="text"
+                                    placeholder="Description"
+                                    className="table-input"
+                                    style={{
+                                      width: "100%",
+                                      border: "none",
+                                      outline: "none",
+                                    }}
+                                    value={p.description || ""}
+                                    onChange={(e) =>
+                                      updateProduct(p.id, "description", e.target.value)
+                                    }
+                                  />
+                                </div>
+                                <div
+                                  style={{
+                                    width: 1,
+                                    height: 30,
+                                    background: "var(--Black-Disable, #A2A8B8)",
+                                  }}
+                                />
+                              </>
+                            )}
                             {/* Lot No Input */}
                             <div
                               style={{
-                                width: 150,
+                                width: 120,
                                 alignSelf: "stretch",
                                 paddingLeft: 12,
                                 paddingRight: 12,

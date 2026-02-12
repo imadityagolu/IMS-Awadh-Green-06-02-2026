@@ -565,207 +565,6 @@ function ShowCustomerInvoice() {
       <tr>
         <th className="invoice-col-sr" rowSpan="3">Sr No.</th>
         <th className="invoice-col-name" rowSpan="3">Name of the Products</th>
-                        <table
-                          className=""
-                          style={{
-                            width: "100%",
-                            border: "1px solid #EAEAEA",
-                            borderCollapse: "collapse",
-                          }}
-                        >
-                          <thead
-                            style={{
-                              textAlign: "center",
-                              fontFamily: '"Roboto", sans-serif',
-                            }}
-                          >
-                            <tr>
-                              <th
-                                style={{
-                                  borderRight: "1px solid #EAEAEA",
-                                  borderBottom: "1px solid #EAEAEA",
-                                  color: "black",
-                                  fontWeight: "500",
-                                }}
-                                rowSpan="3"
-                              >
-                                Sr No.
-                              </th>
-                              <th
-                                style={{
-                                  borderRight: "1px solid #EAEAEA",
-                                  borderBottom: "1px solid #EAEAEA",
-                                  color: "black",
-                                  fontWeight: "500",
-                                }}
-                                rowSpan="3"
-                              >
-                                Name of the Products
-                              </th>
-                              {printSettings.showHSN && (
-                                <th
-                                  style={{
-                                    borderRight: "1px solid #EAEAEA",
-                                    borderBottom: "1px solid #EAEAEA",
-                                    color: "black",
-                                    fontWeight: "500",
-                                  }}
-                                  rowSpan="2"
-                                >
-                                  HSN
-                                </th>
-                              )}
-                              <th
-                                style={{
-                                  borderRight: "1px solid #EAEAEA",
-                                  borderBottom: "1px solid #EAEAEA",
-                                  color: "black",
-                                  fontWeight: "500",
-                                }}
-                                rowSpan="3"
-                              >
-                                Lot No.
-                              </th>
-                              <th
-                                style={{
-                                  borderRight: "1px solid #EAEAEA",
-                                  borderBottom: "1px solid #EAEAEA",
-                                  color: "black",
-                                  fontWeight: "500",
-                                }}
-                                rowSpan="2"
-                              >
-                                QTY
-                              </th>
-                              {printSettings.showRate && (
-                                <th
-                                  style={{
-                                    borderRight: "1px solid #EAEAEA",
-                                    borderBottom: "1px solid #EAEAEA",
-                                    color: "black",
-                                    fontWeight: "500",
-                                  }}
-                                  rowSpan="2"
-                                >
-                                  Rate
-                                </th>
-                              )}
-                              {printSettings.showTax && (
-                                <th
-                                  style={{
-                                    borderRight: "1px solid #EAEAEA",
-                                    borderBottom: "1px solid #EAEAEA",
-                                    color: "black",
-                                    fontWeight: "500",
-                                  }}
-                                  colSpan="2"
-                                >
-                                  Tax
-                                </th>
-                              )}
-                              <th
-                                style={{
-                                  borderRight: "1px solid #EAEAEA",
-                                  borderBottom: "1px solid #EAEAEA",
-                                  color: "black",
-                                  fontWeight: "500",
-                                }}
-                                rowSpan="2"
-                              >
-                                Total
-                              </th>
-                            </tr>
-                            {printSettings.showTax && (
-                              <tr>
-                                <th
-                                  style={{
-                                    borderRight: "1px solid #EAEAEA",
-                                    borderBottom: "1px solid #EAEAEA",
-                                    color: "black",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  %
-                                </th>
-                                <th
-                                  style={{
-                                    borderRight: "1px solid #EAEAEA",
-                                    borderBottom: "1px solid #EAEAEA",
-                                    color: "black",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  ₹
-                                </th>
-                              </tr>
-                            )}
-                          </thead>
-                          <tbody
-                            style={{
-                              fontFamily: '"Roboto", sans-serif',
-                              color: "black",
-                            }}
-                          >
-                            {products.map((item, i) => (
-                              <>
-                                <tr key={i}>
-                                  <td
-                                    style={{
-                                      borderRight: "1px solid #EAEAEA",
-                                      height: "40px",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {i + 1}
-                                  </td>
-                                  <td
-                                    style={{
-                                      borderRight: "1px solid #EAEAEA",
-                                      padding: "8px 20px",
-                                      verticalAlign: "top",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        fontWeight: "500",
-                                        marginBottom: "2px",
-                                      }}
-                                    >
-                                      {item.itemName}
-                                    </div>
-                                    {printSettings.showDescription && item.description && (
-                                      <div
-                                        style={{
-                                          fontWeight: "500",
-                                        }}
-                                      >
-                                        {item.description}
-                                      </div>
-                                    )}
-                                    {item.selectedSerialNos &&
-                                      item.selectedSerialNos.length > 0 && (
-                                        <div
-                                          style={{
-                                            fontSize: "11px",
-                                            color: "#666",
-                                            fontStyle: "italic",
-                                            marginTop: "4px",
-                                            lineHeight: "1.4",
-                                          }}
-                                        >
-                                          {/* <div
-                                            style={{
-                                              fontWeight: "500",
-                                              marginBottom: "2px",
-                                              color: "#000000d0",
-                                            }}
-                                          >
-                                            Serial No:{" "}
-                                            <TiArrowDown
-                                              style={{ fontWeight: "400" }}
-                                            />
-                                          </div> */}
-
         {printSettings.showHSN && (
           <th className="invoice-col-hsn" rowSpan={printSettings.showTax ? 2 : 3}>
             HSN
@@ -797,14 +596,24 @@ function ShowCustomerInvoice() {
     </thead>
 
     <tbody>
-      {products.map((item, i) => (
-        <tr key={i}>
+                            {products.map((item, i) => (
+         <React.Fragment key={i}>
+        <tr>
           <td className="invoice-col-sr">{i + 1}</td>
 
           <td className="invoice-col-name">
             <div style={{ fontWeight: 600 }}>{item.itemName}</div>
+             {printSettings.showDescription && item.description && (
+                                      <div
+                                        style={{
+                                          fontWeight: "500",
+                                        }}
+                                      >
+                                        {item.description}
+                                      </div>
+                                    )}
 
-            {item.selectedSerialNos?.length > 0 && (
+            {item.selectedSerialNos && item.selectedSerialNos?.length > 0 && (
               <div className="invoice-serials">
                 {item.selectedSerialNos.map((sn, index) => (
                   <div key={index}>• {sn}</div>
@@ -832,7 +641,73 @@ function ShowCustomerInvoice() {
           )}
 
           <td className="invoice-col-total">₹{Number(item.amount || 0).toFixed(2)}</td>
-        </tr>
+                                </tr>
+                                 <tr>
+      <td
+        style={{
+          borderRight: "1px solid #EAEAEA",
+          height: "20px",
+          textAlign: "center",
+        }}
+      ></td>
+      <td
+        style={{
+          borderRight: "1px solid #EAEAEA",
+          padding: "0px 20px",
+        }}
+      ></td>
+      {printSettings.showHSN && (
+        <td
+          style={{
+            borderRight: "1px solid #EAEAEA",
+            textAlign: "center",
+          }}
+        ></td>
+      )}
+      <td
+        style={{
+          borderRight: "1px solid #EAEAEA",
+          textAlign: "center",
+        }}
+      ></td>
+      <td
+        style={{
+          borderRight: "1px solid #EAEAEA",
+          textAlign: "center",
+        }}
+      ></td>
+      {printSettings.showRate && (
+        <td
+          style={{
+            borderRight: "1px solid #EAEAEA",
+            textAlign: "center",
+          }}
+        ></td>
+      )}
+      {printSettings.showTax && (
+        <>
+          <td
+            style={{
+              borderRight: "1px solid #EAEAEA",
+              textAlign: "center",
+            }}
+          ></td>
+          <td
+            style={{
+              borderRight: "1px solid #EAEAEA",
+              textAlign: "center",
+            }}
+          ></td>
+        </>
+      )}
+      <td
+        style={{
+          borderRight: "1px solid #EAEAEA",
+          textAlign: "center",
+        }}
+      ></td>
+    </tr>
+  </React.Fragment>
       ))}
     </tbody>
   </table>

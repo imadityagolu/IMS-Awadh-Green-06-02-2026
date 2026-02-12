@@ -11,6 +11,7 @@ const quotationItemSchema = new mongoose.Schema(
     hsnCode: { type: String },
     lotNumber: { type: String },
     selectedSerialNos: [{ type: String }],
+    description:{type:String},
     qty: { type: Number, required: true, min: 1 },
     unit: { type: String, required: true },
     unitPrice: { type: Number, required: true, min: 0 },

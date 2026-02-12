@@ -210,9 +210,9 @@ function ShowCustomerInvoiceQuotation() {
       scale: 2,
       backgroundColor: "#ffffff",
       useCORS: true,
-      windowWidth: element.scrollWidth,
-      width: 595, // Explicit width
-      height: 842,
+      // windowWidth: element.scrollWidth,
+      // width: 595, // Explicit width
+      // height: 842,
     });
 
     const imgData = canvas.toDataURL("image/png");
@@ -285,11 +285,11 @@ function ShowCustomerInvoiceQuotation() {
             <div
               ref={invoiceRef}
               style={{
-                width: '595px',
-                minWidth: '595px',
-                maxWidth: '595px',
-                height: '842px', // A4 height at 72 DPI
-                minHeight: '842px',
+                // width: '595px',
+                // minWidth: '595px',
+                // maxWidth: '595px',
+                // height: '842px', // A4 height at 72 DPI
+                // minHeight: '842px',
                 paddingTop: 10.37,
                 paddingBottom: 20.37,
                 paddingLeft: 30.37,
@@ -339,14 +339,23 @@ function ShowCustomerInvoiceQuotation() {
                         <div style={{ width: "100px" }}>
                           <img src={companyData?.companyLogo || CompanyLogo} alt="company logo" style={{ width: "100%", objectFit: "contain" }} />
                         </div>
-                        <div style={{ width: "130px" }}>
-                          <img src={TaxInvoiceLogo} alt="tax invoice" style={{ width: "100%", objectFit: "contain" }} />
+                        <div style={{  }}>
+                          <h1
+                            style={{
+                              fontFamily: '"Roboto", sans-serif',
+                              fontSize: "18px",
+                              color: "black",
+                            }}
+                          >
+                            TAX INVOICE
+                          </h1>
                         </div>
                       </div>
                       <div style={{ width: "100%", height: 0.76, background: "var(--White-Stroke, #EAEAEA)", marginTop: "8px" }} />
 
                       {/* Quotation Date and Number */}
-                      <div style={{ width: "100%", display: "flex", justifyContent: "space-between", marginTop: "2px" }}>
+                      <div style={{ width: "100%", display: "flex", justifyContent: "space-between", marginTop: "2px", fontFamily: '"Roboto", sans-serif',
+                          color: "black", }}>
                         <span>
                           QUOTATION Date - {quotationData.quotationDate
                             ? format(new Date(quotationData.quotationDate), "dd MMM yyyy")
@@ -368,7 +377,8 @@ function ShowCustomerInvoiceQuotation() {
                                             )} */}
 
                       {/* Company and Customer Details */}
-                      <div style={{ width: "100%", display: "flex", justifyContent: "space-around", marginTop: "2px", alignItems: "center", borderBottom: "1px solid #EAEAEA" }}>
+                      <div style={{ width: "100%", display: "flex", justifyContent: "space-around", marginTop: "2px", alignItems: "center", borderBottom: "1px solid #EAEAEA", fontFamily: '"Roboto", sans-serif',
+                          color: "black", }}>
                         <div style={{ borderRight: "1px solid #EAEAEA", width: "50%", textAlign: "center" }}>
                           <span>From</span>
                         </div>
@@ -376,145 +386,131 @@ function ShowCustomerInvoiceQuotation() {
                           <span>Customer Details</span>
                         </div>
                       </div>
-                      <div style={{ width: "100%", display: "flex", justifyContent: "space-around", marginTop: "2px", alignItems: "center", borderBottom: "1px solid #EAEAEA" }}>
+                      <div style={{ width: "100%", display: "flex", justifyContent: "space-around", marginTop: "2px", alignItems: "center", borderBottom: "1px solid #EAEAEA",  fontFamily: '"Roboto", sans-serif',
+                          color: "black", }}>
                         <div style={{ borderRight: "1px solid #EAEAEA", width: "50%", padding: "3px" }}>
-                          <div><b>Name:</b> {companyData?.companyName || "N/A"}</div>
-                          <div><b>Address:</b> {companyData?.companyaddress || "N/A"}</div>
-                          <div><b>Phone:</b> {companyData?.companyphone || "N/A"}</div>
-                          <div><b>Email:</b> {companyData?.companyemail || "N/A"}</div>
-                          <div><b>GSTIN:</b> {companyData?.gstin || "N/A"}</div>
+                          <div>Name: {companyData?.companyName || "N/A"}</div>
+                          <div>Address: {companyData?.companyaddress || "N/A"}</div>
+                          <div>Phone: {companyData?.companyphone || "N/A"}</div>
+                          <div>Email: {companyData?.companyemail || "N/A"}</div>
+                          <div>GSTIN:{companyData?.gstin || "N/A"}</div>
                         </div>
                         <div style={{ width: "50%", padding: "3px" }}>
-                          <div><b>Name:</b> {customer.name || "N/A"}</div>
-                          <div><b>Address:</b> {customer.address || "N/A"}</div>
-                          <div><b>Phone:</b> {customer.phone || "N/A"}</div>
-                          <div><b>Email:</b> {customer.email || "N/A"}</div>
-                          <div><b>GSTIN:</b> {customer.gstin || "N/A"}</div>
+                          <div>Name: {customer.name || "N/A"}</div>
+                          <div>Address: {customer.address || "N/A"}</div>
+                          <div>Phone: {customer.phone || "N/A"}</div>
+                          <div>Email: {customer.email || "N/A"}</div>
+                          <div>GSTIN: {customer.gstin || "N/A"}</div>
                         </div>
                       </div>
 
                       {/* Products Table */}
-                      <div className="table-responsive mt-3">
-                        <table style={{ width: "100%", border: "1px solid #EAEAEA", borderCollapse: "collapse" }}>
-                          <thead style={{ textAlign: "center" }}>
-                            <tr>
-                              <th style={{width:"60px", borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
-                                Sr No.
-                              </th>
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
-                                Name of the Products
-                              </th>
-                              {printSettings.showHSN && (
-                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
-                                  HSN
-                                </th>
-                              )}
-                              {printSettings.showLotNumber && (
-                                <th style={{ borderRight: "1px solid #EAEAEA", width: "100px", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
-                                  Lot No.
-                                </th>
-                              )}
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
-                                QTY
-                              </th>
-                              {/* {printSettings.showSerialNumbers && (
-                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
-                                  Serial No.
-                                </th>
-                              )} */}
-                              {printSettings.showRate && (
-                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
-                                  Rate
-                                </th>
-                              )}
-                              {printSettings.showTax && (
-                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} colSpan="2">
-                                  Tax
-                                </th>
-                              )}
-                              <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", fontWeight: "400" }} rowSpan="2">
-                                Total
-                              </th>
-                            </tr>
-                            {printSettings.showTax && (
-                              <tr>
-                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", width: "40px", fontWeight: "400" }}>
-                                  %
-                                </th>
-                                <th style={{ borderRight: "1px solid #EAEAEA", borderBottom: "1px solid #EAEAEA", width: "40px", fontWeight: "400" }}>
-                                  ₹
-                                </th>
-                              </tr>
-                            )}
-                          </thead>
-                          <tbody>
-                            {products.map((item, i) => (
-                              <React.Fragment key={i}>
-                                <tr>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", height: "40px", textAlign: "center" }}>
-                                    {i + 1}
-                                  </td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", padding: "8px 20px", verticalAlign: "top" }}>
-                                    <div style={{ fontWeight: "500", marginBottom: "4px" }}>
-                                      {item.itemName}
-                                    </div>
-                                    {/* Serial Numbers Below Product Name */}
-                                    {printSettings.showSerialNumbers && item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
-                                      <div style={{ fontSize: "11px", color: "#666", fontStyle: "italic", marginTop: "4px", lineHeight: "1.3" }}>
-                                        <div style={{ fontWeight: "400", marginBottom: "2px" }}>
-                                          {item.selectedSerialNos.map(serial => 
-      serial.replace(/[\[\]"]/g, '')).join(", ")}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </td>
-                                  {printSettings.showHSN && (
-                                    <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                      {item.hsnCode || "-"}
-                                    </td>
-                                  )}
-                                  {printSettings.showLotNumber && (
-                                    <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center", verticalAlign: "top", paddingTop: "8px" }}>
-                                      {item.lotNumber || "-"}
-                                    </td>
-                                  )}
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                    {item.qty}
-                                  </td>
-                                  {printSettings.showRate && (
-                                    <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                      {item.unitPrice}
-                                    </td>
-                                  )}
-                                  {printSettings.showTax && (
-                                    <>
-                                      <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                        {item.taxRate?.toFixed(2)}%
-                                      </td>
-                                      <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                        ₹{item.taxAmount?.toFixed(2)}
-                                      </td>
-                                    </>
-                                  )}
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}>
-                                    ₹{item.amount?.toFixed(2)}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", height: "20px", textAlign: "center" }}></td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", padding: "0px 20px" }}></td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}></td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}></td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}></td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}></td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}></td>
-                                  <td style={{ borderRight: "1px solid #EAEAEA", textAlign: "center" }}></td>
-                                </tr>
-                              </React.Fragment>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                     <div className="table-responsive mt-3">
+  <table className="invoice-table">
+    <thead>
+      <tr>
+        <th className="invoice-col-sr" rowSpan="3">Sr No.</th>
+        <th className="invoice-col-name" rowSpan="3">Name of the Products</th>
+
+        {printSettings.showHSN && (
+          <th
+            className="invoice-col-hsn"
+            rowSpan={printSettings.showTax ? 2 : 3}
+          >
+            HSN
+          </th>
+        )}
+
+        {printSettings.showLotNumber && (
+          <th className="invoice-col-lot" rowSpan="3">Lot No.</th>
+        )}
+
+        <th
+          className="invoice-col-qty"
+          rowSpan={printSettings.showTax ? 2 : 3}
+        >
+          QTY
+        </th>
+
+        {printSettings.showRate && (
+          <th
+            className="invoice-col-rate"
+            rowSpan={printSettings.showTax ? 2 : 3}
+          >
+            Rate
+          </th>
+        )}
+
+        {printSettings.showTax && <th colSpan="2">Tax</th>}
+
+        <th
+          className="invoice-col-total"
+          rowSpan={printSettings.showTax ? 2 : 3}
+        >
+          Total
+        </th>
+      </tr>
+
+      {printSettings.showTax && (
+        <tr>
+          <th className="invoice-col-taxp">%</th>
+          <th className="invoice-col-taxrs">₹</th>
+        </tr>
+      )}
+    </thead>
+
+    <tbody>
+      {products.map((item, i) => (
+        <tr key={i}>
+          <td className="invoice-col-sr">{i + 1}</td>
+
+          <td className="invoice-col-name">
+            <div style={{ fontWeight: 600 }}>{item.itemName}</div>
+
+            {printSettings.showSerialNumbers &&
+              item.selectedSerialNos?.length > 0 && (
+                <div className="invoice-serials">
+                  {item.selectedSerialNos.map((sn, idx) => (
+                    <div key={idx}>• {String(sn).replace(/[\[\]"]/g, "")}</div>
+                  ))}
+                </div>
+              )}
+          </td>
+
+          {printSettings.showHSN && (
+            <td className="invoice-col-hsn">{item.hsnCode || "-"}</td>
+          )}
+
+          {printSettings.showLotNumber && (
+            <td className="invoice-col-lot">{item.lotNumber || "-"}</td>
+          )}
+
+          <td className="invoice-col-qty">{item.qty}</td>
+
+          {printSettings.showRate && (
+            <td className="invoice-col-rate">{item.unitPrice}</td>
+          )}
+
+          {printSettings.showTax && (
+            <>
+              <td className="invoice-col-taxp">
+                {Number(item.taxRate || 0).toFixed(2)}%
+              </td>
+              <td className="invoice-col-taxrs">
+                ₹{Number(item.taxAmount || 0).toFixed(2)}
+              </td>
+            </>
+          )}
+
+          <td className="invoice-col-total">
+            ₹{Number(item.amount || 0).toFixed(2)}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
 
                       {/* Summary Section */}
                       <div style={{
@@ -524,6 +520,7 @@ function ShowCustomerInvoiceQuotation() {
                         marginTop: "15px",
                         borderTop: "1px solid #EAEAEA",
                         borderBottom: "1px solid #EAEAEA",
+                          fontFamily: '"Roboto", sans-serif',
                       }}>
                         <div style={{
                           borderRight: "",
@@ -535,13 +532,18 @@ function ShowCustomerInvoiceQuotation() {
                         }}>
                           {printSettings.showTotalsInWords && (
                             <>
-                              <u>Total in words</u>
-                              <div style={{ fontSize: "12px", marginTop: "5px", fontWeight: "600" }}>
+                              <u   style={{
+                                  color: "black",
+                                  fontSize: "15px",
+                                  fontWeight: "600",
+                                }}>Total in words</u>
+                              <div style={{ fontSize: "12px", marginTop: "5px", fontWeight: "400",
+                                  color: "black",}}>
                                 {totalInWords}
                               </div>
                             </>
                           )}
-                          <div style={{ width: "100%", height: 0.76, background: "var(--White-Stroke, #EAEAEA)", marginTop: "10px" }} />
+                          <div style={{ width: "100%", height: 0.76, background: "var(--White-Stroke, #EAEAEA)", marginTop: "10px", fontFamily: '"Roboto", sans-serif', }} />
                           {/* <div style={{ marginTop: "2px", textDecoration: "underline" }}>
                             Bank Details
                           </div>
@@ -566,6 +568,8 @@ function ShowCustomerInvoiceQuotation() {
                           width: "50%",
                           // padding: "3px",
                           borderLeft: "1px solid #EAEAEA",
+                            fontFamily:'"Roboto", sans-serif',
+                            color:"black"
                         }}>
                           <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #EAEAEA", padding: "2px 8px" }}>
                             <span>Sub-total</span>
@@ -632,8 +636,10 @@ function ShowCustomerInvoiceQuotation() {
                           flexDirection: "column",
                           alignItems: "center",
                         }}>
-                          <u>Terms & Conditions</u>
-                          {terms?.termsText}
+                          <u style={{color: "black",
+                                  fontSize: "15px",
+                                  fontWeight:"600"}}>Terms & Conditions</u>
+                          <div style={{color:"black",  fontFamily:'"Roboto", sans-serif',}}>{terms?.termsText}</div>
                           <div style={{ padding: "10px", fontSize: "12px", textAlign: "left", width: "100%" }}>
                           </div>
                         </div>
@@ -645,8 +651,9 @@ function ShowCustomerInvoiceQuotation() {
                             borderTop: "1px solid #EAEAEA",
                             padding: "1px 8px",
                             marginTop: "60px",
+                              fontFamily:'"Roboto", sans-serif',
                           }}>
-                            <span style={{ fontWeight: "500", fontSize: "10px" }}>
+                            <span style={{ fontWeight: "500", fontSize: "12px" , color:"black"}}>
                               Authorized Signature
                             </span>
                           </div>

@@ -458,6 +458,17 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                                 <div style={{ fontWeight: "500", marginBottom: "4px", color: "black", fontSize: "10px", textDecoration: "underline" }}>
                                                     {item.itemName}
                                                 </div>
+                                                {item.description && (
+                                                    <div style={{
+                                                        fontSize: "11px",
+                                                        color: "black",
+                                                        marginTop: "2px",
+                                                        fontStyle: "italic",
+                                                        lineHeight: "1.4"
+                                                    }}>
+                                                        {item.description}
+                                                    </div>
+                                                )}
                                                 {item.selectedSerialNos && item.selectedSerialNos.length > 0 && (
                                                     <div
                                                         style={{
@@ -521,7 +532,7 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                     <div style={{ marginTop: '5px', fontWeight: '400', fontSize: '10px', color: "black" }}>{totalInWords}</div>
                                 </div>
                             )}
-                            
+
 
                             <div style={{ width: '50%', padding: '3px', borderLeft: '1px solid #EAEAEA', fontFamily: '"Roboto", sans-serif', fontWeight: "600" }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #EAEAEA', padding: '1px 8px' }}>
@@ -564,41 +575,41 @@ function RecentViewInvoiceModal({ invoiceData, supplierData, customerData, type 
                                 <u style={{ color: "black", fontSize: "15px", fontWeight: "600" }}>Term & Conditions</u>
                                 <div style={{ marginTop: '5px', fontSize: '8px', color: "black" }}>{terms?.termsText || 'No terms and conditions set.'}</div>
                             </div>
-                           <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
-  <div style={{
-    display: 'flex',
-    justifyContent: 'center',
-    borderTop: '1px solid #EAEAEA',
-    padding: '1px 8px',
-    marginTop: '60px'
-  }}>
-    {printSettings.signatureUrl ? (
-      <div style={{ textAlign: 'center' }}>
-        <img
-          src={printSettings.signatureUrl}
-          alt="Signature"
-          style={{
-            width: '100px',
-            height: '50px',
-            objectFit: 'contain',
-            marginBottom: '5px'
-          }}
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.style.display = 'none';
-            e.target.parentElement.innerHTML += '<span style="font-weight: 500; font-size: 10px;">Authorized Signature</span>';
-          }}
-        />
-        <span style={{ fontWeight: '500', fontSize: '10px', display: 'block' }}>Authorized Signature</span>
-      </div>
-    ) : (
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ borderTop: '1px solid #000', width: '150px', paddingTop: '5px', marginBottom: '5px' }}></div>
-        <span style={{ fontWeight: '500', fontSize: '10px', color: "black" }}>Authorized Signature</span>
-      </div>
+                            <div style={{ width: '50%', borderLeft: '1px solid #EAEAEA' }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    borderTop: '1px solid #EAEAEA',
+                                    padding: '1px 8px',
+                                    marginTop: '60px'
+                                }}>
+                                    {printSettings.signatureUrl ? (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <img
+                                                src={printSettings.signatureUrl}
+                                                alt="Signature"
+                                                style={{
+                                                    width: '100px',
+                                                    height: '50px',
+                                                    objectFit: 'contain',
+                                                    marginBottom: '5px'
+                                                }}
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentElement.innerHTML += '<span style="font-weight: 500; font-size: 10px;">Authorized Signature</span>';
+                                                }}
+                                            />
+                                            <span style={{ fontWeight: '500', fontSize: '10px', display: 'block' }}>Authorized Signature</span>
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ borderTop: '1px solid #000', width: '150px', paddingTop: '5px', marginBottom: '5px' }}></div>
+                                            <span style={{ fontWeight: '500', fontSize: '10px', color: "black" }}>Authorized Signature</span>
+                                        </div>
                                     )}
                                 </div>
-                                </div>
+                            </div>
                         </div>
                         <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
                             <span style={{ marginTop: '5px', fontSize: '10px' }}>

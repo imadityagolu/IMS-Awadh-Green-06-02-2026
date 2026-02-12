@@ -15,6 +15,7 @@ const itemSchema = new mongoose.Schema(
         index: true,
       },
     ],
+    description:{type:String},
     lotNumber: { type: String }, // Add lot number field
     selectedSerialNos: [{ type: String }],
     qty: { type: Number, required: true, min: 1 }, // CHANGED min: 0 to min: 1

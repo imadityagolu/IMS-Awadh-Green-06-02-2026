@@ -3573,6 +3573,7 @@ function CustomerCreateInvoice() {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
+                              cursor:"pointer"
                             }}
                           >
                             <RiDeleteBinLine

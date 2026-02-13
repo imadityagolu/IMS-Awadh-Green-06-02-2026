@@ -90,7 +90,7 @@ function ShowCustomerInvoiceQuotation() {
   const [normalTemplate, setNormalTemplate] = useState(null);
   const [printSettings, setPrintSettings] = useState({
     showHSN: true,
-    showDescription:true,
+    showDescription: true,
     showRate: true,
     showTax: true,
     showTotalsInWords: true,
@@ -101,7 +101,7 @@ function ShowCustomerInvoiceQuotation() {
     showSerialNumbers: true,
   });
   // fetch print template setting
-   const fetchPrintTemplate = async () => {
+  const fetchPrintTemplate = async () => {
     try {
       const res = await api.get('/api/print-templates', {
         params: {
@@ -128,6 +128,8 @@ function ShowCustomerInvoiceQuotation() {
             showBankDetails: template.fieldVisibility?.showBankDetails !== false,
             showTermsConditions: template.fieldVisibility?.showTermsConditions !== false,
             signatureUrl: template.signatureUrl || "",
+            showLotNumber: template.fieldVisibility?.showLotNumber !== false,
+            showSerialNumbers: template.fieldVisibility?.showSerialNumbers !== false,
           });
 
         }
@@ -137,13 +139,15 @@ function ShowCustomerInvoiceQuotation() {
       // Set defaults on error
       setPrintSettings({
         showHSN: true,
-        showDescription:true,
+        showDescription: true,
         showRate: true,
         showTax: true,
         showTotalsInWords: true,
         showBankDetails: true,
         showTermsConditions: true,
         signatureUrl: "",
+        showLotNumber: true,
+        showSerialNumbers: true,
       });
     }
   };
@@ -209,15 +213,6 @@ function ShowCustomerInvoiceQuotation() {
       console.error('Error fetching tempate settings:', error);
     }
   }
- 
-
-
-  useEffect(() => {
-    fetchCompanyData();
-    fetchSettings();
-    fetchSignature();
-    fetchBanks();
-  }, []);
 
   const handleDownloadPDF = async () => {
     if (!invoiceRef.current) return;
@@ -361,7 +356,7 @@ function ShowCustomerInvoiceQuotation() {
                         <div style={{ width: "100px" }}>
                           <img src={companyData?.companyLogo || CompanyLogo} alt="company logo" style={{ width: "100%", objectFit: "contain" }} />
                         </div>
-                        <div style={{  }}>
+                        <div style={{}}>
                           <h1
                             style={{
                               fontFamily: '"Roboto", sans-serif',
@@ -376,8 +371,10 @@ function ShowCustomerInvoiceQuotation() {
                       <div style={{ width: "100%", height: 0.76, background: "var(--White-Stroke, #EAEAEA)", marginTop: "8px" }} />
 
                       {/* Quotation Date and Number */}
-                      <div style={{ width: "100%", display: "flex", justifyContent: "space-between", marginTop: "2px", fontFamily: '"Roboto", sans-serif',
-                          color: "black", }}>
+                      <div style={{
+                        width: "100%", display: "flex", justifyContent: "space-between", marginTop: "2px", fontFamily: '"Roboto", sans-serif',
+                        color: "black",
+                      }}>
                         <span>
                           QUOTATION Date - {quotationData.quotationDate
                             ? format(new Date(quotationData.quotationDate), "dd MMM yyyy")
@@ -399,8 +396,10 @@ function ShowCustomerInvoiceQuotation() {
                                             )} */}
 
                       {/* Company and Customer Details */}
-                      <div style={{ width: "100%", display: "flex", justifyContent: "space-around", marginTop: "2px", alignItems: "center", borderBottom: "1px solid #EAEAEA", fontFamily: '"Roboto", sans-serif',
-                          color: "black", }}>
+                      <div style={{
+                        width: "100%", display: "flex", justifyContent: "space-around", marginTop: "2px", alignItems: "center", borderBottom: "1px solid #EAEAEA", fontFamily: '"Roboto", sans-serif',
+                        color: "black",
+                      }}>
                         <div style={{ borderRight: "1px solid #EAEAEA", width: "50%", textAlign: "center" }}>
                           <span>From</span>
                         </div>
@@ -408,8 +407,10 @@ function ShowCustomerInvoiceQuotation() {
                           <span>Customer Details</span>
                         </div>
                       </div>
-                      <div style={{ width: "100%", display: "flex", justifyContent: "space-around", marginTop: "2px", alignItems: "center", borderBottom: "1px solid #EAEAEA",  fontFamily: '"Roboto", sans-serif',
-                          color: "black", }}>
+                      <div style={{
+                        width: "100%", display: "flex", justifyContent: "space-around", marginTop: "2px", alignItems: "center", borderBottom: "1px solid #EAEAEA", fontFamily: '"Roboto", sans-serif',
+                        color: "black",
+                      }}>
                         <div style={{ borderRight: "1px solid #EAEAEA", width: "50%", padding: "3px" }}>
                           <div>Name: {companyData?.companyName || "N/A"}</div>
                           <div>Address: {companyData?.companyaddress || "N/A"}</div>
@@ -427,67 +428,67 @@ function ShowCustomerInvoiceQuotation() {
                       </div>
 
                       {/* Products Table */}
-                     <div className="table-responsive mt-3">
-  <table className="invoice-table">
-    <thead>
-      <tr>
-        <th className="invoice-col-sr" rowSpan="3">Sr No.</th>
-        <th className="invoice-col-name" rowSpan="3">Name of the Products</th>
+                      <div className="table-responsive mt-3">
+                        <table className="invoice-table">
+                          <thead>
+                            <tr>
+                              <th className="invoice-col-sr" rowSpan="3">Sr No.</th>
+                              <th className="invoice-col-name" rowSpan="3">Name of the Products</th>
 
-        {printSettings.showHSN && (
-          <th
-            className="invoice-col-hsn"
-            rowSpan={printSettings.showTax ? 2 : 3}
-          >
-            HSN
-          </th>
-        )}
+                              {printSettings.showHSN && (
+                                <th
+                                  className="invoice-col-hsn"
+                                  rowSpan={printSettings.showTax ? 2 : 3}
+                                >
+                                  HSN
+                                </th>
+                              )}
 
-        {printSettings.showLotNumber && (
-          <th className="invoice-col-lot" rowSpan="3">Lot No.</th>
-        )}
+                              {printSettings.showLotNumber && (
+                                <th className="invoice-col-lot" rowSpan="3">Lot No.</th>
+                              )}
 
-        <th
-          className="invoice-col-qty"
-          rowSpan={printSettings.showTax ? 2 : 3}
-        >
-          QTY
-        </th>
+                              <th
+                                className="invoice-col-qty"
+                                rowSpan={printSettings.showTax ? 2 : 3}
+                              >
+                                QTY
+                              </th>
 
-        {printSettings.showRate && (
-          <th
-            className="invoice-col-rate"
-            rowSpan={printSettings.showTax ? 2 : 3}
-          >
-            Rate
-          </th>
-        )}
+                              {printSettings.showRate && (
+                                <th
+                                  className="invoice-col-rate"
+                                  rowSpan={printSettings.showTax ? 2 : 3}
+                                >
+                                  Rate
+                                </th>
+                              )}
 
-        {printSettings.showTax && <th colSpan="2">Tax</th>}
+                              {printSettings.showTax && <th colSpan="2">Tax</th>}
 
-        <th
-          className="invoice-col-total"
-          rowSpan={printSettings.showTax ? 2 : 3}
-        >
-          Total
-        </th>
-      </tr>
+                              <th
+                                className="invoice-col-total"
+                                rowSpan={printSettings.showTax ? 2 : 3}
+                              >
+                                Total
+                              </th>
+                            </tr>
 
-      {printSettings.showTax && (
-        <tr>
-          <th className="invoice-col-taxp">%</th>
-          <th className="invoice-col-taxrs">₹</th>
-        </tr>
-      )}
-    </thead>
+                            {printSettings.showTax && (
+                              <tr>
+                                <th className="invoice-col-taxp">%</th>
+                                <th className="invoice-col-taxrs">₹</th>
+                              </tr>
+                            )}
+                          </thead>
 
-    <tbody>
+                          <tbody>
                             {products.map((item, i) => (
-         <React.Fragment key={i}>
-        <tr>
-          <td className="invoice-col-sr">{i + 1}</td>
+                              <React.Fragment key={i}>
+                                <tr>
+                                  <td className="invoice-col-sr">{i + 1}</td>
 
-          <td className="invoice-col-name">
+                                  <td className="invoice-col-name">
                                     <div style={{ fontWeight: 600 }}>{item.itemName}</div>
                                     {printSettings.showDescription && item.description && (
                                       <div
@@ -499,115 +500,115 @@ function ShowCustomerInvoiceQuotation() {
                                       </div>
                                     )}
 
-            {printSettings.showSerialNumbers &&
-              item.selectedSerialNos?.length > 0 && (
-                <div className="invoice-serials">
-                  {item.selectedSerialNos.map((sn, idx) => (
-                    <div key={idx}>• {String(sn).replace(/[\[\]"]/g, "")}</div>
-                  ))}
-                </div>
-              )}
-          </td>
+                                    {printSettings.showSerialNumbers &&
+                                      item.selectedSerialNos?.length > 0 && (
+                                        <div className="invoice-serials">
+                                          {item.selectedSerialNos.map((sn, idx) => (
+                                            <div key={idx}>• {String(sn).replace(/[\[\]"]/g, "")}</div>
+                                          ))}
+                                        </div>
+                                      )}
+                                  </td>
 
-          {printSettings.showHSN && (
-            <td className="invoice-col-hsn">{item.hsnCode || "-"}</td>
-          )}
+                                  {printSettings.showHSN && (
+                                    <td className="invoice-col-hsn">{item.hsnCode || "-"}</td>
+                                  )}
 
-          {printSettings.showLotNumber && (
-            <td className="invoice-col-lot">{item.lotNumber || "-"}</td>
-          )}
+                                  {printSettings.showLotNumber && (
+                                    <td className="invoice-col-lot">{item.lotNumber || "-"}</td>
+                                  )}
 
-          <td className="invoice-col-qty">{item.qty}</td>
+                                  <td className="invoice-col-qty">{item.qty}</td>
 
-          {printSettings.showRate && (
-            <td className="invoice-col-rate">{item.unitPrice}</td>
-          )}
+                                  {printSettings.showRate && (
+                                    <td className="invoice-col-rate">{item.unitPrice}</td>
+                                  )}
 
-          {printSettings.showTax && (
-            <>
-              <td className="invoice-col-taxp">
-                {Number(item.taxRate || 0).toFixed(2)}%
-              </td>
-              <td className="invoice-col-taxrs">
-                ₹{Number(item.taxAmount || 0).toFixed(2)}
-              </td>
-            </>
-          )}
+                                  {printSettings.showTax && (
+                                    <>
+                                      <td className="invoice-col-taxp">
+                                        {Number(item.taxRate || 0).toFixed(2)}%
+                                      </td>
+                                      <td className="invoice-col-taxrs">
+                                        ₹{Number(item.taxAmount || 0).toFixed(2)}
+                                      </td>
+                                    </>
+                                  )}
 
-          <td className="invoice-col-total">
-            ₹{Number(item.amount || 0).toFixed(2)}
-          </td>
+                                  <td className="invoice-col-total">
+                                    ₹{Number(item.amount || 0).toFixed(2)}
+                                  </td>
                                 </tr>
                                 <tr>
-       <td
-              style={{
-                borderRight: "1px solid #EAEAEA",
-                height: "20px",
-                textAlign: "center",
-              }}
-            ></td>
-            <td
-              style={{
-                borderRight: "1px solid #EAEAEA",
-                padding: "0px 20px",
-              }}
-            ></td>
-            {printSettings.showHSN && (
-              <td
-                style={{
-                  borderRight: "1px solid #EAEAEA",
-                  textAlign: "center",
-                }}
-              ></td>
-            )}
-            <td
-              style={{
-                borderRight: "1px solid #EAEAEA",
-                textAlign: "center",
-              }}
-            ></td>
-            <td
-              style={{
-                borderRight: "1px solid #EAEAEA",
-                textAlign: "center",
-              }}
-            ></td>
-            {printSettings.showRate && (
-              <td
-                style={{
-                  borderRight: "1px solid #EAEAEA",
-                  textAlign: "center",
-                }}
-              ></td>
-            )}
-            {printSettings.showTax && (
-              <>
-                <td
-                  style={{
-                    borderRight: "1px solid #EAEAEA",
-                    textAlign: "center",
-                  }}
-                ></td>
-                <td
-                  style={{
-                    borderRight: "1px solid #EAEAEA",
-                    textAlign: "center",
-                  }}
-                ></td>
-              </>
-            )}
-            <td
-              style={{
-                borderRight: "1px solid #EAEAEA",
-                textAlign: "center",
-              }}
-            ></td>
-          </tr>
-        </React.Fragment>
-            ))}
-    </tbody>
-  </table>
-</div>
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      height: "20px",
+                                      textAlign: "center",
+                                    }}
+                                  ></td>
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      padding: "0px 20px",
+                                    }}
+                                  ></td>
+                                  {printSettings.showHSN && (
+                                    <td
+                                      style={{
+                                        borderRight: "1px solid #EAEAEA",
+                                        textAlign: "center",
+                                      }}
+                                    ></td>
+                                  )}
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      textAlign: "center",
+                                    }}
+                                  ></td>
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      textAlign: "center",
+                                    }}
+                                  ></td>
+                                  {printSettings.showRate && (
+                                    <td
+                                      style={{
+                                        borderRight: "1px solid #EAEAEA",
+                                        textAlign: "center",
+                                      }}
+                                    ></td>
+                                  )}
+                                  {printSettings.showTax && (
+                                    <>
+                                      <td
+                                        style={{
+                                          borderRight: "1px solid #EAEAEA",
+                                          textAlign: "center",
+                                        }}
+                                      ></td>
+                                      <td
+                                        style={{
+                                          borderRight: "1px solid #EAEAEA",
+                                          textAlign: "center",
+                                        }}
+                                      ></td>
+                                    </>
+                                  )}
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      textAlign: "center",
+                                    }}
+                                  ></td>
+                                </tr>
+                              </React.Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
 
 
                       {/* Summary Section */}
@@ -618,7 +619,7 @@ function ShowCustomerInvoiceQuotation() {
                         marginTop: "15px",
                         borderTop: "1px solid #EAEAEA",
                         borderBottom: "1px solid #EAEAEA",
-                          fontFamily: '"Roboto", sans-serif',
+                        fontFamily: '"Roboto", sans-serif',
                       }}>
                         <div style={{
                           borderRight: "",
@@ -630,13 +631,15 @@ function ShowCustomerInvoiceQuotation() {
                         }}>
                           {printSettings.showTotalsInWords && (
                             <>
-                              <u   style={{
-                                  color: "black",
-                                  fontSize: "15px",
-                                  fontWeight: "600",
-                                }}>Total in words</u>
-                              <div style={{ fontSize: "12px", marginTop: "5px", fontWeight: "400",
-                                  color: "black",}}>
+                              <u style={{
+                                color: "black",
+                                fontSize: "15px",
+                                fontWeight: "600",
+                              }}>Total in words</u>
+                              <div style={{
+                                fontSize: "12px", marginTop: "5px", fontWeight: "400",
+                                color: "black",
+                              }}>
                                 {totalInWords}
                               </div>
                             </>
@@ -666,8 +669,8 @@ function ShowCustomerInvoiceQuotation() {
                           width: "50%",
                           // padding: "3px",
                           borderLeft: "1px solid #EAEAEA",
-                            fontFamily:'"Roboto", sans-serif',
-                            color:"black"
+                          fontFamily: '"Roboto", sans-serif',
+                          color: "black"
                         }}>
                           <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #EAEAEA", padding: "2px 8px" }}>
                             <span>Sub-total</span>
@@ -734,10 +737,12 @@ function ShowCustomerInvoiceQuotation() {
                           flexDirection: "column",
                           alignItems: "center",
                         }}>
-                          <u style={{color: "black",
-                                  fontSize: "15px",
-                                  fontWeight:"600"}}>Terms & Conditions</u>
-                          <div style={{color:"black",  fontFamily:'"Roboto", sans-serif',}}>{terms?.termsText}</div>
+                          <u style={{
+                            color: "black",
+                            fontSize: "15px",
+                            fontWeight: "600"
+                          }}>Terms & Conditions</u>
+                          <div style={{ color: "black", fontFamily: '"Roboto", sans-serif', }}>{terms?.termsText}</div>
                           <div style={{ padding: "10px", fontSize: "12px", textAlign: "left", width: "100%" }}>
                           </div>
                         </div>
@@ -749,11 +754,62 @@ function ShowCustomerInvoiceQuotation() {
                             borderTop: "1px solid #EAEAEA",
                             padding: "1px 8px",
                             marginTop: "60px",
-                              fontFamily:'"Roboto", sans-serif',
+                            fontFamily: '"Roboto", sans-serif',
                           }}>
-                            <span style={{ fontWeight: "500", fontSize: "12px" , color:"black"}}>
-                              Authorized Signature
-                            </span>
+                            {printSettings.signatureUrl ? (
+                              <div
+                                style={{
+                                  textAlign: "center",
+                                  paddingTop:"30px"
+                              }}
+                              >
+                                <img src={printSettings.signatureUrl}
+                                  alt="Signature"
+                                  style={{
+                                    maxWidth: "150px",
+                                    maxHeight: "60px",
+                                    objectFit: "contain",
+                                    marginBottom:"5px"
+                                  }}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.style.display = "none";
+                                    e.target.parentElement.innerHTML += `
+              <div style="border-top: 1px solid #000; width: 150px; padding-top: 5px">
+                <div style="font-weight: 500; font-size: 10px">Signature</div>
+              </div>
+            `;
+                                  }}
+                                />
+                                <div
+                                  style={{
+                                    fontWeight: 500,
+                                    fontSize:"10px"
+                                }}
+                                >
+                                  Signature
+                                </div>
+                              </div>
+                            ) : (
+                                <div
+                                style={{
+                                  borderTop: "1px solid #000",
+                                  width: "150px",
+                                  paddingTop: "35px",
+                                  textAlign: "center",
+                                }}
+                                >
+                                  <div
+                                  style={{
+                                    fontWeight: "500",
+                                    fontSize: "12px",
+                                    color: "black"
+                                  }}
+                                >
+                                  Signature
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

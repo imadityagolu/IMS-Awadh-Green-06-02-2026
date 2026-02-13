@@ -6185,6 +6185,9 @@ function CustomerCreateInvoice() {
                                     }}
                                   >
                                     {item.name || ""}
+                                    <div style={{ display: "flex", flexDirection: "column" }}>
+                                      {item.description || ""}
+                                    </div>
                                   </td>
                                   <td
                                     style={{

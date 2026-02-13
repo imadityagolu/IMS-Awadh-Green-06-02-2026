@@ -5147,6 +5147,9 @@ function CustomerCreateQuotation() {
                                   }}
                                 >
                                   {item.name || ""}
+                                  <div style={{ display: "flex", flexDirection: "column" }}>
+                                      {item.description || ""}
+                                    </div>
                                 </td>
                                 <td
                                   style={{
@@ -5172,17 +5175,25 @@ function CustomerCreateQuotation() {
                                 >
                                   {item.qty || ""}
                                 </td>
-                                <td
-                                  style={{
-                                    borderRight: "1px solid #EAEAEA",
-                                    height: "40px",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  {item.selectedSerialNos?.length > 0
-                                    ? item.selectedSerialNos.join(", ")
-                                    : "-"}
-                                </td>
+                                 <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      height: "40px",
+                                      textAlign: "center",
+                                      verticalAlign: "top",
+                                      padding: "8px 4px"
+                                    }}
+                                  >
+                                    {item.selectedSerialNos?.length > 0 ? (
+                                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                        {item.selectedSerialNos.map((sn, index) => (
+                                          <div key={index}>{sn}</div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      item.serialno || ""
+                                    )}
+                                  </td>
                                 <td
                                   style={{
                                     borderRight: "1px solid #EAEAEA",

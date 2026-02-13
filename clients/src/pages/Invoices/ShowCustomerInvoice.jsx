@@ -129,7 +129,7 @@ function ShowCustomerInvoice() {
   const [normalTemplate, setNormalTemplate] = useState(null);
   const [printSettings, setPrintSettings] = useState({
     showHSN: true,
-    showDescription:true,
+    showDescription: true,
     showRate: true,
     showTax: true,
     showTotalsInWords: true,
@@ -223,7 +223,7 @@ function ShowCustomerInvoice() {
       // Set defaults on error
       setPrintSettings({
         showHSN: true,
-        showDescription:true,
+        showDescription: true,
         showRate: true,
         showTax: true,
         showTotalsInWords: true,
@@ -356,7 +356,7 @@ function ShowCustomerInvoice() {
                 alignItems: "flex-start",
                 gap: 18.18,
                 display: "inline-flex",
-                
+
               }}
             >
               <span
@@ -560,50 +560,50 @@ function ShowCustomerInvoice() {
                         </div>
                       </div>
                       <div className="table-responsive mt-3">
-  <table className="invoice-table">
-    <thead>
-      <tr>
-        <th className="invoice-col-sr" rowSpan="3">Sr No.</th>
-        <th className="invoice-col-name" rowSpan="3">Name of the Products</th>
-        {printSettings.showHSN && (
-          <th className="invoice-col-hsn" rowSpan={printSettings.showTax ? 2 : 3}>
-            HSN
-          </th>
-        )}
+                        <table className="invoice-table">
+                          <thead>
+                            <tr>
+                              <th className="invoice-col-sr" rowSpan="3">Sr No.</th>
+                              <th className="invoice-col-name" rowSpan="3">Name of the Products</th>
+                              {printSettings.showHSN && (
+                                <th className="invoice-col-hsn" rowSpan={printSettings.showTax ? 2 : 3}>
+                                  HSN
+                                </th>
+                              )}
 
-        <th className="invoice-col-lot" rowSpan="3">Lot No.</th>
-        <th className="invoice-col-qty" rowSpan={printSettings.showTax ? 2 : 3}>QTY</th>
+                              <th className="invoice-col-lot" rowSpan="3">Lot No.</th>
+                              <th className="invoice-col-qty" rowSpan={printSettings.showTax ? 2 : 3}>QTY</th>
 
-        {printSettings.showRate && (
-          <th className="invoice-col-rate" rowSpan={printSettings.showTax ? 2 : 3}>
-            Rate
-          </th>
-        )}
+                              {printSettings.showRate && (
+                                <th className="invoice-col-rate" rowSpan={printSettings.showTax ? 2 : 3}>
+                                  Rate
+                                </th>
+                              )}
 
-        {printSettings.showTax && (
-          <th colSpan="2">Tax</th>
-        )}
+                              {printSettings.showTax && (
+                                <th colSpan="2">Tax</th>
+                              )}
 
-        <th className="invoice-col-total" rowSpan={printSettings.showTax ? 2 : 3}>Total</th>
-      </tr>
+                              <th className="invoice-col-total" rowSpan={printSettings.showTax ? 2 : 3}>Total</th>
+                            </tr>
 
-      {printSettings.showTax && (
-        <tr>
-          <th className="invoice-col-taxp">%</th>
-          <th className="invoice-col-taxrs">₹</th>
-        </tr>
-      )}
-    </thead>
+                            {printSettings.showTax && (
+                              <tr>
+                                <th className="invoice-col-taxp">%</th>
+                                <th className="invoice-col-taxrs">₹</th>
+                              </tr>
+                            )}
+                          </thead>
 
-    <tbody>
+                          <tbody>
                             {products.map((item, i) => (
-         <React.Fragment key={i}>
-        <tr>
-          <td className="invoice-col-sr">{i + 1}</td>
+                              <React.Fragment key={i}>
+                                <tr>
+                                  <td className="invoice-col-sr">{i + 1}</td>
 
-          <td className="invoice-col-name">
-            <div style={{ fontWeight: 600 }}>{item.itemName}</div>
-             {printSettings.showDescription && item.description && (
+                                  <td className="invoice-col-name">
+                                    <div style={{ fontWeight: 600 }}>{item.itemName}</div>
+                                    {printSettings.showDescription && item.description && (
                                       <div
                                         style={{
                                           fontWeight: "500",
@@ -613,105 +613,105 @@ function ShowCustomerInvoice() {
                                       </div>
                                     )}
 
-            {item.selectedSerialNos && item.selectedSerialNos?.length > 0 && (
-              <div className="invoice-serials">
-                {item.selectedSerialNos.map((sn, index) => (
-                  <div key={index}>• {sn}</div>
-                ))}
-              </div>
-            )}
-          </td>
+                                    {item.selectedSerialNos && item.selectedSerialNos?.length > 0 && (
+                                      <div className="invoice-serials">
+                                        {item.selectedSerialNos.map((sn, index) => (
+                                          <div key={index}>• {sn}</div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </td>
 
-          {printSettings.showHSN && (
-            <td className="invoice-col-hsn">{item.hsnCode || "-"}</td>
-          )}
+                                  {printSettings.showHSN && (
+                                    <td className="invoice-col-hsn">{item.hsnCode || "-"}</td>
+                                  )}
 
-          <td className="invoice-col-lot">{item.lotNumber || "-"}</td>
-          <td className="invoice-col-qty">{item.qty}</td>
+                                  <td className="invoice-col-lot">{item.lotNumber || "-"}</td>
+                                  <td className="invoice-col-qty">{item.qty}</td>
 
-          {printSettings.showRate && (
-            <td className="invoice-col-rate">{item.unitPrice}</td>
-          )}
+                                  {printSettings.showRate && (
+                                    <td className="invoice-col-rate">{item.unitPrice}</td>
+                                  )}
 
-          {printSettings.showTax && (
-            <>
-              <td className="invoice-col-taxp">{Number(item.taxRate || 0).toFixed(2)}%</td>
-              <td className="invoice-col-taxrs">₹{Number(item.taxAmount || 0).toFixed(2)}</td>
-            </>
-          )}
+                                  {printSettings.showTax && (
+                                    <>
+                                      <td className="invoice-col-taxp">{Number(item.taxRate || 0).toFixed(2)}%</td>
+                                      <td className="invoice-col-taxrs">₹{Number(item.taxAmount || 0).toFixed(2)}</td>
+                                    </>
+                                  )}
 
-          <td className="invoice-col-total">₹{Number(item.amount || 0).toFixed(2)}</td>
+                                  <td className="invoice-col-total">₹{Number(item.amount || 0).toFixed(2)}</td>
                                 </tr>
-                                 <tr>
-      <td
-        style={{
-          borderRight: "1px solid #EAEAEA",
-          height: "20px",
-          textAlign: "center",
-        }}
-      ></td>
-      <td
-        style={{
-          borderRight: "1px solid #EAEAEA",
-          padding: "0px 20px",
-        }}
-      ></td>
-      {printSettings.showHSN && (
-        <td
-          style={{
-            borderRight: "1px solid #EAEAEA",
-            textAlign: "center",
-          }}
-        ></td>
-      )}
-      <td
-        style={{
-          borderRight: "1px solid #EAEAEA",
-          textAlign: "center",
-        }}
-      ></td>
-      <td
-        style={{
-          borderRight: "1px solid #EAEAEA",
-          textAlign: "center",
-        }}
-      ></td>
-      {printSettings.showRate && (
-        <td
-          style={{
-            borderRight: "1px solid #EAEAEA",
-            textAlign: "center",
-          }}
-        ></td>
-      )}
-      {printSettings.showTax && (
-        <>
-          <td
-            style={{
-              borderRight: "1px solid #EAEAEA",
-              textAlign: "center",
-            }}
-          ></td>
-          <td
-            style={{
-              borderRight: "1px solid #EAEAEA",
-              textAlign: "center",
-            }}
-          ></td>
-        </>
-      )}
-      <td
-        style={{
-          borderRight: "1px solid #EAEAEA",
-          textAlign: "center",
-        }}
-      ></td>
-    </tr>
-  </React.Fragment>
-      ))}
-    </tbody>
-  </table>
-</div>
+                                <tr>
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      height: "20px",
+                                      textAlign: "center",
+                                    }}
+                                  ></td>
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      padding: "0px 20px",
+                                    }}
+                                  ></td>
+                                  {printSettings.showHSN && (
+                                    <td
+                                      style={{
+                                        borderRight: "1px solid #EAEAEA",
+                                        textAlign: "center",
+                                      }}
+                                    ></td>
+                                  )}
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      textAlign: "center",
+                                    }}
+                                  ></td>
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      textAlign: "center",
+                                    }}
+                                  ></td>
+                                  {printSettings.showRate && (
+                                    <td
+                                      style={{
+                                        borderRight: "1px solid #EAEAEA",
+                                        textAlign: "center",
+                                      }}
+                                    ></td>
+                                  )}
+                                  {printSettings.showTax && (
+                                    <>
+                                      <td
+                                        style={{
+                                          borderRight: "1px solid #EAEAEA",
+                                          textAlign: "center",
+                                        }}
+                                      ></td>
+                                      <td
+                                        style={{
+                                          borderRight: "1px solid #EAEAEA",
+                                          textAlign: "center",
+                                        }}
+                                      ></td>
+                                    </>
+                                  )}
+                                  <td
+                                    style={{
+                                      borderRight: "1px solid #EAEAEA",
+                                      textAlign: "center",
+                                    }}
+                                  ></td>
+                                </tr>
+                              </React.Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
 
                       <div
                         style={{
@@ -1046,21 +1046,6 @@ function ShowCustomerInvoice() {
                             <div style={{ fontFamily: '"Roboto", sans-serif', color: "black" }}>Pay Using Upi</div>
                           </div>
                           {/* qr end */}
-                          {/* <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "center",
-                              borderTop: "1px solid #EAEAEA",
-                              padding: "1px 8px",
-                              // marginTop: "60px",
-                            }}
-                          >
-                            <span
-                              style={{ fontWeight: "500", fontSize: "10px", paddingTop: "30px" }}
-                            >
-                              Signature
-                            </span>
-                          </div> */}
                           <div
                             style={{
                               display: "flex",

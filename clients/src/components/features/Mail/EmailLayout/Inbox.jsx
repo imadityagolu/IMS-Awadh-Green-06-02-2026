@@ -173,6 +173,7 @@ const Inbox = () => {
       handleToggleStar={handleToggleStar}
       handleEmailClick={markAsRead}
     />
+    
   );
 };
 

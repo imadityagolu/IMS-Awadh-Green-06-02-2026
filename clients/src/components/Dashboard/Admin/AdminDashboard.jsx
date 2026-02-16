@@ -76,6 +76,7 @@ ChartJS.register(
 import api from "../../../pages/config/axiosInstance"
 import { useAuth } from "../../auth/AuthContext"
 import DateFilterDropdown from "../../DateFilterDropdown";
+import adevertisements from "../../../assets/images/Advertisements.png"
 
 const data = {
   labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -963,6 +964,18 @@ const AdminDashboard = () => {
     Graphcard: {
       background: "white",
       border: "1px solid rgb(223 225 227 / 70%)",
+      boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+      padding: "24px",
+      borderRadius: "12px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "20px",
+      width: "100%",
+      minWidth: "525.67px",
+      height: "457px",
+      overflowY: "hidden",
+    },
+    GraphcardAdvert:{
       boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
       padding: "24px",
       borderRadius: "12px",
@@ -3071,10 +3084,11 @@ const datasFour = {
 
           {/*ims-advertisment-app-banner*/}
           <div
-            className="ims-advertisment-app-banner position-relative"
-            style={styles.Graphcard}
+            // className="ims-advertisment-app-banner position-relative"
+                 style={styles.GraphcardAdvert}
+            className="ims-advertisment-app-banner position-relative"   
           >
-            <div>
+            {/* <div>
               <h1
                 style={{
                   fontSize: "40px",
@@ -3119,7 +3133,8 @@ const datasFour = {
                 Coming Soon
               </button>
               <img style={{ width: "100%", maxWidth: "311px" }} src={advertisment_ims} alt="advertisment_ims" />
-            </div>
+            </div> */}
+             <img src={adevertisements} alt="adevertisements"  style={{width:"100%", height:"100%"}}/>
           </div>
         </div>
 

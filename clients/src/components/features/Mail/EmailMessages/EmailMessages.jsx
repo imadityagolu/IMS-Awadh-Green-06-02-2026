@@ -18,6 +18,7 @@ import BASE_URL from "../../../../pages/config/config";
 import { useLocation } from "react-router-dom";
 import Alk from "../../../../assets/images/alk.jpg"
 import api from "../../../../pages/config/axiosInstance"
+import noData from "../../../../assets/images/no-data.png"
 
 
 
@@ -327,6 +328,17 @@ const EmailMessages = ({
   return () => window.removeEventListener("resize", handleResize);
 }, []);
 
+//data 0 lenth filter
+const filteredList = (emailsToShow || []).filter((email) => {
+  const s = search.toLowerCase();
+  return (
+    (email.sender?.name || "").toLowerCase().includes(s) ||
+    (email.subject || "").toLowerCase().includes(s) ||
+    (email.messagePreview || "").toLowerCase().includes(s)
+  );
+});
+
+
   return (
     <div className="mainemailmessage">
       <div className="filter">
@@ -348,6 +360,11 @@ const EmailMessages = ({
             <BiRefresh onClick={() => window.location.reload()} />
           </span> */}
       </div>
+       {/* <div className="blank-data-section" style={{paddingTop:"80px", textAlign:"center"}}>
+         <img src={noData} alt="no-data" />
+         <h1 style={{fontFamily:'"Public Sans", sans-serif', fontSize:"18px", fontWeight:"700",color:"#939090"}}>No Available Data</h1>
+         <p style={{fontFamily:'"Public Sans", sans-serif', fontSize:"15px", fontWeight:"500",color:"#A0A0A0"}}>Please Send First Mail and View Updates</p>
+       </div> */}
       <div className="header22">
         {/* inbox */}
         <div className="inbox">
@@ -408,345 +425,264 @@ const EmailMessages = ({
 
       {/* email message div */}
       <div className="justinmaindivmap">
-        {selectedEmail ? (
-          <EmailDetail
-            email={selectedEmail}
-            onBack={handleBackToInbox}
-            handleToggleStar={handleToggleStar}
-            onDelete={(id) => {
-              setEmails((prev) => prev.filter((email) => getEmailId(email) !== id));
-              setSelectedEmail(null);
-            }}
-          />
-        ) : (
+  {selectedEmail ? (
+    <EmailDetail
+      email={selectedEmail}
+      onBack={handleBackToInbox}
+      handleToggleStar={handleToggleStar}
+      onDelete={(id) => {
+        setEmails((prev) => prev.filter((email) => getEmailId(email) !== id));
+        setSelectedEmail(null);
+      }}
+    />
+  ) : filteredList.length === 0 ? (
+    <div
+      className="blank-data-section"
+      style={{ paddingTop: "80px", textAlign: "center" }}
+    >
+      <img src={noData} alt="no-data" />
+      <h1
+        style={{
+          fontFamily: '"Public Sans", sans-serif',
+          fontSize: "18px",
+          fontWeight: "700",
+          color: "#939090",
+        }}
+      >
+        No Available Data
+      </h1>
+      <p
+        style={{
+          fontFamily: '"Public Sans", sans-serif',
+          fontSize: "15px",
+          fontWeight: "500",
+          color: "#A0A0A0",
+        }}
+      >
+        Please Send First Mail and View Updates
+      </p>
+    </div>
+  ) : (
+    filteredList.map((email) => (
+      <div
+        className={`justinmaindiv ${
+          selectedEmails.includes(getEmailId(email)) ? "selected-email" : ""
+        }`}
+        key={getEmailId(email)}
+      >
+        <div className="justinleftrightmaindiv" style={{ cursor: "pointer" }}>
+          {/* left */}
+          <div className="justinmaindivleftdiv">
+            <label className="custom-checkbox">
+              <input
+                className="checkmarkinput"
+                type="checkbox"
+                checked={selectedEmails.includes(getEmailId(email))}
+                onChange={() => {
+                  const id = getEmailId(email);
+                  if (selectedEmails.includes(id)) {
+                    setSelectedEmails(selectedEmails.filter((item) => item !== id));
+                  } else {
+                    setSelectedEmails([...selectedEmails, id]);
+                  }
+                }}
+                style={{ width: "16px", height: "16px", borderRadius: "5px" }}
+              />
+              <span className="checkmark"></span>
+            </label>
 
-          emailsToShow
-            .filter(
-              (email) =>
-                email.sender?.name.toLowerCase().includes(search.toLowerCase()) ||
-                email?.subject.toLowerCase().includes(search.toLowerCase()) ||
-                email?.messagePreview.toLowerCase().includes(search.toLowerCase())
-            )
-            .map((email) => (
-              <div
-                className={`justinmaindiv ${selectedEmails.includes(getEmailId(email)) ? "selected-email" : ""
-                  }`}
-                key={getEmailId(email)}
+            {!isDraftPage && (
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleStar(getEmailId(email), email.tags?.starred);
+                }}
+                style={{ cursor: "pointer" }}
               >
+                <AiFillStar
+                  style={{
+                    fontSize: "18px",
+                    color: email.tags?.starred ? "#fba64b" : "#ccc",
+                  }}
+                />
+              </span>
+            )}
+
+            <span>
+              {email.sender?.profileImage ? (
+                <img
+                  src={email.sender?.profileImage}
+                  alt={email.sender?.initials}
+                  style={{
+                    width: "25px",
+                    height: "25px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
                 <div
-                  className="justinleftrightmaindiv"
-                  style={{ cursor: "pointer" }}
+                  style={{
+                    backgroundColor: "#ccc",
+                    width: "25px",
+                    height: "25px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "12px",
+                    color: "#fff",
+                  }}
                 >
-                  {/* left */}
-                  <div className="justinmaindivleftdiv">
-                    {/* <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                      }}
-                    > */}
-                    <label className="custom-checkbox">
-                      <input
-                        className="checkmarkinput"
-                        type="checkbox"
-                        // checked={selectedEmails.includes(email._id)}
-                        checked={selectedEmails.includes(getEmailId(email))}
-                        onChange={() => {
-                          const id = getEmailId(email);
-                          if (selectedEmails.includes(id)) {
-                            setSelectedEmails(
-                              selectedEmails.filter((item) => item !== id)
-                            );
-                          } else {
-                            setSelectedEmails([...selectedEmails, id]);
-                          }
-                        }}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          borderRadius: "5px",
-                        }}
-                      />
-                      <span className="checkmark"></span>
-                    </label>
-                    {!isDraftPage && (
+                  {email.sender?.initials ||
+                    email.sender?.name
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()}
+                </div>
+              )}
+            </span>
+
+            <div
+              style={{ display: "flex", flexDirection: "column" }}
+              onClick={() => {
+                if (!isDraftPage) {
+                  setSelectedEmail(email);
+                  if (handleEmailClick) handleEmailClick(email._id);
+                } else if (onDraftClick) {
+                  onDraftClick(email);
+                }
+              }}
+            >
+              <span
+                style={{
+                  color: "#262626",
+                  fontSize: "14px",
+                  fontWeight: 400,
+                  marginBottom: "5px",
+                  lineHeight: "14px",
+                  marginRight: "22px",
+                }}
+              >
+                <span>{email.sender?.name}</span>
+              </span>
+
+              <span style={{ color: "#262626", fontSize: "14px", fontWeight: 400 }}>
+                {(email.subject || "").slice(0, 30)}
+              </span>
+
+              <span style={{ color: "#888888", fontSize: "12px", fontWeight: 400 }}>
+                {email.messagePreview}
+              </span>
+
+              {(email.attachments?.length > 0 || email.image?.length > 0) && (
+                <div className="attachment-section">
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                    {[...(email.attachments || []), ...(email.image || [])]
+                      .slice(0, isSmallScreen ? 1 : 2)
+                      .map((fileUrl, index) => {
+                        const fileName = fileUrl.split("/").pop();
+                        const extension = fileUrl.split(".").pop().toLowerCase();
+                        const isImage = fileUrl.match(/\.(jpeg|jpg|png|gif)$/i);
+                        const isPdf = extension === "pdf";
+
+                        return (
+                          <a
+                            key={index}
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              border: "1px solid #ccc",
+                              padding: "5px 5px",
+                              borderRadius: "20px",
+                              textDecoration: "none",
+                              backgroundColor: "#f0f0f0",
+                              color: "#333",
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <img
+                              src={
+                                isImage
+                                  ? fileUrl
+                                  : isPdf
+                                  ? "/pdf.png"
+                                  : "/file-icon.png"
+                              }
+                              alt="file"
+                              width="20"
+                              height="20"
+                              style={{ objectFit: "cover", borderRadius: "5px" }}
+                            />
+
+                            <span
+                              style={{
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                maxWidth: "150px",
+                                display: "inline-block",
+                                verticalAlign: "middle",
+                              }}
+                            >
+                              {fileName}
+                            </span>
+                          </a>
+                        );
+                      })}
+
+                    {[...(email.attachments || []), ...(email.image || [])].length > 2 && (
                       <span
-                        onClick={() =>
-                          toggleStar(getEmailId(email), email.tags?.starred)
-                        }
-                        style={{ cursor: "pointer" }}
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "20px",
+                          backgroundColor: "#ddd",
+                          fontSize: "13px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
                       >
-                        <AiFillStar
-                          style={{
-                            fontSize: "18px",
-                            color: email.tags?.starred ? "#fba64b" : "#ccc",
-                          }}
-                        />
+                        +{[...(email.attachments || []), ...(email.image || [])].length - 2}{" "}
+                        more
                       </span>
                     )}
-                    <span>
-                      {email.sender?.profileImage ? (
-                        <img src={email.sender?.profileImage} alt={email.sender?.initials} style={{ width: '25px', height: '25px', borderRadius: '50%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{
-                          backgroundColor: '#ccc',
-                          width: '25px',
-                          height: '25px',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          color: '#fff'
-                        }}>
-                          {/* {email.sender?.name?.[0]?.toUpperCase()} */}
-                          {email.sender?.initials || email.sender?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </div>
-                      )
-                      }
-                    </span>
-                    {/* <span
-                      style={{
-                        backgroundColor: email.sender.backgroundColor,
-                        color: "white",
-                        borderRadius: "50%",
-                        width: "40px", height: "40px", display: 'flex', alignItems: 'center', justifyContent: 'center', objectFit: 'contain'
-                      }}
-                    >
-                      {email.sender.initials}
-                    </span> */}
-                    {/* </div> */}
-                    {/* <div
-                      style={{ display: "flex", flexDirection: 'column' }}
-                      onClick={() => { if (isDraftPage && onDraftClick) { onDraftClick(email); } else { setSelectedEmail(email) } }}
-                    > */}
-                    <div
-                      style={{ display: "flex", flexDirection: 'column' }}
-                      onClick={() => {
-                        if (!isDraftPage) {
-                          setSelectedEmail(email);
-                          if (handleEmailClick) handleEmailClick(email._id); // ⬅️ call markAsRead
-                        } else if (onDraftClick) {
-                          onDraftClick(email);
-                        }
-                      }}
-                    >
-
-                      <span
-                        style={{
-                          color: "#262626",
-                          fontSize: "14px",
-                          fontWeight: 400,
-                          marginBottom: "5px",
-                          lineHeight: '14px',
-                          marginRight: "22px",
-                        }}
-                      >
-                        <span>{email.sender?.name}</span>
-
-                      </span>
-                      <span
-                        style={{
-                          color: "#262626",
-                          fontSize: "14px",
-                          fontWeight: 400,
-                        }}
-                      >
-                        {email.subject.slice(0, 30)}
-                      </span>
-                      <span style={{ color: "#888888", fontSize: "12px", fontWeight: 400, }}>
-                        {email.messagePreview}
-                      </span>
-                      {/* image and attachment */}
-                      {/* image and attachment combined display */}
-                      {(email.attachments?.length > 0 || email.image?.length > 0) && (
-                        <div
-                          className="attachment-section"
-
-                        >
-                          <div
-                            style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}
-                          >
-                            {[
-                              ...(email.attachments || []),
-                              ...(email.image || []),
-                            ].slice(0, isSmallScreen ? 1:2).map((fileUrl, index) => {
-                              const fileName = fileUrl.split("/").pop();
-                              const extension = fileUrl
-                                .split(".")
-                                .pop()
-                                .toLowerCase();
-                              const isImage = fileUrl.match(/\.(jpeg|jpg|png|gif)$/i);
-                              const isPdf = extension === "pdf";
-
-                              return (
-                                <a
-                                  key={index}
-                                  href={fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    border: "1px solid #ccc",
-                                    padding: "5px 5px",
-                                    borderRadius: "20px",
-                                    textDecoration: "none",
-                                    backgroundColor: "#f0f0f0",
-                                    color: "#333",
-                                  }}
-                                >
-                                  <img
-                                    src={
-                                      isImage
-                                        ? fileUrl
-                                        : isPdf
-                                          ? "/pdf.png"
-                                          : "/file-icon.png"
-                                    }
-                                    alt="file"
-                                    width="20"
-                                    height="20"
-                                    style={{
-                                      objectFit: "cover",
-                                      borderRadius: "5px",
-                                    }}
-                                  />
-
-                                  <span
-                                    style={{
-                                      whiteSpace: "nowrap",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                      maxWidth: "150px",
-                                      display: "inline-block",
-                                      verticalAlign: "middle",
-                                    }}
-                                  >
-                                    {fileName}
-                                  </span>
-                                </a>
-                              );
-                            })}
-                            {[
-                              ...(email.attachments || []),
-                              ...(email.image || [])
-                            ].length > 2 && (
-                                <span
-                                  style={{
-                                    padding: "5px 10px",
-                                    borderRadius: "20px",
-                                    backgroundColor: "#ddd",
-                                    fontSize: "13px",
-                                    fontWeight: 500,
-                                    color: "#333",
-                                  }}
-                                >
-                                  +{[...(email.attachments || []), ...(email.image || [])].length - 2} more
-                                </span>
-                              )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* folder gallery */}
-                      <div className="foldergallerydiv">
-                        {/* <div
-                          style={{
-                            display: "flex",
-                            gap: "10px",
-                            color: "#676969",
-                            fontWeight: 600,
-                          }}
-                        >
-                          <span>
-                            <AiOutlineFolderOpen />
-                          </span>
-                          <span>{email.attachments?.length}</span>
-                          <span>
-                            <GrGallery />
-                          </span>
-                          <span>{email.image?.length}</span>
-                        </div> */}
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                          }}
-                        >
-                          {/* <span
-                    style={{
-                      padding: "4px 7px",
-                      backgroundColor: "#010c27",
-                      borderRadius: "45%",
-                      color: "white",
-                      fontSize: "12px",
-                    }}
-                  >
-                    +{email.attachments?.length}
-                  </span> */}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* right */}
-                  <div className="justinmaindivrightdiv">
-                    <span onClick={() => setMenuOpenId(email._id)}>
-                      {/* <div style={{ position: "relative" }}>
-                          <span
-                            onClick={() =>
-                              setMenuOpenId(
-                                menuOpenId === email._id ? null : email._id
-                              )
-                            }
-                            className="three-dot-icon"
-                          >
-                            <HiOutlineDotsHorizontal />
-                          </span>
-
-                          {menuOpenId === email._id && (
-                            <div className="custom-popup-menu" ref={menuRef}>
-                              <div onClick={handleReply}>
-                                <FaReply /> Reply
-                              </div>
-                              <div onClick={() => handleDelete(email._id)}>
-                                {" "}
-                                <RiDeleteBinLine /> Delete
-                              </div>
-                            </div>
-                          )}
-                        </div> */}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "22px",
-                        borderRadius: "50%",
-                        fontWeight: "bold",
-                      }}
-                    ></span>
-                    <span
-                      className="time-label"
-                      style={{ marginBottom: "5px", fontSize: "16px" }}
-                    >
-                      {email.time}
-                    </span>
-                    <span
-                      className="delete-icon"
-                      style={{ cursor: "pointer", fontSize: "14px" }}
-                      onClick={() => handleDelete(getEmailId(email))}
-                    >
-                      <RiDeleteBinLine />
-                    </span>
                   </div>
                 </div>
-              </div>
-            ))
-        )}
+              )}
+            </div>
+          </div>
+
+          {/* right */}
+          <div className="justinmaindivrightdiv">
+            <span
+              className="time-label"
+              style={{ marginBottom: "5px", fontSize: "16px" }}
+            >
+              {email.time}
+            </span>
+
+            <span
+              className="delete-icon"
+              style={{ cursor: "pointer", fontSize: "14px" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(getEmailId(email));
+              }}
+            >
+              <RiDeleteBinLine />
+            </span>
+          </div>
+        </div>
       </div>
+    ))
+  )}
+     </div>
+
     </div>
   );
 };
